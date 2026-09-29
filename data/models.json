@@ -1,0 +1,1080 @@
+{
+  "_readme": "Model catalog. Architecture fields drive KV-cache sizing; api_prices are USD per 1M tokens. self_hostable=false models appear only in the API comparison.",
+  "models": [
+    {
+      "id": "llama-3.1-8b",
+      "name": "Llama 3.1 8B Instruct",
+      "family": "Meta Llama",
+      "self_hostable": true,
+      "architecture": "dense",
+      "params_total_b": {
+        "value": 8.03,
+        "source": "Meta model card",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "params_active_b": {
+        "value": 8.03,
+        "source": "Meta model card",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "layers": {
+        "value": 32,
+        "source": "Hugging Face config.json (meta-llama/Llama-3.1-8B-Instruct)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "attention_heads": {
+        "value": 32,
+        "source": "Hugging Face config.json (meta-llama/Llama-3.1-8B-Instruct)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "kv_heads": {
+        "value": 8,
+        "source": "Hugging Face config.json (meta-llama/Llama-3.1-8B-Instruct)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "head_dim": {
+        "value": 128,
+        "source": "Hugging Face config.json (meta-llama/Llama-3.1-8B-Instruct)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "max_context": {
+        "value": 131072,
+        "source": "Hugging Face config.json (meta-llama/Llama-3.1-8B-Instruct)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "kv_layout": {
+        "type": "standard"
+      },
+      "api_prices": [
+        {
+          "provider": "Together AI",
+          "input_per_m": {
+            "value": 0.14,
+            "source": "together.ai/pricing (serverless)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 0.14,
+            "source": "together.ai/pricing (serverless)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "cached_input_per_m": null,
+          "batch_discount_pct": null
+        },
+        {
+          "provider": "Fireworks AI",
+          "input_per_m": {
+            "value": 0.2,
+            "source": "docs.fireworks.ai/serverless/pricing (generic size-tier price; serverless availability of this model not verified)",
+            "as_of": "2026-09-28",
+            "status": "placeholder"
+          },
+          "output_per_m": {
+            "value": 0.2,
+            "source": "docs.fireworks.ai/serverless/pricing (generic size-tier price; serverless availability of this model not verified)",
+            "as_of": "2026-09-28",
+            "status": "placeholder"
+          },
+          "cached_input_per_m": null,
+          "batch_discount_pct": {
+            "value": 50,
+            "source": "docs.fireworks.ai/serverless/pricing (generic size-tier price; serverless availability of this model not verified)",
+            "as_of": "2026-09-28",
+            "status": "placeholder"
+          }
+        }
+      ]
+    },
+    {
+      "id": "llama-3.3-70b",
+      "name": "Llama 3.3 70B Instruct",
+      "family": "Meta Llama",
+      "self_hostable": true,
+      "architecture": "dense",
+      "params_total_b": {
+        "value": 70.6,
+        "source": "Meta model card",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "params_active_b": {
+        "value": 70.6,
+        "source": "Meta model card",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "layers": {
+        "value": 80,
+        "source": "Hugging Face config.json (meta-llama/Llama-3.3-70B-Instruct)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "attention_heads": {
+        "value": 64,
+        "source": "Hugging Face config.json (meta-llama/Llama-3.3-70B-Instruct)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "kv_heads": {
+        "value": 8,
+        "source": "Hugging Face config.json (meta-llama/Llama-3.3-70B-Instruct)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "head_dim": {
+        "value": 128,
+        "source": "Hugging Face config.json (meta-llama/Llama-3.3-70B-Instruct)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "max_context": {
+        "value": 131072,
+        "source": "Hugging Face config.json (meta-llama/Llama-3.3-70B-Instruct)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "kv_layout": {
+        "type": "standard"
+      },
+      "api_prices": [
+        {
+          "provider": "Together AI",
+          "input_per_m": {
+            "value": 1.04,
+            "source": "together.ai/pricing (serverless)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 1.04,
+            "source": "together.ai/pricing (serverless)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "cached_input_per_m": null,
+          "batch_discount_pct": null
+        },
+        {
+          "provider": "Fireworks AI",
+          "input_per_m": {
+            "value": 0.9,
+            "source": "docs.fireworks.ai/serverless/pricing (generic size-tier price; serverless availability of this model not verified)",
+            "as_of": "2026-09-28",
+            "status": "placeholder"
+          },
+          "output_per_m": {
+            "value": 0.9,
+            "source": "docs.fireworks.ai/serverless/pricing (generic size-tier price; serverless availability of this model not verified)",
+            "as_of": "2026-09-28",
+            "status": "placeholder"
+          },
+          "cached_input_per_m": null,
+          "batch_discount_pct": {
+            "value": 50,
+            "source": "docs.fireworks.ai/serverless/pricing (generic size-tier price; serverless availability of this model not verified)",
+            "as_of": "2026-09-28",
+            "status": "placeholder"
+          }
+        }
+      ]
+    },
+    {
+      "id": "llama-3.1-405b",
+      "name": "Llama 3.1 405B Instruct",
+      "family": "Meta Llama",
+      "self_hostable": true,
+      "architecture": "dense",
+      "params_total_b": {
+        "value": 405.9,
+        "source": "Meta model card",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "params_active_b": {
+        "value": 405.9,
+        "source": "Meta model card",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "layers": {
+        "value": 126,
+        "source": "Hugging Face config.json (meta-llama/Llama-3.1-405B-Instruct)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "attention_heads": {
+        "value": 128,
+        "source": "Hugging Face config.json (meta-llama/Llama-3.1-405B-Instruct)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "kv_heads": {
+        "value": 8,
+        "source": "Hugging Face config.json (meta-llama/Llama-3.1-405B-Instruct)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "head_dim": {
+        "value": 128,
+        "source": "Hugging Face config.json (meta-llama/Llama-3.1-405B-Instruct)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "max_context": {
+        "value": 131072,
+        "source": "Hugging Face config.json (meta-llama/Llama-3.1-405B-Instruct)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "kv_layout": {
+        "type": "standard"
+      },
+      "api_prices": [],
+      "note": "No verified public serverless price found on 2026-09-28; add one in the Data editor if you have a quote."
+    },
+    {
+      "id": "qwen3-32b",
+      "name": "Qwen3 32B",
+      "family": "Qwen",
+      "self_hostable": true,
+      "architecture": "dense",
+      "params_total_b": {
+        "value": 32.8,
+        "source": "Qwen3 model card",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "params_active_b": {
+        "value": 32.8,
+        "source": "Qwen3 model card",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "layers": {
+        "value": 64,
+        "source": "Hugging Face config.json (Qwen/Qwen3-32B)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "attention_heads": {
+        "value": 64,
+        "source": "Hugging Face config.json (Qwen/Qwen3-32B)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "kv_heads": {
+        "value": 8,
+        "source": "Hugging Face config.json (Qwen/Qwen3-32B)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "head_dim": {
+        "value": 128,
+        "source": "Hugging Face config.json (Qwen/Qwen3-32B)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "max_context": {
+        "value": 32768,
+        "source": "Hugging Face config.json (Qwen/Qwen3-32B)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "kv_layout": {
+        "type": "standard"
+      },
+      "api_prices": [
+        {
+          "provider": "Fireworks AI",
+          "input_per_m": {
+            "value": 0.9,
+            "source": "docs.fireworks.ai/serverless/pricing (generic size-tier price; serverless availability of this model not verified)",
+            "as_of": "2026-09-28",
+            "status": "placeholder"
+          },
+          "output_per_m": {
+            "value": 0.9,
+            "source": "docs.fireworks.ai/serverless/pricing (generic size-tier price; serverless availability of this model not verified)",
+            "as_of": "2026-09-28",
+            "status": "placeholder"
+          },
+          "cached_input_per_m": null,
+          "batch_discount_pct": {
+            "value": 50,
+            "source": "docs.fireworks.ai/serverless/pricing (generic size-tier price; serverless availability of this model not verified)",
+            "as_of": "2026-09-28",
+            "status": "placeholder"
+          }
+        }
+      ],
+      "note": "Native context 32,768; up to 131,072 with YaRN rope scaling (edit max_context if you enable it)."
+    },
+    {
+      "id": "qwen3-235b-a22b",
+      "name": "Qwen3 235B-A22B (MoE)",
+      "family": "Qwen",
+      "self_hostable": true,
+      "architecture": "moe",
+      "params_total_b": {
+        "value": 235,
+        "source": "Qwen3 model card",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "params_active_b": {
+        "value": 22,
+        "source": "Qwen3 model card",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "layers": {
+        "value": 94,
+        "source": "Hugging Face config.json (Qwen/Qwen3-235B-A22B)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "attention_heads": {
+        "value": 64,
+        "source": "Hugging Face config.json (Qwen/Qwen3-235B-A22B)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "kv_heads": {
+        "value": 4,
+        "source": "Hugging Face config.json (Qwen/Qwen3-235B-A22B)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "head_dim": {
+        "value": 128,
+        "source": "Hugging Face config.json (Qwen/Qwen3-235B-A22B)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "max_context": {
+        "value": 32768,
+        "source": "Hugging Face config.json (Qwen/Qwen3-235B-A22B)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "kv_layout": {
+        "type": "standard"
+      },
+      "api_prices": [],
+      "note": "Native context 32,768; up to 131,072 with YaRN. No verified public serverless price found on 2026-09-28."
+    },
+    {
+      "id": "mistral-small-3.2-24b",
+      "name": "Mistral Small 3.2 24B",
+      "family": "Mistral",
+      "self_hostable": true,
+      "architecture": "dense",
+      "params_total_b": {
+        "value": 24.0,
+        "source": "Mistral model card",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "params_active_b": {
+        "value": 24.0,
+        "source": "Mistral model card",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "layers": {
+        "value": 40,
+        "source": "Hugging Face config.json (mistralai/Mistral-Small-3.2-24B-Instruct-2506)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "attention_heads": {
+        "value": 32,
+        "source": "Hugging Face config.json (mistralai/Mistral-Small-3.2-24B-Instruct-2506)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "kv_heads": {
+        "value": 8,
+        "source": "Hugging Face config.json (mistralai/Mistral-Small-3.2-24B-Instruct-2506)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "head_dim": {
+        "value": 128,
+        "source": "Hugging Face config.json (mistralai/Mistral-Small-3.2-24B-Instruct-2506)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "max_context": {
+        "value": 131072,
+        "source": "Hugging Face config.json (mistralai/Mistral-Small-3.2-24B-Instruct-2506)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "kv_layout": {
+        "type": "standard"
+      },
+      "api_prices": [
+        {
+          "provider": "Fireworks AI",
+          "input_per_m": {
+            "value": 0.9,
+            "source": "docs.fireworks.ai/serverless/pricing (generic size-tier price; serverless availability of this model not verified)",
+            "as_of": "2026-09-28",
+            "status": "placeholder"
+          },
+          "output_per_m": {
+            "value": 0.9,
+            "source": "docs.fireworks.ai/serverless/pricing (generic size-tier price; serverless availability of this model not verified)",
+            "as_of": "2026-09-28",
+            "status": "placeholder"
+          },
+          "cached_input_per_m": null,
+          "batch_discount_pct": {
+            "value": 50,
+            "source": "docs.fireworks.ai/serverless/pricing (generic size-tier price; serverless availability of this model not verified)",
+            "as_of": "2026-09-28",
+            "status": "placeholder"
+          }
+        }
+      ]
+    },
+    {
+      "id": "gpt-oss-20b",
+      "name": "gpt-oss-20b (MoE)",
+      "family": "OpenAI open-weight",
+      "self_hostable": true,
+      "architecture": "moe",
+      "params_total_b": {
+        "value": 20.9,
+        "source": "OpenAI gpt-oss model card",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "params_active_b": {
+        "value": 3.6,
+        "source": "OpenAI gpt-oss model card",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "layers": {
+        "value": 24,
+        "source": "Hugging Face config.json (openai/gpt-oss-20b)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "attention_heads": {
+        "value": 64,
+        "source": "Hugging Face config.json (openai/gpt-oss-20b)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "kv_heads": {
+        "value": 8,
+        "source": "Hugging Face config.json (openai/gpt-oss-20b)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "head_dim": {
+        "value": 64,
+        "source": "Hugging Face config.json (openai/gpt-oss-20b)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "max_context": {
+        "value": 131072,
+        "source": "Hugging Face config.json (openai/gpt-oss-20b)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "kv_layout": {
+        "type": "hybrid_sliding",
+        "full_layers": 12,
+        "sliding_layers": 12,
+        "window": 128,
+        "source": "Hugging Face config.json (openai/gpt-oss-20b) layer_types / sliding_window",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "native_precision": "MXFP4 MoE weights (~4.25 bits); INT4 is the closest setting here",
+      "api_prices": [
+        {
+          "provider": "Amazon Bedrock",
+          "input_per_m": {
+            "value": 0.07,
+            "source": "aws.amazon.com/bedrock/pricing (on-demand, US East)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 0.2,
+            "source": "aws.amazon.com/bedrock/pricing (on-demand, US East)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "cached_input_per_m": null,
+          "batch_discount_pct": {
+            "value": 50,
+            "source": "aws.amazon.com/bedrock/pricing (on-demand, US East)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          }
+        }
+      ]
+    },
+    {
+      "id": "gpt-oss-120b",
+      "name": "gpt-oss-120b (MoE)",
+      "family": "OpenAI open-weight",
+      "self_hostable": true,
+      "architecture": "moe",
+      "params_total_b": {
+        "value": 116.8,
+        "source": "OpenAI gpt-oss model card",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "params_active_b": {
+        "value": 5.1,
+        "source": "OpenAI gpt-oss model card",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "layers": {
+        "value": 36,
+        "source": "Hugging Face config.json (openai/gpt-oss-120b)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "attention_heads": {
+        "value": 64,
+        "source": "Hugging Face config.json (openai/gpt-oss-120b)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "kv_heads": {
+        "value": 8,
+        "source": "Hugging Face config.json (openai/gpt-oss-120b)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "head_dim": {
+        "value": 64,
+        "source": "Hugging Face config.json (openai/gpt-oss-120b)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "max_context": {
+        "value": 131072,
+        "source": "Hugging Face config.json (openai/gpt-oss-120b)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "kv_layout": {
+        "type": "hybrid_sliding",
+        "full_layers": 18,
+        "sliding_layers": 18,
+        "window": 128,
+        "source": "Hugging Face config.json (openai/gpt-oss-120b) layer_types / sliding_window",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "native_precision": "MXFP4 MoE weights (~4.25 bits); INT4 is the closest setting here",
+      "api_prices": [
+        {
+          "provider": "Together AI",
+          "input_per_m": {
+            "value": 0.15,
+            "source": "together.ai/pricing (serverless)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 0.6,
+            "source": "together.ai/pricing (serverless)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "cached_input_per_m": null,
+          "batch_discount_pct": null
+        },
+        {
+          "provider": "Fireworks AI",
+          "input_per_m": {
+            "value": 0.15,
+            "source": "docs.fireworks.ai/serverless/pricing",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 0.6,
+            "source": "docs.fireworks.ai/serverless/pricing",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.015,
+            "source": "docs.fireworks.ai/serverless/pricing",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "batch_discount_pct": {
+            "value": 50,
+            "source": "docs.fireworks.ai/serverless/pricing",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          }
+        },
+        {
+          "provider": "Amazon Bedrock",
+          "input_per_m": {
+            "value": 0.15,
+            "source": "aws.amazon.com/bedrock/pricing (on-demand, US East)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 0.6,
+            "source": "aws.amazon.com/bedrock/pricing (on-demand, US East)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "cached_input_per_m": null,
+          "batch_discount_pct": {
+            "value": 50,
+            "source": "aws.amazon.com/bedrock/pricing (on-demand, US East)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          }
+        }
+      ]
+    },
+    {
+      "id": "deepseek-v3",
+      "name": "DeepSeek V3 (MoE, MLA)",
+      "family": "DeepSeek",
+      "self_hostable": true,
+      "architecture": "moe",
+      "params_total_b": {
+        "value": 671,
+        "source": "DeepSeek-V3 technical report",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "params_active_b": {
+        "value": 37,
+        "source": "DeepSeek-V3 technical report",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "layers": {
+        "value": 61,
+        "source": "Hugging Face config.json (deepseek-ai/DeepSeek-V3)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "attention_heads": {
+        "value": 128,
+        "source": "Hugging Face config.json (deepseek-ai/DeepSeek-V3)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "kv_heads": {
+        "value": 128,
+        "source": "Hugging Face config.json (deepseek-ai/DeepSeek-V3)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "head_dim": {
+        "value": 128,
+        "source": "Hugging Face config.json (deepseek-ai/DeepSeek-V3)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "max_context": {
+        "value": 131072,
+        "source": "Hugging Face config.json (deepseek-ai/DeepSeek-V3)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "kv_layout": {
+        "type": "mla",
+        "elems_per_token_per_layer": 576,
+        "source": "Hugging Face config.json (deepseek-ai/DeepSeek-V3): kv_lora_rank 512 + qk_rope_head_dim 64",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "api_prices": [],
+      "note": "Multi-head Latent Attention: KV cache is a 576-element latent per token per layer, not 2 x kv_heads x head_dim. DeepSeek's own API now serves V4 models (see API-only reference models)."
+    },
+    {
+      "id": "gpt-6-sol",
+      "name": "GPT-6 Sol",
+      "family": "OpenAI",
+      "self_hostable": false,
+      "architecture": null,
+      "api_prices": [
+        {
+          "provider": "OpenAI",
+          "input_per_m": {
+            "value": 2.0,
+            "source": "developers.openai.com/api/docs/pricing (standard tier)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 10.0,
+            "source": "developers.openai.com/api/docs/pricing (standard tier)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.2,
+            "source": "developers.openai.com/api/docs/pricing (standard tier)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "batch_discount_pct": {
+            "value": 50,
+            "source": "developers.openai.com/api/docs/pricing (standard tier)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          }
+        }
+      ],
+      "note": "API-only reference model (weights not available for self-hosting). Not an apples-to-apples quality comparison with open-weight models."
+    },
+    {
+      "id": "gpt-5.6-terra",
+      "name": "GPT-5.6 Terra",
+      "family": "OpenAI",
+      "self_hostable": false,
+      "architecture": null,
+      "api_prices": [
+        {
+          "provider": "OpenAI",
+          "input_per_m": {
+            "value": 2.0,
+            "source": "developers.openai.com/api/docs/pricing (standard tier)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 12.0,
+            "source": "developers.openai.com/api/docs/pricing (standard tier)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.2,
+            "source": "developers.openai.com/api/docs/pricing (standard tier)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "batch_discount_pct": {
+            "value": 50,
+            "source": "developers.openai.com/api/docs/pricing (standard tier)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          }
+        }
+      ],
+      "note": "API-only reference model (weights not available for self-hosting). Not an apples-to-apples quality comparison with open-weight models."
+    },
+    {
+      "id": "gpt-5.4-mini",
+      "name": "GPT-5.4 mini",
+      "family": "OpenAI",
+      "self_hostable": false,
+      "architecture": null,
+      "api_prices": [
+        {
+          "provider": "OpenAI",
+          "input_per_m": {
+            "value": 0.75,
+            "source": "developers.openai.com/api/docs/pricing (standard tier)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 4.5,
+            "source": "developers.openai.com/api/docs/pricing (standard tier)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.075,
+            "source": "developers.openai.com/api/docs/pricing (standard tier)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "batch_discount_pct": {
+            "value": 50,
+            "source": "developers.openai.com/api/docs/pricing (standard tier)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          }
+        }
+      ],
+      "note": "API-only reference model (weights not available for self-hosting). Not an apples-to-apples quality comparison with open-weight models."
+    },
+    {
+      "id": "claude-opus-5.5",
+      "name": "Claude Opus 5.5",
+      "family": "Anthropic",
+      "self_hostable": false,
+      "architecture": null,
+      "api_prices": [
+        {
+          "provider": "Anthropic",
+          "input_per_m": {
+            "value": 4.0,
+            "source": "platform.claude.com/docs/en/about-claude/pricing",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 20.0,
+            "source": "platform.claude.com/docs/en/about-claude/pricing",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.2,
+            "source": "platform.claude.com/docs/en/about-claude/pricing",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "batch_discount_pct": {
+            "value": 50,
+            "source": "platform.claude.com/docs/en/about-claude/pricing",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          }
+        }
+      ],
+      "note": "API-only reference model (weights not available for self-hosting). Not an apples-to-apples quality comparison with open-weight models."
+    },
+    {
+      "id": "claude-sonnet-5.5",
+      "name": "Claude Sonnet 5.5",
+      "family": "Anthropic",
+      "self_hostable": false,
+      "architecture": null,
+      "api_prices": [
+        {
+          "provider": "Anthropic",
+          "input_per_m": {
+            "value": 2.0,
+            "source": "platform.claude.com/docs/en/about-claude/pricing",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 10.0,
+            "source": "platform.claude.com/docs/en/about-claude/pricing",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.2,
+            "source": "platform.claude.com/docs/en/about-claude/pricing",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "batch_discount_pct": {
+            "value": 50,
+            "source": "platform.claude.com/docs/en/about-claude/pricing",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          }
+        }
+      ],
+      "note": "API-only reference model (weights not available for self-hosting). Not an apples-to-apples quality comparison with open-weight models."
+    },
+    {
+      "id": "claude-haiku-4.5",
+      "name": "Claude Haiku 4.5",
+      "family": "Anthropic",
+      "self_hostable": false,
+      "architecture": null,
+      "api_prices": [
+        {
+          "provider": "Anthropic",
+          "input_per_m": {
+            "value": 1.0,
+            "source": "platform.claude.com/docs/en/about-claude/pricing",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 5.0,
+            "source": "platform.claude.com/docs/en/about-claude/pricing",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.1,
+            "source": "platform.claude.com/docs/en/about-claude/pricing",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "batch_discount_pct": {
+            "value": 50,
+            "source": "platform.claude.com/docs/en/about-claude/pricing",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          }
+        }
+      ],
+      "note": "API-only reference model (weights not available for self-hosting). Not an apples-to-apples quality comparison with open-weight models."
+    },
+    {
+      "id": "gemini-3.1-pro",
+      "name": "Gemini 3.1 Pro (Preview)",
+      "family": "Google",
+      "self_hostable": false,
+      "architecture": null,
+      "api_prices": [
+        {
+          "provider": "Google",
+          "input_per_m": {
+            "value": 2.0,
+            "source": "ai.google.dev/gemini-api/docs/pricing (paid tier, prompts <=200k)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 12.0,
+            "source": "ai.google.dev/gemini-api/docs/pricing (paid tier, prompts <=200k)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.2,
+            "source": "ai.google.dev/gemini-api/docs/pricing (paid tier, prompts <=200k)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "batch_discount_pct": {
+            "value": 50,
+            "source": "ai.google.dev/gemini-api/docs/pricing (paid tier, prompts <=200k)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          }
+        }
+      ],
+      "note": "API-only reference model (weights not available for self-hosting). Not an apples-to-apples quality comparison with open-weight models."
+    },
+    {
+      "id": "gemini-3.8-flash",
+      "name": "Gemini 3.8 Flash",
+      "family": "Google",
+      "self_hostable": false,
+      "architecture": null,
+      "api_prices": [
+        {
+          "provider": "Google",
+          "input_per_m": {
+            "value": 0.75,
+            "source": "ai.google.dev/gemini-api/docs/pricing (paid tier, prompts <=200k); promotional price through 2026-12-31, doubles on 2027-01-01",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 3.75,
+            "source": "ai.google.dev/gemini-api/docs/pricing (paid tier, prompts <=200k); promotional price through 2026-12-31, doubles on 2027-01-01",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.075,
+            "source": "ai.google.dev/gemini-api/docs/pricing (paid tier, prompts <=200k); promotional price through 2026-12-31, doubles on 2027-01-01",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "batch_discount_pct": {
+            "value": 50,
+            "source": "ai.google.dev/gemini-api/docs/pricing (paid tier, prompts <=200k); promotional price through 2026-12-31, doubles on 2027-01-01",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          }
+        }
+      ],
+      "note": "API-only reference model (weights not available for self-hosting). Not an apples-to-apples quality comparison with open-weight models."
+    },
+    {
+      "id": "deepseek-v4-pro",
+      "name": "DeepSeek V4 Pro",
+      "family": "DeepSeek",
+      "self_hostable": false,
+      "architecture": null,
+      "api_prices": [
+        {
+          "provider": "DeepSeek",
+          "input_per_m": {
+            "value": 1.32,
+            "source": "api-docs.deepseek.com/quick_start/pricing (peak rate; off-peak is 50% lower)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 3.96,
+            "source": "api-docs.deepseek.com/quick_start/pricing (peak rate; off-peak is 50% lower)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.044,
+            "source": "api-docs.deepseek.com/quick_start/pricing (peak rate; off-peak is 50% lower)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "batch_discount_pct": null
+        }
+      ],
+      "note": "API-only reference model (weights not available for self-hosting). Not an apples-to-apples quality comparison with open-weight models."
+    },
+    {
+      "id": "deepseek-flash",
+      "name": "DeepSeek Flash",
+      "family": "DeepSeek",
+      "self_hostable": false,
+      "architecture": null,
+      "api_prices": [
+        {
+          "provider": "DeepSeek",
+          "input_per_m": {
+            "value": 0.3,
+            "source": "api-docs.deepseek.com/quick_start/pricing (peak rate; off-peak is 50% lower)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 1.2,
+            "source": "api-docs.deepseek.com/quick_start/pricing (peak rate; off-peak is 50% lower)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.006,
+            "source": "api-docs.deepseek.com/quick_start/pricing (peak rate; off-peak is 50% lower)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "batch_discount_pct": null
+        }
+      ],
+      "note": "API-only reference model (weights not available for self-hosting). Not an apples-to-apples quality comparison with open-weight models."
+    }
+  ]
+}

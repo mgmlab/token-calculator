@@ -1,0 +1,613 @@
+{
+  "_readme": "GPU catalog. memory_gb/bandwidth/TFLOPS drive sizing and the theoretical throughput estimate. cloud[] holds per-GPU-hour rates by provider. Measured throughput lives in benchmarks.json.",
+  "gpus": [
+    {
+      "id": "a100-80gb-sxm",
+      "name": "NVIDIA A100 80GB SXM",
+      "vendor": "NVIDIA",
+      "memory_gb": {
+        "value": 80,
+        "source": "NVIDIA A100 datasheet",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "mem_bandwidth_tbps": {
+        "value": 2.039,
+        "source": "NVIDIA A100 datasheet",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "power_kw": {
+        "value": 0.4,
+        "source": "NVIDIA A100 datasheet (max TDP)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "dense_tflops_fp16": {
+        "value": 312,
+        "source": "NVIDIA A100 datasheet (dense, no sparsity)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "dense_tflops_fp8": null,
+      "dense_tflops_fp4": null,
+      "street_price_usd": {
+        "value": 15000,
+        "source": "Placeholder. No list price is published; secondary-market and press reports vary widely. Replace with a quote.",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "cloud": [
+        {
+          "provider": "Lambda",
+          "instance": "8x A100 SXM 80GB",
+          "gpus_per_instance": 8,
+          "on_demand_per_gpu_hr": {
+            "value": 2.79,
+            "source": "lambda.ai/pricing (on-demand, 8x instance)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "reserved_per_gpu_hr": null,
+          "reserved_term": null
+        },
+        {
+          "provider": "CoreWeave",
+          "instance": "8x A100",
+          "gpus_per_instance": 8,
+          "on_demand_per_gpu_hr": {
+            "value": 2.7,
+            "source": "coreweave.com/pricing (8-GPU instance price / 8)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "reserved_per_gpu_hr": null,
+          "reserved_term": null
+        }
+      ]
+    },
+    {
+      "id": "h100-sxm",
+      "name": "NVIDIA H100 SXM 80GB",
+      "vendor": "NVIDIA",
+      "memory_gb": {
+        "value": 80,
+        "source": "NVIDIA H100 datasheet",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "mem_bandwidth_tbps": {
+        "value": 3.35,
+        "source": "NVIDIA H100 datasheet",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "power_kw": {
+        "value": 0.7,
+        "source": "NVIDIA H100 datasheet (max TDP)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "dense_tflops_fp16": {
+        "value": 989,
+        "source": "NVIDIA H100 datasheet (dense, no sparsity)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "dense_tflops_fp8": {
+        "value": 1979,
+        "source": "NVIDIA H100 datasheet (dense, no sparsity)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "dense_tflops_fp4": null,
+      "street_price_usd": {
+        "value": 25000,
+        "source": "Placeholder. No list price is published; secondary-market and press reports vary widely. Replace with a quote.",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "cloud": [
+        {
+          "provider": "Lambda",
+          "instance": "8x H100 SXM",
+          "gpus_per_instance": 8,
+          "on_demand_per_gpu_hr": {
+            "value": 3.99,
+            "source": "lambda.ai/pricing (on-demand, 8x instance)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "reserved_per_gpu_hr": {
+            "value": 5.54,
+            "source": "lambda.ai/pricing 1-Click Cluster reserved, lowest listed rate (up to 1 yr, includes InfiniBand cluster fabric; longer terms are custom-priced)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "reserved_term": "1-Click Cluster, up to 1 yr"
+        },
+        {
+          "provider": "CoreWeave",
+          "instance": "HGX H100 8x",
+          "gpus_per_instance": 8,
+          "on_demand_per_gpu_hr": {
+            "value": 6.16,
+            "source": "coreweave.com/pricing (8-GPU instance price / 8)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "reserved_per_gpu_hr": null,
+          "reserved_term": null
+        },
+        {
+          "provider": "Together AI",
+          "instance": "H100 cluster",
+          "gpus_per_instance": 8,
+          "on_demand_per_gpu_hr": {
+            "value": 3.99,
+            "source": "together.ai/pricing GPU clusters (on-demand)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "reserved_per_gpu_hr": null,
+          "reserved_term": null
+        },
+        {
+          "provider": "AWS",
+          "instance": "p5.48xlarge",
+          "gpus_per_instance": 8,
+          "on_demand_per_gpu_hr": null,
+          "reserved_per_gpu_hr": {
+            "value": 5.191,
+            "source": "aws.amazon.com/ec2/capacityblocks/pricing (Capacity Block, us-east-1; a short-term reservation, 1-182 days)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "reserved_term": "Capacity Block"
+        }
+      ]
+    },
+    {
+      "id": "h200-sxm",
+      "name": "NVIDIA H200 SXM 141GB",
+      "vendor": "NVIDIA",
+      "memory_gb": {
+        "value": 141,
+        "source": "NVIDIA H200 datasheet",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "mem_bandwidth_tbps": {
+        "value": 4.8,
+        "source": "NVIDIA H200 datasheet",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "power_kw": {
+        "value": 0.7,
+        "source": "NVIDIA H200 datasheet (max TDP)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "dense_tflops_fp16": {
+        "value": 989,
+        "source": "NVIDIA H200 datasheet (dense, no sparsity)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "dense_tflops_fp8": {
+        "value": 1979,
+        "source": "NVIDIA H200 datasheet (dense, no sparsity)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "dense_tflops_fp4": null,
+      "street_price_usd": {
+        "value": 30000,
+        "source": "Placeholder. No list price is published; secondary-market and press reports vary widely. Replace with a quote.",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "cloud": [
+        {
+          "provider": "CoreWeave",
+          "instance": "HGX H200 8x",
+          "gpus_per_instance": 8,
+          "on_demand_per_gpu_hr": {
+            "value": 6.31,
+            "source": "coreweave.com/pricing (8-GPU instance price / 8)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "reserved_per_gpu_hr": null,
+          "reserved_term": null
+        },
+        {
+          "provider": "Together AI",
+          "instance": "H200 cluster",
+          "gpus_per_instance": 8,
+          "on_demand_per_gpu_hr": {
+            "value": 5.99,
+            "source": "together.ai/pricing GPU clusters (on-demand)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "reserved_per_gpu_hr": null,
+          "reserved_term": null
+        },
+        {
+          "provider": "AWS",
+          "instance": "p5en.48xlarge",
+          "gpus_per_instance": 8,
+          "on_demand_per_gpu_hr": null,
+          "reserved_per_gpu_hr": {
+            "value": 6.865,
+            "source": "aws.amazon.com/ec2/capacityblocks/pricing (Capacity Block, us-east-1; a short-term reservation, 1-182 days)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "reserved_term": "Capacity Block"
+        }
+      ]
+    },
+    {
+      "id": "b200",
+      "name": "NVIDIA B200 180GB",
+      "vendor": "NVIDIA",
+      "memory_gb": {
+        "value": 180,
+        "source": "NVIDIA HGX B200 datasheet (per-GPU figures; bandwidth and power vary by system)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "mem_bandwidth_tbps": {
+        "value": 7.7,
+        "source": "NVIDIA HGX B200 datasheet (per-GPU figures; bandwidth and power vary by system)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "power_kw": {
+        "value": 1.0,
+        "source": "NVIDIA HGX B200 datasheet (per-GPU figures; bandwidth and power vary by system) (max TDP)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "dense_tflops_fp16": {
+        "value": 2250,
+        "source": "NVIDIA HGX B200 datasheet (per-GPU figures; bandwidth and power vary by system) (dense, no sparsity)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "dense_tflops_fp8": {
+        "value": 4500,
+        "source": "NVIDIA HGX B200 datasheet (per-GPU figures; bandwidth and power vary by system) (dense, no sparsity)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "dense_tflops_fp4": {
+        "value": 9000,
+        "source": "NVIDIA HGX B200 datasheet (per-GPU figures; bandwidth and power vary by system) (dense, no sparsity)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "street_price_usd": {
+        "value": 40000,
+        "source": "Placeholder. No list price is published; secondary-market and press reports vary widely. Replace with a quote.",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "cloud": [
+        {
+          "provider": "Lambda",
+          "instance": "8x B200 SXM6",
+          "gpus_per_instance": 8,
+          "on_demand_per_gpu_hr": {
+            "value": 6.69,
+            "source": "lambda.ai/pricing (on-demand, 8x instance)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "reserved_per_gpu_hr": {
+            "value": 8.87,
+            "source": "lambda.ai/pricing 1-Click Cluster reserved, lowest listed rate (up to 1 yr, includes InfiniBand cluster fabric; longer terms are custom-priced)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "reserved_term": "1-Click Cluster, up to 1 yr"
+        },
+        {
+          "provider": "CoreWeave",
+          "instance": "HGX B200 8x",
+          "gpus_per_instance": 8,
+          "on_demand_per_gpu_hr": {
+            "value": 8.6,
+            "source": "coreweave.com/pricing (8-GPU instance price / 8)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "reserved_per_gpu_hr": null,
+          "reserved_term": null
+        },
+        {
+          "provider": "Together AI",
+          "instance": "B200 cluster",
+          "gpus_per_instance": 8,
+          "on_demand_per_gpu_hr": {
+            "value": 8.19,
+            "source": "together.ai/pricing GPU clusters (on-demand)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "reserved_per_gpu_hr": null,
+          "reserved_term": null
+        },
+        {
+          "provider": "AWS",
+          "instance": "p6-b200.48xlarge",
+          "gpus_per_instance": 8,
+          "on_demand_per_gpu_hr": null,
+          "reserved_per_gpu_hr": {
+            "value": 12.355,
+            "source": "aws.amazon.com/ec2/capacityblocks/pricing (Capacity Block, us-east-1; a short-term reservation, 1-182 days)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "reserved_term": "Capacity Block"
+        }
+      ]
+    },
+    {
+      "id": "b300",
+      "name": "NVIDIA B300 288GB",
+      "vendor": "NVIDIA",
+      "memory_gb": {
+        "value": 288,
+        "source": "NVIDIA HGX B300 product page (per-GPU figures are placeholders until confirmed on a datasheet)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "mem_bandwidth_tbps": {
+        "value": 8.0,
+        "source": "NVIDIA HGX B300 product page (per-GPU figures are placeholders until confirmed on a datasheet)",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "power_kw": {
+        "value": 1.1,
+        "source": "NVIDIA HGX B300 product page (per-GPU figures are placeholders until confirmed on a datasheet) (max TDP)",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "dense_tflops_fp16": {
+        "value": 2250,
+        "source": "NVIDIA HGX B300 product page (per-GPU figures are placeholders until confirmed on a datasheet) (dense, no sparsity)",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "dense_tflops_fp8": {
+        "value": 4500,
+        "source": "NVIDIA HGX B300 product page (per-GPU figures are placeholders until confirmed on a datasheet) (dense, no sparsity)",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "dense_tflops_fp4": {
+        "value": 13500,
+        "source": "NVIDIA HGX B300 product page (per-GPU figures are placeholders until confirmed on a datasheet) (dense, no sparsity)",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "street_price_usd": {
+        "value": 50000,
+        "source": "Placeholder. No list price is published; secondary-market and press reports vary widely. Replace with a quote.",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "cloud": [
+        {
+          "provider": "AWS",
+          "instance": "p6-b300.48xlarge",
+          "gpus_per_instance": 8,
+          "on_demand_per_gpu_hr": null,
+          "reserved_per_gpu_hr": {
+            "value": 14.04,
+            "source": "aws.amazon.com/ec2/capacityblocks/pricing (Capacity Block, us-east-1; a short-term reservation, 1-182 days)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "reserved_term": "Capacity Block"
+        }
+      ]
+    },
+    {
+      "id": "l40s",
+      "name": "NVIDIA L40S 48GB",
+      "vendor": "NVIDIA",
+      "memory_gb": {
+        "value": 48,
+        "source": "NVIDIA L40S datasheet",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "mem_bandwidth_tbps": {
+        "value": 0.864,
+        "source": "NVIDIA L40S datasheet",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "power_kw": {
+        "value": 0.35,
+        "source": "NVIDIA L40S datasheet (max TDP)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "dense_tflops_fp16": {
+        "value": 362,
+        "source": "NVIDIA L40S datasheet (dense, no sparsity)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "dense_tflops_fp8": {
+        "value": 733,
+        "source": "NVIDIA L40S datasheet (dense, no sparsity)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "dense_tflops_fp4": null,
+      "street_price_usd": {
+        "value": 8000,
+        "source": "Placeholder. No list price is published; secondary-market and press reports vary widely. Replace with a quote.",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "cloud": [
+        {
+          "provider": "CoreWeave",
+          "instance": "8x L40S",
+          "gpus_per_instance": 8,
+          "on_demand_per_gpu_hr": {
+            "value": 2.25,
+            "source": "coreweave.com/pricing (8-GPU instance price / 8)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "reserved_per_gpu_hr": null,
+          "reserved_term": null
+        }
+      ]
+    },
+    {
+      "id": "rtx-pro-6000-server",
+      "name": "NVIDIA RTX PRO 6000 Blackwell Server 96GB",
+      "vendor": "NVIDIA",
+      "memory_gb": {
+        "value": 96,
+        "source": "NVIDIA RTX PRO 6000 Blackwell Server Edition datasheet (TFLOPS are placeholders; confirm on datasheet)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "mem_bandwidth_tbps": {
+        "value": 1.6,
+        "source": "NVIDIA RTX PRO 6000 Blackwell Server Edition datasheet (TFLOPS are placeholders; confirm on datasheet)",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "power_kw": {
+        "value": 0.6,
+        "source": "NVIDIA RTX PRO 6000 Blackwell Server Edition datasheet (TFLOPS are placeholders; confirm on datasheet) (max TDP)",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "dense_tflops_fp16": {
+        "value": 500,
+        "source": "NVIDIA RTX PRO 6000 Blackwell Server Edition datasheet (TFLOPS are placeholders; confirm on datasheet) (dense, no sparsity)",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "dense_tflops_fp8": {
+        "value": 1000,
+        "source": "NVIDIA RTX PRO 6000 Blackwell Server Edition datasheet (TFLOPS are placeholders; confirm on datasheet) (dense, no sparsity)",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "dense_tflops_fp4": {
+        "value": 2000,
+        "source": "NVIDIA RTX PRO 6000 Blackwell Server Edition datasheet (TFLOPS are placeholders; confirm on datasheet) (dense, no sparsity)",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "street_price_usd": {
+        "value": 9000,
+        "source": "Placeholder. No list price is published; secondary-market and press reports vary widely. Replace with a quote.",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "cloud": []
+    },
+    {
+      "id": "mi300x",
+      "name": "AMD Instinct MI300X 192GB",
+      "vendor": "AMD",
+      "memory_gb": {
+        "value": 192,
+        "source": "AMD Instinct MI300X datasheet",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "mem_bandwidth_tbps": {
+        "value": 5.3,
+        "source": "AMD Instinct MI300X datasheet",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "power_kw": {
+        "value": 0.75,
+        "source": "AMD Instinct MI300X datasheet (max TDP)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "dense_tflops_fp16": {
+        "value": 1307,
+        "source": "AMD Instinct MI300X datasheet (dense, no sparsity)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "dense_tflops_fp8": {
+        "value": 2615,
+        "source": "AMD Instinct MI300X datasheet (dense, no sparsity)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "dense_tflops_fp4": null,
+      "street_price_usd": {
+        "value": 15000,
+        "source": "Placeholder. No list price is published; secondary-market and press reports vary widely. Replace with a quote.",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "cloud": []
+    },
+    {
+      "id": "mi325x",
+      "name": "AMD Instinct MI325X 256GB",
+      "vendor": "AMD",
+      "memory_gb": {
+        "value": 256,
+        "source": "AMD Instinct MI325X datasheet",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "mem_bandwidth_tbps": {
+        "value": 6.0,
+        "source": "AMD Instinct MI325X datasheet",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "power_kw": {
+        "value": 1.0,
+        "source": "AMD Instinct MI325X datasheet (max TDP)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "dense_tflops_fp16": {
+        "value": 1307,
+        "source": "AMD Instinct MI325X datasheet (dense, no sparsity)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "dense_tflops_fp8": {
+        "value": 2615,
+        "source": "AMD Instinct MI325X datasheet (dense, no sparsity)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "dense_tflops_fp4": null,
+      "street_price_usd": {
+        "value": 20000,
+        "source": "Placeholder. No list price is published; secondary-market and press reports vary widely. Replace with a quote.",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "cloud": []
+    }
+  ]
+}

@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Workload Input Guide</title>
+  <link rel="icon" href="../assets/favicon.png">
+  <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    .guide { max-width: 860px; margin: 0 auto; }
+    .guide section { scroll-margin-top: 16px; padding-top: 6px; }
+    .guide section:target { background: var(--accent-soft); border-radius: 8px; padding: 6px 12px; margin: 0 -12px; }
+    .guide h3 { margin-top: 26px; }
+    .guide .ask { border-left: 3px solid var(--accent); padding: 4px 12px; margin: 8px 0; background: var(--surface-2); border-radius: 0 6px 6px 0; }
+    .guide table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; margin: 8px 0; }
+    .guide th, .guide td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .guide th { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+    .toc { columns: 2; column-gap: 24px; padding-left: 18px; }
+    @media (max-width: 600px) { .toc { columns: 1; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img class="brand-logo" src="../assets/pellera-logo-small.png" alt="Pellera">
+      <div>
+        <h1>Workload input guide</h1>
+        <p class="tagline">How to gather AI Token Calculator inputs from a client</p>
+      </div>
+    </div>
+    <a class="btn ghost small" href="../index.html">← Back to calculator</a>
+  </header>
+
+  <main>
+    <article class="card prose guide">
+      <p>Most clients don't know their token counts. They do know their <strong>users, use cases and documents</strong>. This guide turns those answers into calculator inputs. When in doubt, estimate a range and run the calculator at the low and high ends. The answer often doesn't change the recommendation.</p>
+
+      <p class="callout"><strong>Rules of thumb:</strong> 1 token ≈ 0.75 English words ≈ 4 characters. One page of text ≈ 500–650 tokens. A 30-minute meeting transcript ≈ 6,000–8,000 tokens.</p>
+
+      <h3>Contents</h3>
+      <ol class="toc">
+        <li><a href="#users">Users</a></li>
+        <li><a href="#requests_per_user_per_day">Requests per user per day</a></li>
+        <li><a href="#avg_input_tokens">Avg input tokens</a></li>
+        <li><a href="#avg_output_tokens">Avg output tokens</a></li>
+        <li><a href="#active_days_per_month">Active days per month</a></li>
+        <li><a href="#peak_concurrent_requests">Peak concurrent requests</a></li>
+        <li><a href="#target_output_tps_per_request">Target tok/s per request</a></li>
+        <li><a href="#max_context">Max context length</a></li>
+        <li><a href="#model_id">Model &amp; precision</a></li>
+        <li><a href="#headroom_pct">Headroom, N+1, term</a></li>
+        <li><a href="#cloud_active_hours_per_month">Cloud active hours</a></li>
+        <li><a href="#api_cache_hit_pct">API caching &amp; batch</a></li>
+        <li><a href="#worked-example">Worked example</a></li>
+        <li><a href="#questionnaire">Discovery questionnaire</a></li>
+      </ol>
+
+      <section id="users">
+        <h3>Users</h3>
+        <p>Count the people who <em>actually use</em> the application in a typical month, not licensed seats.</p>
+        <div class="ask">Ask: "Who will use this, and what share of them will use it weekly?" Typical adoption for internal copilots is 30–60% of eligible staff after 6 months.</div>
+        <p>For customer-facing apps, use monthly active users (MAU) from their analytics.</p>
+      </section>
+
+      <section id="requests_per_user_per_day">
+        <h3>Requests per user per day</h3>
+        <p>Count <strong>model calls</strong>, not user clicks.</p>
+        <ul>
+          <li><strong>Simple chat:</strong> one message = one request. Typical users send 5–20 a day; power users 50+.</li>
+          <li><strong>RAG (search over documents):</strong> often 2–3 calls per question (query rewrite, answer, sometimes a check).</li>
+          <li><strong>Agents / tool use:</strong> 3–10+ calls per task, because each step is a call.</li>
+        </ul>
+        <div class="ask">Ask: "How many questions or tasks does a typical user do per day?" Then multiply by calls per task.</div>
+        <p>If they have a pilot, the provider dashboard or gateway logs give this exactly: total requests ÷ active users ÷ active days.</p>
+      </section>
+
+      <section id="avg_input_tokens">
+        <h3>Avg input tokens</h3>
+        <p>Everything sent to the model on each call:</p>
+        <table>
+          <thead><tr><th>Component</th><th>Typical size</th></tr></thead>
+          <tbody>
+            <tr><td>System prompt / instructions</td><td>300–2,000</td></tr>
+            <tr><td>User message</td><td>30–300</td></tr>
+            <tr><td>Retrieved documents (RAG)</td><td>chunks × chunk size, e.g. 5 × 500 = 2,500</td></tr>
+            <tr><td>Conversation history</td><td>grows each turn; often capped at 2,000–8,000</td></tr>
+            <tr><td>Tool definitions (agents)</td><td>200–1,000 per tool set</td></tr>
+          </tbody>
+        </table>
+        <p>Add the components. Typical results are 1,000–3,000 for chat, 3,000–8,000 for RAG, and 10,000+ for document analysis.</p>
+      </section>
+
+      <section id="avg_output_tokens">
+        <h3>Avg output tokens</h3>
+        <p>Base it on the length of a typical answer: short answers 150–400, summaries 200–500, drafted emails or reports 500–1,500, generated code 300–2,000.</p>
+        <p><strong>Reasoning models</strong> also produce hidden "thinking" tokens. These can be 2–10× the visible answer, so include them.</p>
+      </section>
+
+      <section id="active_days_per_month">
+        <h3>Active days per month</h3>
+        <p>21.7 for weekday business use, 30.4 for customer-facing or always-on systems.</p>
+      </section>
+
+      <section id="peak_concurrent_requests">
+        <h3>Peak concurrent requests</h3>
+        <p>This is the most important sizing input: it drives how many GPUs you need. It is the number of requests being generated <em>at the same instant</em> during the busiest period. Estimate it with Little's law:</p>
+        <pre>peak concurrent = peak requests per second × seconds per request
+seconds per request ≈ avg output tokens ÷ target tok/s   (+ ~1 s for the prompt)</pre>
+        <p><strong>Peak requests per second</strong> is roughly the daily requests squeezed into the busy hours. For business use, about 20–25% of a day's requests often land in the busiest hour:</p>
+        <pre>peak req/s ≈ (users × requests per user per day × busy-hour share) ÷ 3,600</pre>
+        <div class="ask">Ask: "When is usage heaviest?" (e.g. Monday 9–10 am, month-end close). "Any events that spike usage?"</div>
+        <p>The calculator warns if your peak is below the 24-hour average implied by the volume. A peak <em>far</em> above the average (10–30×) is normal for business-hours use. It is also the main reason self-hosting can cost more than an API at low volumes.</p>
+      </section>
+
+      <section id="target_output_tps_per_request">
+        <h3>Target output tokens/sec per request</h3>
+        <p>How fast text streams to each user. People read at about 5–10 tok/s. Chat products feel responsive at 20–50 tok/s. Batch and back-office jobs don't need streaming, so a lower target (5–10) cuts hardware.</p>
+      </section>
+
+      <section id="max_context">
+        <h3>Max context length</h3>
+        <p>The largest single request to support (input + output). Examples: the biggest contract someone might paste in, or the longest chat before history is trimmed. It must be ≤ the model's limit. Common settings are 8K, 32K and 128K tokens.</p>
+      </section>
+
+      <section id="model_id">
+        <h3>Model and precision</h3>
+        <p>Pick the smallest open-weight model that passes the client's quality bar on real tasks, since model size drives cost more than anything else. FP8 is the usual choice for production on current GPUs. Use INT4 when memory is tight, and only after a quality check. Leave the KV cache at FP16 unless the inference engine supports FP8 KV (vLLM and TensorRT-LLM do).</p>
+        <span id="precision"></span><span id="kv_precision"></span><span id="kv_sizing_basis"></span><span id="throughput_source"></span>
+      </section>
+
+      <section id="headroom_pct">
+        <h3>Headroom, N+1 and term</h3>
+        <p>Headroom covers growth and bursts: 20–30% is typical, more for fast-growing rollouts. Turn on N+1 when the application is business-critical. Choose a 3-year term unless the client depreciates hardware over 5.</p>
+        <span id="n_plus_one"></span><span id="term_years"></span>
+      </section>
+
+      <section id="cloud_active_hours_per_month">
+        <h3>Cloud active hours per month</h3>
+        <p>For on-demand GPUs only. Use 730 for always on. If the client will shut capacity down outside business hours, use 12 h × 21.7 days ≈ 260. Reserved capacity is always billed 24/7.</p>
+      </section>
+
+      <section id="api_cache_hit_pct">
+        <h3>API caching and batch</h3>
+        <p><strong>Cached-input share:</strong> the part of each prompt that repeats across calls, such as the system prompt, tool definitions, or a shared document. If a 1,500-token system prompt repeats on a 2,500-token input, about 60% of input can be cached.</p>
+        <p id="api_batch_share_pct"><strong>Batch share:</strong> the share of traffic that can wait hours for results, e.g. overnight document processing, classification or bulk summaries. Interactive chat is 0%.</p>
+        <span id="include_closed_models"></span>
+      </section>
+
+      <section id="worked-example">
+        <h3>Worked example: internal knowledge assistant</h3>
+        <table>
+          <tbody>
+            <tr><td>Client says</td><td>1,200 employees; expect about half to use it; ~8 questions a day; answers cite 4–5 policy passages; business hours only; busiest 9–11 am.</td></tr>
+            <tr><td>Users</td><td>1,200 × 50% = <strong>600</strong></td></tr>
+            <tr><td>Requests / user / day</td><td>8 questions × 2 calls (rewrite + answer) = <strong>16</strong></td></tr>
+            <tr><td>Avg input tokens</td><td>800 system + 60 question + 5 × 450 passages + 600 history ≈ <strong>3,700</strong></td></tr>
+            <tr><td>Avg output tokens</td><td><strong>350</strong></td></tr>
+            <tr><td>Active days</td><td><strong>21.7</strong></td></tr>
+            <tr><td>Peak concurrent</td><td>600 × 16 × 25% ÷ 3,600 = 0.67 req/s × (350 ÷ 25 + 1 s) ≈ 10 → round up for bursts: <strong>20</strong></td></tr>
+            <tr><td>Target tok/s</td><td><strong>25</strong></td></tr>
+            <tr><td>Max context</td><td><strong>16,384</strong></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="questionnaire">
+        <h3>Discovery questionnaire (copy into your notes)</h3>
+        <ol>
+          <li>What will the application do? (chat, search over documents, drafting, summarization, agents / automation)</li>
+          <li>Who uses it, how many are eligible, and how many do you expect to use it weekly?</li>
+          <li>How many questions or tasks per user per day? How many model calls does each task make?</li>
+          <li>What goes into each request: instructions, documents (how many, how long), chat history?</li>
+          <li>How long is a typical answer? Are you using a reasoning model?</li>
+          <li>Business hours only, or 24/7? When is the busiest hour, and how busy is it?</li>
+          <li>How fast must answers appear? Is streaming required?</li>
+          <li>What is the largest document or conversation it must handle?</li>
+          <li>Which models are approved or preferred? Any data-residency or on-prem requirements?</li>
+          <li>Is there a pilot? If so, export request counts and token usage from the provider dashboard or gateway logs. That replaces most estimates here.</li>
+          <li>Growth expectations over the next 12–36 months?</li>
+          <li>Can any work run as overnight batch jobs?</li>
+        </ol>
+      </section>
+    </article>
+  </main>
+  <footer class="site-footer" id="footer"></footer>
+  <script src="../js/config.js"></script>
+  <script>
+    (function () {
+      var c = window.TC.config;
+      document.getElementById('footer').textContent = c.copyright + ' · Internal use · Questions or change requests: ' + c.contacts.map(function (p) { return p.name; }).join(' and ');
+    })();
+  </script>
+</body>
+</html>

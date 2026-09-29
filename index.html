@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Token Calculator</title>
+  <link rel="icon" href="assets/favicon.png">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img class="brand-logo" src="assets/pellera-logo-small.png" alt="Pellera">
+      <div>
+        <h1>AI Token Calculator</h1>
+        <p class="tagline">Pellera AI team · internal · vendor-neutral comparison of on-prem, GPU cloud and API</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <div id="data-status" class="data-status"></div>
+      <button type="button" class="btn ghost small" id="open-request">Request a change</button>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="compare" aria-selected="true">Compare</button>
+    <button role="tab" data-tab="breakeven">Breakeven</button>
+    <button role="tab" data-tab="data">Data editor</button>
+    <button role="tab" data-tab="method">Method &amp; assumptions</button>
+  </nav>
+
+  <div id="banner" class="banner" hidden></div>
+
+  <main>
+    <section id="tab-compare" class="tab-panel">
+      <div class="layout">
+        <aside class="inputs card" id="inputs"></aside>
+        <div class="results" id="results"></div>
+      </div>
+    </section>
+
+    <section id="tab-breakeven" class="tab-panel" hidden>
+      <div id="breakeven" class="card"></div>
+    </section>
+
+    <section id="tab-data" class="tab-panel" hidden>
+      <div id="editor"></div>
+    </section>
+
+    <section id="tab-method" class="tab-panel" hidden>
+      <article class="card prose" id="method">
+        <h2>How the numbers are calculated</h2>
+        <p class="callout warn"><strong>Throughput is the least certain number in this tool.</strong> Tokens/sec per replica depends on batch size, sequence lengths, inference engine and version (vLLM, TensorRT-LLM, SGLang…), quantization kernels, and tensor-parallel communication. Every on-prem and cloud row states whether it used a <em>measured benchmark</em> or the <em>theoretical bandwidth-based estimate</em>. Treat theoretical rows as an optimistic upper bound and replace them with measured benchmarks before quoting.</p>
+
+        <h3>Workload</h3>
+        <pre>req/day          = users × requests per user per day
+tokens in/month  = req/day × active days/month × avg input tokens
+tokens out/month = req/day × active days/month × avg output tokens
+tokens over term = (in + out) per month × 12 × years</pre>
+
+        <h3>On-prem sizing (per model replica)</h3>
+        <pre>weights (GB)          = params (B) × bytes/param        FP16 = 2 · FP8 = 1 · INT4 = 0.5
+KV per request        = 2 × layers × KV heads × head dim × KV bytes × sequence length
+                        (sliding-window layers are capped at the window; MLA models use the latent size)
+sequence length       = typical: avg input + avg output   |   worst-case: max context
+valid TP sizes        = 1, 2, 4, 8 — must divide attention heads and fit in one node
+usable memory         = TP × GPU memory ÷ (1 + overhead %)
+max concurrent/replica= floor((usable − weights) ÷ KV per request)
+replicas (memory)     = ceil(peak concurrent ÷ max concurrent per replica)
+required throughput   = peak concurrent × target output tok/s per request
+replicas (throughput) = ceil(required throughput ÷ aggregate output tok/s per replica)
+replicas              = ceil(max(memory, throughput[, speed]) × (1 + headroom %)) [+1 if N+1]
+nodes                 = ceil(replicas ÷ floor(GPUs per node ÷ TP))    — a replica never spans nodes
+GPUs installed        = nodes × GPUs per node</pre>
+        <p>Every valid TP size is evaluated; the layout needing the fewest nodes is used (ties go to the faster per-request layout). If any layout has a measured benchmark, only benchmarked layouts are considered. If the model does not fit in one node, 2- or 4-way pipeline parallelism across whole nodes is tried.</p>
+
+        <h3>Throughput: benchmark first, theoretical estimate as fallback</h3>
+        <p>A row in <code>benchmarks.json</code> is used when GPU, model, precision, TP and PP match exactly. Otherwise, unless you choose "benchmark only", the app uses a <strong>theoretical bandwidth-based (roofline) estimate</strong>, always labelled as such:</p>
+        <pre>bandwidth   = TP × HBM TB/s × bandwidth efficiency %
+compute     = TP × dense TFLOPS (FP8 if supported, else FP16) × compute efficiency %
+step time(c)= max( [min(weights, active weights × c) + c × KV at avg position] ÷ bandwidth ,
+                   c × (1 + input/output ratio) × 2 × active params ÷ compute )
+per-request tok/s = 1 ÷ step time        aggregate tok/s = c ÷ step time
+c*          = largest concurrency per replica that fits in memory AND meets the per-request speed target
+replicas (speed) = ceil(peak concurrent ÷ c*)</pre>
+        <p>Not modeled: TP all-reduce overhead, scheduler/batching inefficiency, speculative decoding, prefix caching, time-to-first-token targets.</p>
+
+        <h3>On-prem cost over term</h3>
+        <pre>server capex   = nodes × node price (all-in, or base + GPUs × GPU street price)
+network/storage= % of server capex, or $ per node
+support        = server capex × support %/yr × years
+power          = nodes × node kW × load factor × PUE × 8,760 h × years × $/kWh
+colo (optional)= nodes × node kW × $/kW-month × months
+optional       = install, financing, software $/GPU/yr, ops FTE, residual value credit
+monthly        = total ÷ months (straight-line)
+$ per 1M tokens= total ÷ tokens over term × 1,000,000</pre>
+
+        <h3>GPU cloud</h3>
+        <pre>GPUs billed = same replicas/TP as on-prem, packed into the provider's instance size
+reserved    = GPUs × reserved $/GPU-hr × 730 h/month (billed 24/7)
+on-demand   = GPUs × on-demand $/GPU-hr × active hours/month</pre>
+
+        <h3>API</h3>
+        <pre>effective input $/M = (1 − cache hit %) × input + cache hit % × cached input
+monthly             = (input tokens × effective input + output tokens × output) ÷ 1M
+                      × (1 − batch share % × batch discount %)</pre>
+        <p>Same-model rows (hosted open-weight providers) are directly comparable with self-hosting. Closed models are shown as a separate reference group; they are a different model, not a like-for-like quality comparison.</p>
+
+        <h3>Breakeven</h3>
+        <p>Users and peak concurrency are scaled together (0.02× to 50× your profile), keeping per-request shape fixed. For each volume the cheapest option in each category is plotted. On-prem and reserved cloud are step functions; API is linear. The crossover is the lowest volume above which on-prem stays cheaper for the rest of the range.</p>
+
+        <h3>Data provenance</h3>
+        <p>Every seeded number carries <code>source</code>, <code>as_of</code> and <code>status</code>:</p>
+        <ul>
+          <li><span class="badge st-estimate">estimate</span> from a public source on the <code>as_of</code> date; all seeded values are estimates.</li>
+          <li><span class="badge st-placeholder">placeholder</span> low confidence; replace with a quote or measurement. Results that use placeholders show a ⚠ count.</li>
+          <li><span class="badge st-override">override</span> edited in this browser via the Data editor.</li>
+        </ul>
+        <p>No option is favored by default: all feasible options are listed, alphabetically unless you sort by cost.</p>
+
+        <h3>Maintainers</h3>
+        <p>Built and maintained by Darren Livingston &amp; Brad Ramsey, Pellera Technologies. Use <strong>Request a change</strong> (top right) to ask for new models, pricing updates or fixes.</p>
+      </article>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div><span id="copyright"></span> · Internal use only · Figures are estimates, not quotes.</div>
+    <div>Questions, comments or concerns? Contact <span id="contact-names"></span> — or <button type="button" class="linkish" id="open-request-2">request a change or new model</button>.</div>
+  </footer>
+
+  <dialog id="request-dialog" aria-labelledby="req-title">
+    <form method="dialog" class="req-form">
+      <h2 id="req-title">Request a change</h2>
+      <p class="muted small">Opens an email to <span id="req-to-names"></span> with your request filled in, so they're notified and can update the shared data files.</p>
+      <label class="field"><span>Type of request</span>
+        <select id="req-type">
+          <option>Add a model</option>
+          <option>Update pricing</option>
+          <option>Add a GPU, server or cloud provider</option>
+          <option>Add or correct a benchmark</option>
+          <option>Report a problem with a calculation</option>
+          <option>Feature request</option>
+          <option>Other</option>
+        </select></label>
+      <label class="field"><span>Summary</span><input id="req-summary" placeholder="e.g. Add Llama 4 Maverick with Together AI pricing"></label>
+      <label class="field"><span>Details</span><textarea id="req-details" rows="5" placeholder="What should change, and why?"></textarea></label>
+      <label class="field"><span>Source link (pricing page, model card, benchmark run)</span><input id="req-source" placeholder="https://…"></label>
+      <label class="field"><span>Your name</span><input id="req-name" autocomplete="name"></label>
+      <label class="field check"><input type="checkbox" id="req-scenario"> <span>Attach my current workload inputs</span></label>
+      <p class="req-msg small" id="req-msg" hidden></p>
+      <div class="btn-row">
+        <button type="button" class="btn" id="req-send">Open email</button>
+        <button type="button" class="btn ghost" id="req-copy">Copy text</button>
+        <button type="button" class="btn ghost" id="req-cancel">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <input type="file" id="file-import" accept=".json,application/json" multiple hidden>
+
+  <script src="js/config.js"></script>
+  <script src="js/util.js"></script>
+  <script src="js/data-store.js"></script>
+  <script src="js/workload.js"></script>
+  <script src="js/engines/onprem.js"></script>
+  <script src="js/engines/cloud.js"></script>
+  <script src="js/engines/api.js"></script>
+  <script src="js/breakeven.js"></script>
+  <script src="js/ui/math.js"></script>
+  <script src="js/ui/inputs.js"></script>
+  <script src="js/ui/results.js"></script>
+  <script src="js/ui/chart.js"></script>
+  <script src="js/ui/editor.js"></script>
+  <script src="js/ui/export.js"></script>
+  <script src="js/ui/request.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

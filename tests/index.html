@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Engine Tests</title>
+  <style>
+    :root { color-scheme: light; --bg: #fcfcfb; --text: #0b0b0b; --ok: #16603a; --bad: #b42323; }
+    @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { color-scheme: dark; --bg: #1a1a19; --text: #fff; --ok: #8fdcb0; --bad: #f08c8c; } }
+    body { font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 24px 16px; }
+    h1 { font-size: 18px; margin: 0 0 8px; }
+    #summary { font-weight: 600; font-size: 16px; }
+    .pass { color: var(--ok); } .fail { color: var(--bad); }
+    ul { padding-left: 0; list-style: none; }
+  </style>
+</head>
+<body>
+  <h1>AI Token Calculator — engine tests</h1>
+  <div id="summary">running…</div>
+  <ul id="list"></ul>
+  <script src="../js/util.js"></script>
+  <script src="../js/workload.js"></script>
+  <script src="../js/engines/onprem.js"></script>
+  <script src="../js/engines/cloud.js"></script>
+  <script src="../js/engines/api.js"></script>
+  <script src="engines.test.js"></script>
+</body>
+</html>

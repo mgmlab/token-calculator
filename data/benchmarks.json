@@ -1,0 +1,29 @@
+{
+  "_readme": "Measured aggregate output throughput per model replica. Add rows from your own runs (vLLM benchmark_serving, TensorRT-LLM trtllm-bench, SGLang bench_serving) or from a published, reproducible source. A row is only used when gpu + model + precision + tp (+ pp) match exactly and aggregate_output_tps.value is a number. When no row matches, the app falls back to the THEORETICAL bandwidth/compute roofline estimate and labels it as such.",
+  "benchmarks": [
+    {
+      "gpu_id": "h100-sxm",
+      "model_id": "llama-3.3-70b",
+      "precision": "FP8",
+      "tp": 4,
+      "pp": 1,
+      "engine": "vLLM",
+      "engine_version": "",
+      "input_len": 1000,
+      "output_len": 500,
+      "concurrency": 64,
+      "aggregate_output_tps": {
+        "value": null,
+        "source": "Example row: replace with a measured value. Left empty on purpose so no invented benchmark is used.",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "per_request_output_tps": {
+        "value": null,
+        "source": "Example row: replace with a measured value.",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      }
+    }
+  ]
+}

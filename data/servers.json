@@ -1,0 +1,560 @@
+{
+  "_readme": "On-prem server SKUs. Each entry is one SKU + GPU configuration. price_mode all_in uses price_usd; base_plus_gpus uses base_price_usd + gpus_per_node x the GPU's street_price_usd.",
+  "servers": [
+    {
+      "id": "cisco-c845a-m8-rtxpro6000",
+      "vendor": "Cisco",
+      "sku": "UCS C845A M8",
+      "gpu_id": "rtx-pro-6000-server",
+      "gpus_per_node": 8,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 130000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 6.0,
+        "source": "Estimate: 8 x 600 W GPUs + host; confirm on vendor spec sheet",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 4
+    },
+    {
+      "id": "cisco-ucs-c885a-m8-b200",
+      "vendor": "Cisco",
+      "sku": "UCS C885A M8",
+      "gpu_id": "b200",
+      "gpus_per_node": 8,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 450000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 14.3,
+        "source": "Proxy: NVIDIA DGX B200 max system power ~14.3 kW (vendor system spec sheet gives the exact figure)",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 10,
+      "note": "Confirm this SKU ships with HGX B200 in your region; some vendors use a different SKU/generation for Blackwell."
+    },
+    {
+      "id": "cisco-ucs-c885a-m8-h100",
+      "vendor": "Cisco",
+      "sku": "UCS C885A M8",
+      "gpu_id": "h100-sxm",
+      "gpus_per_node": 8,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 300000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 10.2,
+        "source": "Proxy: NVIDIA DGX H100 max system power 10.2 kW (vendor system spec sheet gives the exact figure)",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 6
+    },
+    {
+      "id": "cisco-ucs-c885a-m8-h200",
+      "vendor": "Cisco",
+      "sku": "UCS C885A M8",
+      "gpu_id": "h200-sxm",
+      "gpus_per_node": 8,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 340000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 10.2,
+        "source": "Proxy: NVIDIA DGX H100 max system power 10.2 kW (vendor system spec sheet gives the exact figure)",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 6
+    },
+    {
+      "id": "dell-r760xa-l40s",
+      "vendor": "Dell",
+      "sku": "PowerEdge R760xa",
+      "gpu_id": "l40s",
+      "gpus_per_node": 4,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 70000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 2.4,
+        "source": "Estimate: 4 x 350 W GPUs + host; confirm on vendor spec sheet",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 2
+    },
+    {
+      "id": "dell-r7725-rtxpro6000",
+      "vendor": "Dell",
+      "sku": "PowerEdge R7725",
+      "gpu_id": "rtx-pro-6000-server",
+      "gpus_per_node": 2,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 45000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 1.8,
+        "source": "Estimate: 2 x 600 W GPUs + host; confirm on vendor spec sheet",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 2
+    },
+    {
+      "id": "dell-poweredge-xe9680-h100",
+      "vendor": "Dell",
+      "sku": "PowerEdge XE9680",
+      "gpu_id": "h100-sxm",
+      "gpus_per_node": 8,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 300000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 10.2,
+        "source": "Proxy: NVIDIA DGX H100 max system power 10.2 kW (vendor system spec sheet gives the exact figure)",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 6
+    },
+    {
+      "id": "dell-poweredge-xe9680-h200",
+      "vendor": "Dell",
+      "sku": "PowerEdge XE9680",
+      "gpu_id": "h200-sxm",
+      "gpus_per_node": 8,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 340000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 10.2,
+        "source": "Proxy: NVIDIA DGX H100 max system power 10.2 kW (vendor system spec sheet gives the exact figure)",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 6
+    },
+    {
+      "id": "dell-xe9680-mi300x",
+      "vendor": "Dell",
+      "sku": "PowerEdge XE9680",
+      "gpu_id": "mi300x",
+      "gpus_per_node": 8,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 250000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 10.0,
+        "source": "Estimate: 8 x 750 W GPUs + host; confirm on vendor spec sheet",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 6
+    },
+    {
+      "id": "dell-poweredge-xe9780-b200",
+      "vendor": "Dell",
+      "sku": "PowerEdge XE9780",
+      "gpu_id": "b200",
+      "gpus_per_node": 8,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 450000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 14.3,
+        "source": "Proxy: NVIDIA DGX B200 max system power ~14.3 kW (vendor system spec sheet gives the exact figure)",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 10,
+      "note": "Confirm this SKU ships with HGX B200 in your region; some vendors use a different SKU/generation for Blackwell."
+    },
+    {
+      "id": "hpe-cray-xd670-a100",
+      "vendor": "HPE",
+      "sku": "Cray XD670",
+      "gpu_id": "a100-80gb-sxm",
+      "gpus_per_node": 8,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 150000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 6.5,
+        "source": "Proxy: NVIDIA DGX A100 max system power 6.5 kW",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 5
+    },
+    {
+      "id": "hpe-cray-xd670-h100",
+      "vendor": "HPE",
+      "sku": "Cray XD670",
+      "gpu_id": "h100-sxm",
+      "gpus_per_node": 8,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 300000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 10.2,
+        "source": "Proxy: NVIDIA DGX H100 max system power 10.2 kW (vendor system spec sheet gives the exact figure)",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 6
+    },
+    {
+      "id": "hpe-cray-xd670-h200",
+      "vendor": "HPE",
+      "sku": "Cray XD670",
+      "gpu_id": "h200-sxm",
+      "gpus_per_node": 8,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 340000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 10.2,
+        "source": "Proxy: NVIDIA DGX H100 max system power 10.2 kW (vendor system spec sheet gives the exact figure)",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 6
+    },
+    {
+      "id": "hpe-proliant-compute-xd685-b200",
+      "vendor": "HPE",
+      "sku": "ProLiant Compute XD685",
+      "gpu_id": "b200",
+      "gpus_per_node": 8,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 450000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 14.3,
+        "source": "Proxy: NVIDIA DGX B200 max system power ~14.3 kW (vendor system spec sheet gives the exact figure)",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 10,
+      "note": "Confirm this SKU ships with HGX B200 in your region; some vendors use a different SKU/generation for Blackwell."
+    },
+    {
+      "id": "hpe-dl380a-gen11-l40s",
+      "vendor": "HPE",
+      "sku": "ProLiant DL380a Gen11",
+      "gpu_id": "l40s",
+      "gpus_per_node": 4,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 70000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 2.4,
+        "source": "Estimate: 4 x 350 W GPUs + host; confirm on vendor spec sheet",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 4
+    },
+    {
+      "id": "lenovo-sr675-v3-l40s",
+      "vendor": "Lenovo",
+      "sku": "ThinkSystem SR675 V3",
+      "gpu_id": "l40s",
+      "gpus_per_node": 8,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 120000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 4.2,
+        "source": "Estimate: 8 x 350 W GPUs + host; confirm on vendor spec sheet",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 3
+    },
+    {
+      "id": "lenovo-thinksystem-sr680a-v3-b200",
+      "vendor": "Lenovo",
+      "sku": "ThinkSystem SR680a V3",
+      "gpu_id": "b200",
+      "gpus_per_node": 8,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 450000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 14.3,
+        "source": "Proxy: NVIDIA DGX B200 max system power ~14.3 kW (vendor system spec sheet gives the exact figure)",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 10,
+      "note": "Confirm this SKU ships with HGX B200 in your region; some vendors use a different SKU/generation for Blackwell."
+    },
+    {
+      "id": "lenovo-thinksystem-sr680a-v3-h100",
+      "vendor": "Lenovo",
+      "sku": "ThinkSystem SR680a V3",
+      "gpu_id": "h100-sxm",
+      "gpus_per_node": 8,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 300000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 10.2,
+        "source": "Proxy: NVIDIA DGX H100 max system power 10.2 kW (vendor system spec sheet gives the exact figure)",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 6
+    },
+    {
+      "id": "lenovo-thinksystem-sr680a-v3-h200",
+      "vendor": "Lenovo",
+      "sku": "ThinkSystem SR680a V3",
+      "gpu_id": "h200-sxm",
+      "gpus_per_node": 8,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 340000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 10.2,
+        "source": "Proxy: NVIDIA DGX H100 max system power 10.2 kW (vendor system spec sheet gives the exact figure)",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 6
+    },
+    {
+      "id": "supermicro-as-8125gs-tnmr2-mi300x",
+      "vendor": "Supermicro",
+      "sku": "AS-8125GS-TNMR2",
+      "gpu_id": "mi300x",
+      "gpus_per_node": 8,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 250000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 10.0,
+        "source": "Estimate: 8 x 750 W GPUs + host; confirm on vendor spec sheet",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 8
+    },
+    {
+      "id": "supermicro-as-8126gs-tnmr-mi325x",
+      "vendor": "Supermicro",
+      "sku": "AS-8126GS-TNMR",
+      "gpu_id": "mi325x",
+      "gpus_per_node": 8,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 300000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 12.5,
+        "source": "Estimate: 8 x 1000 W GPUs + host; confirm on vendor spec sheet",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 8
+    },
+    {
+      "id": "supermicro-sys-522ga-nrt-rtxpro6000",
+      "vendor": "Supermicro",
+      "sku": "SYS-522GA-NRT",
+      "gpu_id": "rtx-pro-6000-server",
+      "gpus_per_node": 8,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 130000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 6.0,
+        "source": "Estimate: 8 x 600 W GPUs + host; confirm on vendor spec sheet",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 5
+    },
+    {
+      "id": "supermicro-sys-821ge-tnhr-h100",
+      "vendor": "Supermicro",
+      "sku": "SYS-821GE-TNHR",
+      "gpu_id": "h100-sxm",
+      "gpus_per_node": 8,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 300000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 10.2,
+        "source": "Proxy: NVIDIA DGX H100 max system power 10.2 kW (vendor system spec sheet gives the exact figure)",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 6
+    },
+    {
+      "id": "supermicro-sys-821ge-tnhr-h200",
+      "vendor": "Supermicro",
+      "sku": "SYS-821GE-TNHR",
+      "gpu_id": "h200-sxm",
+      "gpus_per_node": 8,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 340000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 10.2,
+        "source": "Proxy: NVIDIA DGX H100 max system power 10.2 kW (vendor system spec sheet gives the exact figure)",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 6
+    },
+    {
+      "id": "supermicro-sys-a22ga-nbrt-b200",
+      "vendor": "Supermicro",
+      "sku": "SYS-A22GA-NBRT",
+      "gpu_id": "b200",
+      "gpus_per_node": 8,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 450000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 14.3,
+        "source": "Proxy: NVIDIA DGX B200 max system power ~14.3 kW (vendor system spec sheet gives the exact figure)",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 10,
+      "note": "Confirm this SKU ships with HGX B200 in your region; some vendors use a different SKU/generation for Blackwell."
+    }
+  ]
+}

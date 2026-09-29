@@ -1,0 +1,141 @@
+{
+  "_readme": "Global assumptions. Values here are defaults; the workload inputs in the app override the workload_defaults block per session.",
+  "power": {
+    "pue": {
+      "value": 1.5,
+      "source": "Uptime Institute Global Data Center Survey (industry average PUE has hovered ~1.55-1.6 for several years; modern GPU halls are often lower)",
+      "as_of": "2026-09-28",
+      "status": "estimate"
+    },
+    "electricity_usd_per_kwh": {
+      "value": 0.09,
+      "source": "US EIA Electric Power Monthly, average industrial retail price (~8-9 c/kWh); commercial rates are higher (~13 c/kWh)",
+      "as_of": "2026-09-28",
+      "status": "estimate"
+    },
+    "load_factor_pct": {
+      "value": 70,
+      "source": "Average draw as % of nameplate node power. Inference nodes typically run well below max TDP; measure yours.",
+      "as_of": "2026-09-28",
+      "status": "placeholder"
+    }
+  },
+  "onprem": {
+    "memory_overhead_pct": {
+      "value": 15,
+      "source": "Rule of thumb for activations, CUDA graphs, framework reserve and fragmentation (vLLM default gpu_memory_utilization is 0.9, i.e. 10% reserved)",
+      "as_of": "2026-09-28",
+      "status": "estimate"
+    },
+    "support_pct_per_year": {
+      "value": 10,
+      "source": "Typical 3-5 yr hardware support/warranty uplift range 8-15% of hardware cost per year; replace with vendor quote",
+      "as_of": "2026-09-28",
+      "status": "placeholder"
+    },
+    "net_storage_mode": "pct_of_servers",
+    "net_storage_pct_of_servers": {
+      "value": 10,
+      "source": "Allowance for InfiniBand/Ethernet fabric, cabling, and storage. Heavily design-dependent.",
+      "as_of": "2026-09-28",
+      "status": "placeholder"
+    },
+    "net_storage_usd_per_node": {
+      "value": 30000,
+      "source": "Alternative per-node allowance (used when net_storage_mode = per_node)",
+      "as_of": "2026-09-28",
+      "status": "placeholder"
+    },
+    "install_usd_per_node": {
+      "value": 0,
+      "source": "One-time rack/stack/integration services per node; off by default",
+      "as_of": "2026-09-28",
+      "status": "placeholder"
+    },
+    "software_usd_per_gpu_per_year": {
+      "value": 0,
+      "source": "Optional inference software subscription per GPU per year (e.g. vendor AI software suites list ~USD 4,500/GPU/yr). Off by default to stay vendor-neutral.",
+      "as_of": "2026-09-28",
+      "status": "placeholder"
+    },
+    "ops_fte": {
+      "value": 0,
+      "source": "Fraction of an FTE attributed to running this cluster; off by default",
+      "as_of": "2026-09-28",
+      "status": "placeholder"
+    },
+    "ops_fte_cost_usd_per_year": {
+      "value": 200000,
+      "source": "Fully loaded cost of one infrastructure engineer",
+      "as_of": "2026-09-28",
+      "status": "placeholder"
+    },
+    "residual_value_pct": {
+      "value": 0,
+      "source": "Resale value of hardware at end of term, as % of server capex",
+      "as_of": "2026-09-28",
+      "status": "placeholder"
+    },
+    "financing_rate_pct_per_year": {
+      "value": 0,
+      "source": "Cost of capital applied to capex (0 = paid in cash)",
+      "as_of": "2026-09-28",
+      "status": "placeholder"
+    },
+    "colo_enabled": false,
+    "colo_usd_per_kw_month": {
+      "value": 200,
+      "source": "Wholesale/retail colocation, USD per committed kW per month; US market reports range roughly 150-250",
+      "as_of": "2026-09-28",
+      "status": "placeholder"
+    },
+    "colo_includes_power": false,
+    "kw_per_rack": {
+      "value": 40,
+      "source": "Usable power per rack; air-cooled racks are often 15-40 kW, liquid-cooled much higher",
+      "as_of": "2026-09-28",
+      "status": "placeholder"
+    }
+  },
+  "throughput": {
+    "roofline_bandwidth_efficiency_pct": {
+      "value": 70,
+      "source": "Share of peak HBM bandwidth achieved in decode; used ONLY by the theoretical estimate",
+      "as_of": "2026-09-28",
+      "status": "placeholder"
+    },
+    "roofline_compute_efficiency_pct": {
+      "value": 40,
+      "source": "Share of peak dense tensor FLOPS achieved (MFU); used ONLY by the theoretical estimate",
+      "as_of": "2026-09-28",
+      "status": "placeholder"
+    },
+    "prefill_warning_ratio": 10
+  },
+  "cloud": {
+    "hours_per_month": 730
+  },
+  "workload_defaults": {
+    "_note": "Example workload only - not a recommendation.",
+    "users": 500,
+    "requests_per_user_per_day": 20,
+    "avg_input_tokens": 1500,
+    "avg_output_tokens": 400,
+    "active_days_per_month": 30.4,
+    "peak_concurrent_requests": 50,
+    "target_output_tps_per_request": 20,
+    "max_context": 32768,
+    "model_id": "llama-3.3-70b",
+    "precision": "FP8",
+    "kv_precision": "FP16",
+    "kv_sizing_basis": "typical",
+    "term_years": 3,
+    "headroom_pct": 20,
+    "n_plus_one": false,
+    "throughput_source": "benchmark_then_theoretical",
+    "cloud_active_hours_per_month": 730,
+    "api_cache_hit_pct": 0,
+    "api_batch_share_pct": 0,
+    "include_closed_models": true
+  }
+}
