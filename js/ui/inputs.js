@@ -5,7 +5,35 @@
   const KEY = 'tc.workload';
 
   const DOC = 'docs/workload-guide.html';
+
+  // "What are you building?" presets — starting points only; every value can be changed.
+  const PRESETS = {
+    employee_copilot: { label: 'Employee copilot (chat assistant)', requests_per_user_per_day: 20, avg_input_tokens: 1500, avg_output_tokens: 400, active_days_per_month: 21.7, busy_hour_share_pct: 15, target_output_tps_per_request: 20, max_context: 32768, api_cache_hit_pct: 30, api_batch_share_pct: 0 },
+    rag_search: { label: 'RAG / enterprise search', requests_per_user_per_day: 16, avg_input_tokens: 4000, avg_output_tokens: 350, active_days_per_month: 21.7, busy_hour_share_pct: 15, target_output_tps_per_request: 25, max_context: 32768, api_cache_hit_pct: 40, api_batch_share_pct: 0 },
+    contact_center: { label: 'Contact center AI', requests_per_user_per_day: 60, avg_input_tokens: 2500, avg_output_tokens: 250, active_days_per_month: 30.4, busy_hour_share_pct: 10, target_output_tps_per_request: 30, max_context: 32768, api_cache_hit_pct: 50, api_batch_share_pct: 0 },
+    coding_assistant: { label: 'Software development assistant', requests_per_user_per_day: 80, avg_input_tokens: 6000, avg_output_tokens: 600, active_days_per_month: 21.7, busy_hour_share_pct: 15, target_output_tps_per_request: 40, max_context: 131072, api_cache_hit_pct: 60, api_batch_share_pct: 0 },
+    document_processing: { label: 'Document processing', requests_per_user_per_day: 40, avg_input_tokens: 8000, avg_output_tokens: 800, active_days_per_month: 21.7, busy_hour_share_pct: 8, target_output_tps_per_request: 10, max_context: 32768, api_cache_hit_pct: 20, api_batch_share_pct: 60 },
+    ai_agents: { label: 'AI agents / automation', requests_per_user_per_day: 150, avg_input_tokens: 6000, avg_output_tokens: 500, active_days_per_month: 30.4, busy_hour_share_pct: 12, target_output_tps_per_request: 30, max_context: 131072, api_cache_hit_pct: 60, api_batch_share_pct: 0 },
+    batch_inference: { label: 'Batch inference (overnight / 24×7)', requests_per_user_per_day: 200, avg_input_tokens: 2000, avg_output_tokens: 500, active_days_per_month: 30.4, busy_hour_share_pct: 4.2, target_output_tps_per_request: 10, max_context: 32768, api_cache_hit_pct: 0, api_batch_share_pct: 100 },
+  };
+  const PRESET_KEYS = new Set(Object.values(PRESETS).flatMap(p => Object.keys(p)).filter(k => k !== 'label'));
+  TC.PRESETS = PRESETS;
+
+  // Shown under "Advanced settings" (collapsed by default) — the essentials stay visible.
+  const ADVANCED = new Set(['peak_concurrency_mode', 'busy_hour_share_pct', 'burst_percentile', 'peak_concurrent_requests', 'target_output_tps_per_request',
+    'max_context', 'precision', 'kv_precision', 'kv_sizing_basis', 'throughput_source', 'headroom_pct', 'n_plus_one',
+    'cloud_active_hours_per_month', 'api_cache_hit_pct', 'api_batch_share_pct', 'include_closed_models']);
+  const ADV_KEY = 'tc.advancedOpen';
+
   const GROUPS = [
+    { title: 'Scenario', fields: [
+      { k: 'scenario_name', label: 'Scenario name (optional)', type: 'text', hint: 'Shown on exports — e.g. "Support assistant, 3-year view"',
+        tip: 'A label for this analysis. It appears on the PowerPoint and CSV exports and in shared links. It is never saved to the shared data.' },
+      { k: 'preset', label: 'What are you building?', type: 'select', options: [...Object.entries(PRESETS).map(([k, p]) => [k, p.label]), ['custom', 'Custom']],
+        tip: 'Picks typical starting values (requests, text in and out, busy hour, speed, caching) for common AI workloads. Adjust anything afterwards; open Advanced settings for the technical inputs.' },
+      { k: 'term_years', label: 'Comparison term', type: 'select', options: [[3, '3 years'], [5, '5 years']],
+        tip: 'Comparison horizon. On-prem hardware is amortized over this term; cloud and API costs are summed over it. 3 years is common given how fast GPUs age.' },
+    ]},
     { title: 'Usage', fields: [
       { k: 'users', label: 'Users', type: 'number', min: 1,
         tip: 'People who actively use the AI application in a typical month — not licensed seats or total headcount. If 400 of 1,000 employees actually use it, enter 400.' },
@@ -52,8 +80,6 @@
         tip: 'Extra capacity on top of the calculated need, for user growth, traffic bursts and maintenance windows. 20–30% is typical.' },
       { k: 'n_plus_one', label: 'Add one spare replica (N+1)', type: 'checkbox',
         tip: 'Adds one extra model replica so a GPU or node failure (or a rolling upgrade) never drops capacity below peak.' },
-      { k: 'term_years', label: 'Term (years)', type: 'select', options: [[3, '3 years'], [5, '5 years']],
-        tip: 'Comparison horizon. On-prem hardware is amortized over this term; cloud and API costs are summed over it. 3 years is common given how fast GPUs age.' },
     ]},
     { title: 'Cloud & API', fields: [
       { k: 'cloud_active_hours_per_month', label: 'On-demand active hours / month', type: 'number', min: 1, max: 744, hint: '730 = 24/7 · 12 h × 21.7 days ≈ 260',
@@ -121,6 +147,23 @@
   document.addEventListener('keydown', e => { if (e.key === 'Escape') tipHide(); });
   window.addEventListener('scroll', e => { if (tipEl && !tipEl.hidden && !(e.target.closest && e.target.closest('.field-tip'))) tipHide(); }, true);
 
+  function advOpen() { try { return localStorage.getItem(ADV_KEY) === '1'; } catch (e) { return false; } }
+
+  // Share links carry the inputs in the #hash, which browsers never send to the server or analytics.
+  TC.shareUrl = w => {
+    const json = JSON.stringify(Object.fromEntries(Object.entries(w).filter(([k]) => !k.startsWith('_'))));
+    const b64 = btoa(unescape(encodeURIComponent(json))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    return location.origin + location.pathname + '#s=' + b64;
+  };
+  TC.readShareHash = () => {
+    const m = /[#&]s=([A-Za-z0-9_-]+)/.exec(location.hash);
+    if (!m) return null;
+    try {
+      const b64 = m[1].replace(/-/g, '+').replace(/_/g, '/');
+      return JSON.parse(decodeURIComponent(escape(atob(b64))));
+    } catch (e) { return null; }
+  };
+
   TC.inputs = {
     defaults() {
       const a = TC.store.get('assumptions');
@@ -152,6 +195,8 @@
             const [ov, ol] = Array.isArray(o) ? o : [o, o];
             return `<option value="${esc(ov)}" ${String(ov) === String(val) ? 'selected' : ''}>${esc(ol)}</option>`;
           }).join('') + '</select>';
+        } else if (fd.type === 'text') {
+          ctl = `<input type="text" id="${id}" data-k="${fd.k}" value="${esc(val || '')}" maxlength="80" autocomplete="off">`;
         } else {
           const locked = fd.k === 'peak_concurrent_requests' && w.peak_concurrency_mode === 'derived';
           ctl = `<input type="number" id="${id}" data-k="${fd.k}" value="${esc(val)}" ${fd.min != null ? `min="${fd.min}"` : ''} ${fd.max != null ? `max="${fd.max}"` : ''} step="${fd.step || 1}" ${locked ? 'readonly class="derived" title="Calculated from the traffic pattern — switch Peak concurrency to manual to edit"' : ''}>`;
@@ -163,25 +208,42 @@
       el.innerHTML = `<form class="inputs-form" onsubmit="return false">
         <div class="inputs-head"><h2>Workload profile</h2>
           <a class="guide-link" href="${DOC}" target="_blank" rel="noopener">How to gather these inputs from a client ↗</a></div>
-        ${GROUPS.map(g => `<fieldset><legend>${esc(g.title)}</legend>${g.fields.map(field).join('')}</fieldset>`).join('')}
+        ${GROUPS.map(g => { const fs = g.fields.filter(fd => !ADVANCED.has(fd.k)); return fs.length ? `<fieldset><legend>${esc(g.title)}</legend>${fs.map(field).join('')}</fieldset>` : ''; }).join('')}
+        <details class="adv-settings" ${advOpen() ? 'open' : ''}><summary>Advanced settings</summary>
+        ${GROUPS.map(g => { const fs = g.fields.filter(fd => ADVANCED.has(fd.k)); return fs.length ? `<fieldset><legend>${esc(g.title)}</legend>${fs.map(field).join('')}</fieldset>` : ''; }).join('')}
+        </details>
         <div class="btn-row">
+          <button type="button" class="btn ghost" data-act="share" title="Copy a link that opens the calculator with these exact inputs">Copy share link</button>
           <button type="button" class="btn ghost" data-act="reset">Reset</button>
           <button type="button" class="btn ghost" data-act="export">Export scenario</button>
           <button type="button" class="btn ghost" data-act="import">Import scenario</button>
         </div>
+        <p class="share-msg muted small" hidden></p>
         <input type="file" accept=".json" hidden data-act="file"></form>`;
       const form = el.firstElementChild;
+      form.querySelector('.adv-settings').addEventListener('toggle', e => { try { localStorage.setItem(ADV_KEY, e.target.open ? '1' : '0'); } catch (x) { /* ignore */ } });
 
       form.addEventListener('input', e => {
         const t = e.target;
         if (!t.dataset.k) return;
+        if (t.type === 'file' || t.readOnly) return;
         let val;
         if (t.type === 'checkbox') val = t.checked;
         else if (t.type === 'number' || t.dataset.num) { val = parseFloat(t.value); if (!isFinite(val)) return; }
-        if (t.type === 'file') return;
         else val = t.value;
-        if (t.readOnly) return;
+        if (t.dataset.k === 'preset') {
+          w.preset = val;
+          if (PRESETS[val]) { Object.entries(PRESETS[val]).forEach(([k, x]) => { if (k !== 'label') w[k] = x; }); TC.track('preset-' + val, 'Preset ' + val); }
+          this.save(w);
+          this.render(el, w, onChange);
+          onChange();
+          return;
+        }
         w[t.dataset.k] = val;
+        if (PRESET_KEYS.has(t.dataset.k) && w.preset !== 'custom') {
+          w.preset = 'custom';
+          const ps = form.querySelector('[data-k="preset"]'); if (ps) ps.value = 'custom';
+        }
         if (t.dataset.k === 'model_id') TC.track('model-' + val, 'Compared model ' + val);
         this.save(w);
         if (t.dataset.k === 'peak_concurrency_mode') this.render(el, w, onChange);
@@ -195,6 +257,14 @@
         this.save(w);
         this.render(el, w, onChange);
         onChange();
+      };
+      el.querySelector('[data-act="share"]').onclick = async () => {
+        const url = TC.shareUrl(w);
+        const m = form.querySelector('.share-msg');
+        try { await navigator.clipboard.writeText(url); m.textContent = 'Link copied — anyone who opens it sees these exact inputs.'; }
+        catch (e) { m.textContent = 'Copy this link: ' + url; }
+        m.hidden = false;
+        TC.track('share-link', 'Copied share link');
       };
       el.querySelector('[data-act="export"]').onclick = () => TC.download('scenario-' + TC.today() + '.json', { tc_scenario: 1, workload: w });
       el.querySelector('[data-act="import"]').onclick = () => fileIn.click();

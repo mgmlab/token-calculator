@@ -3,7 +3,7 @@
   const TC = (window.TC = window.TC || {});
   TC.config = {
     org: 'Pellera Technologies',
-    appName: 'AI Token Calculator',
+    appName: 'AI Inference Economics Calculator',
     copyright: '© 2026 Darren Livingston & Brad Ramsey – Pellera Technologies',
     // Change requests open an email to everyone listed here. Leave email blank to omit someone.
     contacts: [

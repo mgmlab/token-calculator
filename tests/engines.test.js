@@ -187,6 +187,16 @@
     eq(TC.pickReserved({}, 3), null, 'no reserved rate');
   });
 
+  test('economic-fit verdict thresholds', () => {
+    eq(TC.fitVerdict({ onMonthly: 90, altMonthly: 100, multiple: 0 }).key, 'onprem', 'cheaper now');
+    eq(TC.fitVerdict({ onMonthly: 90, altMonthly: 100, multiple: 0, onHigh: 95 }).key, 'onprem', 'cheaper even in the pessimistic case');
+    eq(TC.fitVerdict({ onMonthly: 90, altMonthly: 100, multiple: 0, onHigh: 130 }).key, 'onprem-likely', 'range overlaps the alternative');
+    eq(TC.fitVerdict({ onMonthly: 150, altMonthly: 100, multiple: 2.5 }).key, 'hybrid', 'within 3x');
+    eq(TC.fitVerdict({ onMonthly: 900, altMonthly: 100, multiple: 40 }).key, 'api', 'far from breakeven');
+    eq(TC.fitVerdict({ onMonthly: 900, altMonthly: 100, multiple: Infinity }).key, 'api', 'never in range');
+    eq(TC.fitVerdict({ onMonthly: null, altMonthly: 100, multiple: 1 }).key, 'unknown', 'no data');
+  });
+
   // ---------- render
   const ok = results.filter(r => r.ok).length;
   document.getElementById('summary').textContent = `${ok} / ${results.length} passed`;

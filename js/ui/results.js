@@ -106,7 +106,7 @@
   TC.renderResults = function (el, res, w, data) {
     const wl = res.wl;
     const model = data.models.models.find(m => m.id === w.model_id);
-    let h = '';
+    let h = execCard(data, w, res);
 
     h += `<div class="summary">
       <div class="stat"><span class="label">Tokens / month</span><span class="value">${f.tokens(wl.tMo)}</span><span class="muted small">${f.tokens(wl.tInMo)} in · ${f.tokens(wl.tOutMo)} out</span></div>
@@ -141,7 +141,7 @@
       res.onprem,
       r => `<td><strong>${esc(r.name)}</strong></td><td>${esc(r.sub)}</td>
         <td>${r.feasible ? `${r.cost.nodes} node${r.cost.nodes > 1 ? 's' : ''} · ${r.cost.gpus} GPUs<br><span class="muted small">${r.sizing.best.replicas} × TP${r.sizing.best.tp}${r.sizing.best.pp > 1 ? '×PP' + r.sizing.best.pp : ''}</span>` : '—'}</td>
-        <td>${r.feasible ? TC.basisLabel(r.basis) : ''}</td>${utilCell(r)}${money(r)}<td class="badges">${warnBadge(r)}${flagBadge(r)}</td>`, wl, 'onprem', keepOnprem);
+        <td>${r.feasible ? TC.basisLabel(r.basis, r.sizing.best.lab) : ''}</td>${utilCell(r)}${money(r)}<td class="badges">${warnBadge(r)}${flagBadge(r)}</td>`, wl, 'onprem', keepOnprem);
 
     h += table('Rent GPUs (GPU cloud)', 'Rent the same GPUs from a cloud provider and run the model yourself. Reserved = committed, billed 24/7; on-demand = pay by the hour while running.',
       [{ label: 'Provider' }, { label: 'GPU / instance' }, { label: 'Pricing' }, { label: 'GPUs' }, { label: 'Avg util', num: true }, ...moneyCols, { label: '' }],
@@ -162,6 +162,48 @@
 
     el.innerHTML = h;
   };
+
+  // The summary needs a breakeven sweep (~0.5 s), so the tables render first and the card fills in right after.
+  let execToken = 0;
+  function execCard(data, w, res) {
+    const my = ++execToken;
+    setTimeout(() => {
+      if (my !== execToken) return; // inputs changed again; a newer render will fill it
+      const el = document.getElementById('exec-card');
+      if (el) el.outerHTML = execCardHtml(data, w, res);
+    }, 30);
+    return `<section class="card exec" id="exec-card"><div class="exec-head"><h2>The answer</h2></div><p class="muted">Working out the best option…</p></section>`;
+  }
+
+  function execCardHtml(data, w, res) {
+    let x;
+    try { x = TC.execSummary(data, w, res); } catch (e) { console.error(e); return ''; }
+    TC.lastExec = x;
+    const tile = (label, r, rng, note) => r
+      ? `<div class="exec-tile"><span class="label">${label}</span><span class="value">${TC.fmtRangeYear(rng, r.monthly)}<small>/yr</small></span>
+          <span class="muted small">${esc(r.name)} · ${esc(r.sub)}</span><span class="muted small">${f.perM(r.perM)} per 1M tokens${note ? ' · ' + note : ''}</span></div>`
+      : `<div class="exec-tile"><span class="label">${label}</span><span class="value muted">—</span><span class="muted small">No option fits</span></div>`;
+    let be;
+    if (x.multiple === 0) be = `Owning servers is <strong>already cheaper</strong> than ${x.altLabel} at today's volume.`;
+    else if (isFinite(x.multiple)) be = `Owning servers becomes cheaper than ${x.altLabel} at about <strong>${f.tokens(x.breakevenTokens)} tokens/month</strong> — <strong>${f.num(x.multiple, x.multiple < 10 ? 1 : 0)}×</strong> today's usage.`;
+    else be = `${x.altLabel.charAt(0).toUpperCase() + x.altLabel.slice(1)} stays cheaper than owning servers up to <strong>2,000×</strong> today's usage.`;
+    const name = w.scenario_name ? `<span class="exec-scn">${esc(w.scenario_name)}</span>` : '';
+    return `<section class="card exec" id="exec-card">
+      <div class="exec-head"><div><h2>The answer ${name}</h2><p class="muted small">Lowest-cost option in each category over ${w.term_years} years, shown per year. Ranges reflect the uncertain inputs below.</p></div>
+        <span class="verdict v-${x.verdict.tone}">${esc(x.verdict.label)}</span></div>
+      <div class="exec-tiles">
+        ${tile('Buy servers (on-prem)', x.on, x.onRange, x.on ? f.num(x.on.util * 100, x.on.util < 0.01 ? 1 : 0) + '% utilized' : '')}
+        ${tile('Rent GPUs (GPU cloud)', x.cl, x.clRange, x.cl ? x.cl.pricing : '')}
+        ${tile('Pay per token (same model)', x.api, null, '')}
+      </div>
+      <p class="exec-be">${be}</p>
+      <p class="exec-why"><strong>Why:</strong> ${esc(x.why)}</p>
+      <details class="exec-conf"><summary>Confidence: <span class="conf conf-${x.level.toLowerCase()}">${x.level}</span> — ${x.level === 'High' ? 'key inputs are measured or current' : 'treat as directional until the ⚠ items are firmed up'}</summary>
+        <ul>${x.checks.map(c => `<li>${c.ok ? '✓' : '⚠'} <strong>${esc(c.label)}:</strong> ${esc(c.detail)}</li>`).join('')}</ul>
+        <p class="muted small">Ranges come from rerunning the calculation with optimistic and pessimistic values for throughput efficiency, placeholder server prices and power load. API prices are published list prices, so they carry no range.</p>
+      </details>
+    </section>`;
+  }
 
   function apiCells(r) {
     return `<td><strong>${esc(r.name)}</strong></td><td>${esc(r.sub)}</td>

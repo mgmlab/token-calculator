@@ -45,7 +45,7 @@
         <td>TP ${c.tp}${c.pp > 1 ? ' × PP ' + c.pp : ''}</td>
         <td>${c.gpusPerReplica}</td>
         <td>${c.feasible ? f.int(c.Crep) : '—'}</td>
-        <td>${c.feasible ? basisLabel(c.basis) : '—'}</td>
+        <td>${c.feasible ? basisLabel(c.basis, c.lab) : '—'}</td>
         <td>${c.feasible ? f.int(c.aggTps) : '—'}</td>
         <td>${c.feasible ? c.replicas : '—'}</td>
         <td>${c.feasible ? c.nodes : '—'}</td>
@@ -53,7 +53,8 @@
       </tr>`).join('') + '</tbody></table>';
   };
 
-  function basisLabel(b) {
+  function basisLabel(b, lab) {
+    if (b === 'benchmark' && lab) return '<span class="badge basis-lab">Pellera lab benchmark</span>';
     if (b === 'benchmark') return '<span class="badge basis-bench">measured benchmark</span>';
     if (b === 'theoretical') return '<span class="badge basis-theory">theoretical estimate</span>';
     return esc(b || '');

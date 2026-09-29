@@ -21,6 +21,7 @@
     model_id: () => ((TC.store.get('models') || {}).models || []).filter(m => m.self_hostable).map(m => [m.id, m.name]),
     tp: () => [1, 2, 4, 8].map(n => [n, n + (n === 1 ? ' GPU' : ' GPUs') + ' per model copy']),
     pp: () => [1, 2, 4].map(n => [n, n === 1 ? '1 (single server)' : n + ' servers']),
+    source_type: () => [['external', 'External / published run'], ['pellera_lab', 'Pellera lab (validated)']],
   };
   const NUMERIC_NULL = /(_per_m|_pct|_usd|_hr|_tflops_fp\d+|_tps|_kw)$/;
 
@@ -234,7 +235,7 @@
         else if (act === 'new-bench' && recs) {
           const W = v => ({ value: v, source: 'Measured by (name, date, link to run)', as_of: TC.today(), status: 'estimate' });
           recs.push({ gpu_id: 'h100-sxm', model_id: 'llama-3.3-70b', precision: 'FP8', tp: 2, pp: 1, engine: 'vLLM', engine_version: '',
-            input_len: 1500, output_len: 400, concurrency: 32, aggregate_output_tps: W(null), per_request_output_tps: W(null) });
+            input_len: 1500, output_len: 400, concurrency: 32, source_type: 'external', aggregate_output_tps: W(null), per_request_output_tps: W(null) });
           st.sel = recs.length - 1; save(); render(el);
         }
         else if (act === 'dup' && recs) {

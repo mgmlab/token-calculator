@@ -179,8 +179,8 @@
     t.background = { color: P.white };
     t.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 0.35, h: 7.5, fill: { color: P.purple } });
     if (logo) t.addImage({ data: logo, x: 1.0, y: 0.9, w: 1.6, h: 1.04 });
-    t.addText('AI workload cost comparison', { x: 1.0, y: 2.35, w: 11, h: 0.9, fontFace: FONT, fontSize: 40, bold: true, color: P.ink });
-    t.addText('Self-hosted on-prem vs GPU cloud vs public API', { x: 1.0, y: 3.2, w: 11, h: 0.5, fontFace: FONT, fontSize: 20, color: P.purple });
+    t.addText(w.scenario_name || 'AI inference economics', { x: 1.0, y: 2.35, w: 11, h: 0.9, fontFace: FONT, fontSize: 40, bold: true, color: P.ink });
+    t.addText(w.scenario_name ? 'AI inference economics — on-prem vs GPU cloud vs API' : 'Self-hosted on-prem vs GPU cloud vs public API', { x: 1.0, y: 3.2, w: 11, h: 0.5, fontFace: FONT, fontSize: 20, color: P.purple });
     t.addText(`${model ? model.name : w.model_id} · ${w.precision} weights · ${f.tokens(wl.tMo)} tokens/month · ${w.term_years}-year view`, { x: 1.0, y: 3.85, w: 11, h: 0.4, fontFace: FONT, fontSize: 15, color: P.ink2 });
     t.addText(dateStr, { x: 1.0, y: 4.3, w: 11, h: 0.4, fontFace: FONT, fontSize: 13, color: P.muted });
     t.addText([
@@ -207,6 +207,41 @@
     const kv = rows => rows.map(([a, b]) => [{ text: a, options: { color: P.ink2 } }, { text: String(b), options: { bold: true } }]);
     s2.addTable(kv(L), { x: 0.5, y: 1.5, w: 6.0, colW: [3.0, 3.0], fontFace: FONT, fontSize: 12, border: { type: 'solid', pt: 0.5, color: P.line }, rowH: 0.5, margin: 0.08 });
     s2.addTable(kv(R), { x: 6.83, y: 1.5, w: 6.0, colW: [2.7, 3.3], fontFace: FONT, fontSize: 12, border: { type: 'solid', pt: 0.5, color: P.line }, rowH: 0.5, margin: 0.08 });
+
+    // Executive summary + confidence (same logic as the Compare tab's summary card; always unfiltered)
+    const X = TC.execSummary(data, w, TC.lastResults.res);
+    const se = titled('Executive summary', `Lowest-cost option in each category over ${w.term_years} years, per year${w.scenario_name ? ' · ' + w.scenario_name : ''}`);
+    const toneFill = { good: 'E3F4EA', mid: 'FFF1D6', cool: 'E6ECFB', neutral: 'EEEEEE' }[X.verdict.tone];
+    const toneInk = { good: '16603A', mid: '7A4B00', cool: '1F3F8F', neutral: '444444' }[X.verdict.tone];
+    se.addShape(pptx.ShapeType.roundRect, { x: 0.5, y: 1.45, w: 4.2, h: 0.55, rectRadius: 0.27, fill: { color: toneFill }, line: { color: toneFill } });
+    se.addText(X.verdict.label, { x: 0.5, y: 1.45, w: 4.2, h: 0.55, fontFace: FONT, fontSize: 16, bold: true, color: toneInk, align: 'center', valign: 'middle' });
+    const tiles = [['Buy servers (on-prem)', X.on, X.onRange], ['Rent GPUs (GPU cloud)', X.cl, X.clRange], ['Pay per token (same model)', X.api, null]];
+    tiles.forEach(([lbl, r, rng], i) => {
+      const x0 = 0.5 + i * 4.18;
+      se.addShape(pptx.ShapeType.roundRect, { x: x0, y: 2.25, w: 3.95, h: 1.9, rectRadius: 0.15, fill: { color: 'F4ECFF' }, line: { color: 'F4ECFF' } });
+      se.addText([
+        { text: lbl, options: { fontSize: 13, color: P.ink2, breakLine: true } },
+        { text: r ? TC.fmtRangeYear(rng, r.monthly) : '—', options: { fontSize: 22, bold: true, color: P.purple, breakLine: true } },
+        { text: r ? 'per year' : '', options: { fontSize: 11, color: P.muted, breakLine: true } },
+        { text: r ? `${r.name} · ${r.sub}` : 'No option fits', options: { fontSize: 11, color: P.ink2, breakLine: true } },
+        { text: r ? `${f.perM(r.perM)} per 1M tokens` : '', options: { fontSize: 11, color: P.muted } },
+      ], { x: x0 + 0.2, y: 2.35, w: 3.55, h: 1.7, fontFace: FONT, valign: 'top' });
+    });
+    const beText = X.multiple === 0 ? `Owning servers is already cheaper than ${X.altLabel} at today's volume.`
+      : isFinite(X.multiple) ? `Owning servers becomes cheaper than ${X.altLabel} at about ${f.tokens(X.breakevenTokens)} tokens/month — ${f.num(X.multiple, X.multiple < 10 ? 1 : 0)}× today's usage.`
+      : `${X.altLabel.charAt(0).toUpperCase() + X.altLabel.slice(1)} stays cheaper than owning servers up to 2,000× today's usage.`;
+    se.addText([
+      { text: 'Breakeven: ', options: { bold: true, color: P.ink } }, { text: beText, options: { color: P.ink, breakLine: true, paraSpaceAfter: 10 } },
+      { text: 'Why: ', options: { bold: true, color: P.ink } }, { text: X.why, options: { color: P.ink2, breakLine: true, paraSpaceAfter: 10 } },
+      { text: `Confidence: ${X.level}. `, options: { bold: true, color: P.ink } }, { text: 'Ranges reflect uncertain throughput and placeholder prices — see the next slide.', options: { color: P.ink2 } },
+    ], { x: 0.5, y: 4.4, w: 12.3, h: 2.0, fontFace: FONT, fontSize: 15, valign: 'top' });
+
+    const sc = titled(`Confidence: ${X.level}`, 'What is measured or current, and what is still an estimate');
+    sc.addTable([hdr(['', 'Input', 'Status'])].concat(X.checks.map(c => [
+      { text: c.ok ? '✓' : '⚠', options: { align: 'center', bold: true, color: c.ok ? '16603A' : '7A4B00', fill: { color: c.ok ? 'E3F4EA' : P.warn } } },
+      { text: c.label, options: { bold: true } }, c.detail,
+    ])), Object.assign(tableOpts([0.6, 3.6, 8.133]), { rowH: 0.5, fontSize: 13 }));
+    note(sc, 'Ranges on the summary come from optimistic and pessimistic cases for throughput efficiency, placeholder server prices and power load. Firm up the ⚠ items (measured benchmarks, current server pricing) to narrow them.', 5.9);
 
     // 3. Summary: cheapest per category
     const cats = ['onprem', 'cloud_reserved', 'cloud_ondemand', 'api_same', 'api_closed'];

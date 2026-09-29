@@ -1,4 +1,6 @@
-# AI Token Calculator
+# AI Inference Economics Calculator
+
+*(formerly "AI Token Calculator"; the repository and URL keep the old name)*
 
 Internal, vendor-neutral calculator for the Pellera AI team. It takes one workload profile and compares three options side by side:
 

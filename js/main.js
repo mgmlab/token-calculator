@@ -186,6 +186,17 @@
 
   function start() {
     w = TC.inputs.load();
+    const shared = TC.readShareHash();
+    if (shared) {
+      Object.keys(w).forEach(k => delete w[k]);
+      Object.assign(w, TC.inputs.defaults(), shared);
+      TC.inputs.save(w);
+      history.replaceState(null, '', location.pathname + location.search);
+      const b = $('#banner');
+      b.hidden = false; b.className = 'banner';
+      b.innerHTML = `<div>Loaded a shared scenario${w.scenario_name ? ': <strong>' + TC.esc(w.scenario_name) + '</strong>' : ''}. Your previous inputs were replaced.</div>`;
+      TC.track('share-link-opened', 'Opened a shared scenario');
+    }
     TC.inputs.render($('#inputs'), w, schedule);
     compute();
   }

@@ -144,6 +144,7 @@
       if (bench) {
         const B = v(bench.aggregate_output_tps);
         cand.basis = 'benchmark';
+        cand.lab = bench.source_type === 'pellera_lab';
         cand.bench = bench;
         cand.aggTps = B;
         const repTput = Math.ceil(reqTps / B);
