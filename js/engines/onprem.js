@@ -373,6 +373,21 @@
     };
   };
 
+  /**
+   * Vendor-neutral label for the cheapest on-prem row: when several vendors are within 0.5% of the
+   * same price for the same GPU setup, name the setup and list every vendor instead of picking one.
+   */
+  TC.describeOnPrem = function (rows, best) {
+    if (!best) return { label: '', vendors: [], tie: false };
+    const ties = rows.filter(r => r.feasible && r.gpu && best.gpu && r.gpu.id === best.gpu.id && r.cost && best.cost
+      && r.cost.gpus === best.cost.gpus && Math.abs(r.monthly - best.monthly) <= best.monthly * 0.005);
+    const vendors = [...new Set(ties.map(r => r.server.vendor))].sort();
+    if (vendors.length > 1) {
+      return { label: `${best.cost.gpus}× ${best.gpu.name.replace(/^NVIDIA |^AMD Instinct /, '')} (${vendors.join(', ')} — same price)`, vendors, tie: true };
+    }
+    return { label: `${best.name} · ${best.cost.gpus}× ${best.gpu.name.replace(/^NVIDIA |^AMD Instinct /, '')}`, vendors, tie: false };
+  };
+
   /** Runs sizing + cost for every server SKU. */
   TC.runOnPrem = function (data, w, wl) {
     const model = data.models.models.find(m => m.id === w.model_id);

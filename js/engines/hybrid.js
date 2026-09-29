@@ -80,13 +80,14 @@
       if (seen.has(K)) continue;
       seen.add(K);
       const wk = TC.effectiveWorkload(Object.assign({}, w, { peak_concurrency_mode: 'manual', peak_concurrent_requests: K, headroom_pct: 0 }));
-      const row = cheapest(TC.runOnPrem(data, wk, wl));
+      const onRows = TC.runOnPrem(data, wk, wl);
+      const row = cheapest(onRows);
       if (!row) continue;
       const cap = TC.utilization(row.sizing.best, row.server.gpus_per_node, wl).capacity / Math.max(w.target_output_tps_per_request, 1e-9);
       const served = hourly.reduce((a, c) => a + c * TC.servedFraction(c, cap), 0);
       const share = demand > 0 ? served / demand : 1;
       const apiMonthly = api.monthly * (1 - share);
-      points.push({ pct: step * 5, K, capacity: cap, share, ownedMonthly: row.monthly, apiMonthly, total: row.monthly + apiMonthly, row });
+      points.push({ pct: step * 5, K, capacity: cap, share, ownedMonthly: row.monthly, apiMonthly, total: row.monthly + apiMonthly, row, setup: TC.describeOnPrem(onRows, row).label });
     }
     const best = points.reduce((a, p) => (p.total < a.total ? p : a), points[0]);
     const pureBest = Math.min(api.monthly, onOnly.monthly);
@@ -98,7 +99,7 @@
       S('Owned capacity tried', '0% to 100% of peak concurrency in 5% steps, cheapest server layout for each (no extra headroom — overflow absorbs spikes)', points.length - 1, 'options'),
       S('Tokens served on owned GPUs', 'Σ hours: mean concurrency × E[min(demand, capacity)] ÷ total demand', best.share * 100, '%'),
       S('Overflow API cost', `${f.usd(api.monthly)} all-API monthly × (1 − ${f.num(best.share * 100, 1)}%) via ${api.name}`, best.apiMonthly, 'USD/mo'),
-      S('Owned baseline cost', best.row ? `${best.row.name} · ${best.row.cost.nodes} node(s), ${best.row.cost.gpus} GPUs` : 'none', best.ownedMonthly, 'USD/mo'),
+      S('Owned baseline cost', best.row ? `${best.setup} · ${best.row.cost.nodes} node(s)` : 'none', best.ownedMonthly, 'USD/mo'),
       S('Hybrid total', 'owned baseline + API overflow', best.total, 'USD/mo'),
     ];
 

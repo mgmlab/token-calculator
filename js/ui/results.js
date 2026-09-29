@@ -203,9 +203,9 @@
     try { x = TC.execSummary(data, w, res); } catch (e) { console.error(e); return ''; }
     TC.lastExec = x;
     TC.lastExecKey = JSON.stringify(w);
-    const tile = (label, r, rng, note) => r
+    const tile = (label, r, rng, note, desc) => r
       ? `<div class="exec-tile"><span class="label">${label}</span><span class="value">${TC.fmtRangeYear(rng, r.monthly)}<small>/yr</small></span>
-          <span class="muted small">${esc(r.name)} · ${esc(r.sub)}</span><span class="muted small">${f.perM(r.perM)} per 1M tokens${note ? ' · ' + note : ''}</span></div>`
+          <span class="muted small">${esc(desc || r.name + ' · ' + r.sub)}</span><span class="muted small">${f.perM(r.perM)} per 1M tokens${note ? ' · ' + note : ''}</span></div>`
       : `<div class="exec-tile"><span class="label">${label}</span><span class="value muted">—</span><span class="muted small">No option fits</span></div>`;
     let be;
     if (x.multiple === 0) be = `Owning servers is <strong>already cheaper</strong> than ${x.altLabel} at today's volume.`;
@@ -216,7 +216,7 @@
       <div class="exec-head"><div><h2>Analysis summary ${name}</h2><p class="muted small">Lowest-cost option in each category over ${w.term_years} years, shown per year. Ranges reflect the uncertain inputs below.</p></div>
         <span class="verdict v-${x.verdict.tone}">${esc(x.verdict.label)}</span></div>
       <div class="exec-tiles">
-        ${tile('Buy servers (on-prem)', x.on, x.onRange, x.on ? f.num(x.on.util * 100, x.on.util < 0.01 ? 1 : 0) + '% utilized' : '')}
+        ${tile('Buy servers (on-prem)', x.on, x.onRange, x.on ? f.num(x.on.util * 100, x.on.util < 0.01 ? 1 : 0) + '% utilized' : '', x.onLabel)}
         ${tile('Rent GPUs (GPU cloud)', x.cl, x.clRange, x.cl ? x.cl.pricing : '')}
         ${tile('Pay per token (same model)', x.api, null, '')}
         ${hybridTile(x.hybrid)}
@@ -236,7 +236,7 @@
     const b = hy.best;
     const note = b.share <= 0.05 ? 'best mix is all API' : b.share >= 0.95 ? 'best mix is all owned' : `${f.num(b.share * 100, 0)}% of tokens on owned GPUs`;
     return `<div class="exec-tile ${hy.wins ? 'hy-win' : ''}"><span class="label">Hybrid (owned baseline + API)</span><span class="value">${f.usdCompact(b.total * 12)}<small>/yr</small></span>
-      <span class="muted small">${b.row ? esc(b.row.name) + ' · ' + b.row.cost.gpus + ' GPUs + ' + esc(hy.api.name) : esc(hy.api.name) + ' only'}</span><span class="muted small">${note}</span></div>`;
+      <span class="muted small">${b.row ? esc(b.setup) + ' + ' + esc(hy.api.name) : esc(hy.api.name) + ' only'}</span><span class="muted small">${note}</span></div>`;
   }
 
   // Hybrid section body (filled after the summary is computed).
@@ -263,7 +263,7 @@
     svg += '</svg>';
     const rows = pts.filter(p => p.pct % 25 === 0 || p === b);
     const tbl = `<div class="table-wrap"><table class="results-table compact"><thead><tr><th>Owned capacity</th><th>Owned setup</th><th class="num">Tokens on owned GPUs</th><th class="num">Owned / mo</th><th class="num">API overflow / mo</th><th class="num">Total / mo</th><th class="num">vs all-API</th></tr></thead><tbody>` +
-      rows.map(p => `<tr class="${p === b ? 'hy-row-best' : ''}"><td>${p.pct}% of peak${p === b ? ' <span class="badge basis-bench">lowest</span>' : ''}</td><td>${p.row ? esc(p.row.name) + ' · ' + p.row.cost.gpus + ' GPUs' : 'none (all API)'}</td>
+      rows.map(p => `<tr class="${p === b ? 'hy-row-best' : ''}"><td>${p.pct}% of peak${p === b ? ' <span class="badge basis-bench">lowest</span>' : ''}</td><td>${p.row ? esc(p.setup) : 'none (all API)'}</td>
         <td class="num">${f.num(p.share * 100, 0)}%</td><td class="num">${f.usd(p.ownedMonthly)}</td><td class="num">${f.usd(p.apiMonthly)}</td><td class="num strong">${f.usd(p.total)}</td>
         <td class="num">${p.pct === 0 ? '—' : p.total <= hy.apiOnly ? '−' + f.usd(hy.apiOnly - p.total) : '+' + f.usd(p.total - hy.apiOnly)}</td></tr>`).join('') + '</tbody></table></div>';
     const verdict = hy.wins

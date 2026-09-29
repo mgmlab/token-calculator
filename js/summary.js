@@ -107,6 +107,7 @@
     const level = uncertain === 0 ? 'High' : uncertain === 1 ? 'Medium' : 'Low';
 
     return {
+      onLabel: TC.describeOnPrem(res.onprem, on).label,
       on, cl, api, closed, onRange, clRange, multiple, verdict, why, checks, level, hybrid: hy,
       breakevenTokens: isFinite(multiple) && multiple > 0 ? multiple * wl.tMo : null,
       altLabel: api ? 'paying per token for the same model' : 'renting GPUs',
