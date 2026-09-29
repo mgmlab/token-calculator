@@ -1,4 +1,4 @@
-/* Breakeven chart: monthly cost vs monthly token volume (log-log), plain SVG. */
+/* Breakeven chart: monthly cost (dollar axis) vs monthly token volume (log axis), plain SVG. */
 (function () {
   const TC = window.TC;
   const f = TC.fmt;
@@ -7,17 +7,11 @@
   let showTable = false;
   let kMax = 500;
   let showHelp = true;
-  let yMode = 'perM'; // 'perM' = cost per 1M tokens, 'monthly' = total monthly cost
-  try {
-    showHelp = localStorage.getItem('tc.beHelp') !== '0';
-    yMode = localStorage.getItem('tc.beMode') || 'perM';
-  } catch (e) { /* ignore */ }
+  try { showHelp = localStorage.getItem('tc.beHelp') !== '0'; } catch (e) { /* ignore */ }
   const valOf = (p, key) => {
     const v = p.series[key];
-    if (!v || !(v.monthly > 0)) return null;
-    return yMode === 'perM' ? v.monthly / p.tokensMonth * 1e6 : v.monthly;
+    return v && v.monthly > 0 ? v.monthly : null;
   };
-  const fmtY = n => (yMode === 'perM' ? f.perM(n) : f.usd(n));
 
   const W = 920, H = 440, M = { l: 72, r: 24, t: 20, b: 48 };
 
@@ -52,36 +46,27 @@
     const ys = [];
     pts.forEach(p => active.forEach(s => { const v = valOf(p, s.key); if (v != null) ys.push(v); }));
     const xMin = Math.min(...xs), xMax = Math.max(...xs);
-    // Cost per token: log scale (spans 100×+). Monthly cost: plain dollar scale, so the growing
-    // dollar gap between options is visible (a log scale shrinks a 2× gap to a sliver).
-    const linear = yMode === 'monthly';
-    let yMin, yMax, yTicks;
-    if (linear) {
-      const top = ys.length ? Math.max(...ys) : 1;
-      const raw = top / 5, pow = Math.pow(10, Math.floor(Math.log10(raw)));
-      const step = [1, 2, 2.5, 5, 10].map(m => m * pow).find(x => x >= raw);
-      yMin = 0; yMax = Math.ceil(top / step) * step;
-      yTicks = []; for (let t = 0; t <= yMax + 1e-9; t += step) yTicks.push(t);
-    } else {
-      yMin = ys.length ? Math.pow(10, Math.floor(Math.log10(Math.min(...ys)))) : 1;
-      yMax = ys.length ? Math.pow(10, Math.ceil(Math.log10(Math.max(...ys)))) : 10;
-      yTicks = logTicks(yMin, yMax);
-    }
+    // Plain dollar axis, so the growing dollar gap between options is visible
+    // (a log dollar axis shrinks a 2× gap to a sliver).
+    const top = ys.length ? Math.max(...ys) : 1;
+    const raw = top / 5, pow = Math.pow(10, Math.floor(Math.log10(raw)));
+    const step = [1, 2, 2.5, 5, 10].map(m => m * pow).find(x => x >= raw);
+    const yMin = 0, yMax = Math.ceil(top / step) * step;
+    const yTicks = [];
+    for (let t = 0; t <= yMax + 1e-9; t += step) yTicks.push(t);
     const X = x => M.l + (Math.log10(x) - Math.log10(xMin)) / (Math.log10(xMax) - Math.log10(xMin)) * (W - M.l - M.r);
-    const Y = linear
-      ? y => H - M.b - (y - yMin) / (yMax - yMin) * (H - M.t - M.b)
-      : y => H - M.b - (Math.log10(y) - Math.log10(yMin)) / (Math.log10(yMax) - Math.log10(yMin)) * (H - M.t - M.b);
+    const Y = y => H - M.b - (y - yMin) / (yMax - yMin) * (H - M.t - M.b);
 
     let svg = `<svg viewBox="0 0 ${W} ${H}" class="be-chart" role="img" aria-label="Monthly cost versus monthly token volume for each option category">`;
     yTicks.forEach(t => {
-      svg += `<line class="grid" x1="${M.l}" x2="${W - M.r}" y1="${Y(t)}" y2="${Y(t)}"/><text class="tick" x="${M.l - 8}" y="${Y(t) + 4}" text-anchor="end">${yMode === 'perM' ? '$' + (t < 1 ? t : f.int(t)) : f.usdCompact(t)}</text>`;
+      svg += `<line class="grid" x1="${M.l}" x2="${W - M.r}" y1="${Y(t)}" y2="${Y(t)}"/><text class="tick" x="${M.l - 8}" y="${Y(t) + 4}" text-anchor="end">${f.usdCompact(t)}</text>`;
     });
     logTicks(xMin, xMax).forEach(t => {
       svg += `<line class="grid" x1="${X(t)}" x2="${X(t)}" y1="${M.t}" y2="${H - M.b}"/><text class="tick" x="${X(t)}" y="${H - M.b + 18}" text-anchor="middle">${f.tokens(t)}</text>`;
     });
     svg += `<line class="axis" x1="${M.l}" x2="${W - M.r}" y1="${H - M.b}" y2="${H - M.b}"/>`;
     svg += `<text class="axis-label" x="${(M.l + W - M.r) / 2}" y="${H - 8}" text-anchor="middle">Tokens per month (input + output, log scale)</text>`;
-    svg += `<text class="axis-label" transform="translate(16 ${(M.t + H - M.b) / 2}) rotate(-90)" text-anchor="middle">${yMode === 'perM' ? 'Cost per 1M tokens (log scale)' : 'Monthly cost'}</text>`;
+    svg += `<text class="axis-label" transform="translate(16 ${(M.t + H - M.b) / 2}) rotate(-90)" text-anchor="middle">Monthly cost</text>`;
 
     const cx = X(be.currentTokens);
     if (be.currentTokens >= xMin && be.currentTokens <= xMax) {
@@ -99,24 +84,24 @@
       svg += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round"/>`;
     });
 
-    // Breakeven markers: where owning servers becomes cheaper than each alternative.
+    // Breakeven markers: numbered dots on the chart; the explanation for each number is in
+    // the "Breakeven points" list below, so labels never collide on the chart.
     let mk = 0;
+    const markNo = {};
     be.crossovers.forEach(c => {
       if (!(c.index > 0) || hidden.has(c.key) || hidden.has('onprem')) return;
       const p = pts[c.index];
       const x = X(p.tokensMonth), y = Y(valOf(p, 'onprem'));
       const col = series.find(s2 => s2.key === c.key).color;
-      const ly = Math.max(M.t + 26, y - 16 - mk * 18);
-      const anchor = x > W - 220 ? 'end' : 'start';
-      const lx = anchor === 'end' ? x - 10 : x + 10;
-      svg += `<circle class="be-mark" cx="${x}" cy="${y}" r="7" fill="none" stroke="${col}" stroke-width="2.5"/><circle cx="${x}" cy="${y}" r="3" fill="var(--text)"/>`;
-      svg += `<text class="be-mark-label" x="${lx}" y="${ly}" text-anchor="${anchor}">Breakeven vs ${esc(c.label.replace(/ —.*/, '').toLowerCase())}${c.key === 'api_closed' ? ' (other models)' : ''}: ${f.tokens(p.tokensMonth)}</text>`;
-      mk++;
+      markNo[c.key] = ++mk;
+      svg += `<g class="be-mark"><title>Breakeven vs ${esc(c.vs)}: ${f.tokens(p.tokensMonth)} tokens/month</title>
+        <circle cx="${x}" cy="${y}" r="11" fill="var(--surface)" stroke="${col}" stroke-width="2.5"/>
+        <text x="${x}" y="${y + 4}" text-anchor="middle" class="be-mark-num">${mk}</text></g>`;
     });
 
     // Monthly view: show the dollar gap between owning servers and pay-per-token at the top of the range.
     const lastPt = pts[pts.length - 1];
-    if (linear && !hidden.has('onprem') && !hidden.has('api_same') && lastPt.series.onprem && lastPt.series.api_same) {
+    if (!hidden.has('onprem') && !hidden.has('api_same') && lastPt.series.onprem && lastPt.series.api_same) {
       const a = lastPt.series.onprem.monthly, b = lastPt.series.api_same.monthly;
       const xr = X(lastPt.tokensMonth) - 4;
       const ya = Y(a), yb = Y(b);
@@ -143,7 +128,7 @@
       let txt;
       if (!c.hasData) txt = `No data to compare owning servers with ${c.vs}.`;
       else if (c.index === 0) txt = `Owning servers is cheaper than ${c.vs} at every usage level shown.`;
-      else if (c.index > 0) txt = `Owning servers becomes cheaper than ${c.vs} above <strong>${f.tokens(c.tokensMonth)} tokens/month</strong>${times(c.tokensMonth)}.`;
+      else if (c.index > 0) txt = `${markNo[c.key] ? `<span class="be-num" style="border-color:${col}">${markNo[c.key]}</span> ` : ''}Owning servers becomes cheaper than ${c.vs} above <strong>${f.tokens(c.tokensMonth)} tokens/month</strong>${times(c.tokensMonth)}.`;
       else txt = `${c.vs.charAt(0).toUpperCase() + c.vs.slice(1)} stays cheaper than owning servers across the whole range shown (up to ${f.tokens(pts[pts.length - 1].tokensMonth)} tokens/month).`;
       return `<li><span class="swatch" style="background:${col}"></span><span>${txt}</span></li>`;
     }).join('');
@@ -169,15 +154,12 @@
           </ul></div>
         <div><h4>Reading the lines</h4>
           <ul>
-            <li>Left to right = more usage (tokens per month). Lower = cheaper${yMode === 'perM' ? ' per token' : ' per month'}.</li>
+            <li>Left to right = more usage (tokens per month). Higher = more expensive per month.</li>
             <li>Each line is the cheapest choice of that type at each usage level.</li>
-            ${yMode === 'perM'
-              ? `<li><strong>Flat lines</strong> (pay per token): the price per token is the same whatever your volume.</li>
-            <li><strong>Falling lines</strong> (buy / rent GPUs): hardware costs the same whether it's busy or idle, so the more you use it, the less each token costs. The line levels off once the servers are as busy as your traffic pattern allows; small bumps are new servers being added.</li>`
-              : `<li><strong>Stepped lines</strong> (buy / rent GPUs): you pay for the hardware whether you use it or not; each step is another server added.</li>
+            <li><strong>Stepped lines</strong> (buy / rent GPUs): you pay for the hardware whether you use it or not; each step is another server added.</li>
             <li><strong>Smooth curves</strong> (pay per token): the bill grows with every token. (The usage axis is compressed so small and large volumes both fit, which is why a straight price line looks curved.)</li>
-            <li>The bracket at the right shows how much owning servers saves (or costs) per month at the top of the range. Small volumes sit near the bottom — switch to <em>Cost per 1M tokens</em> to see them.</li>`}
-            <li><strong>Dashed line</strong> = your usage today. <strong>Circled dot</strong> = a breakeven point: to the right of it, owning servers is cheaper.</li>
+            <li><strong>Dashed line</strong> = your usage today. <strong>Numbered circles</strong> = breakeven points, explained under the chart: to the right of each, owning servers is cheaper.</li>
+            <li>The bracket at the right shows how much owning servers saves (or costs) per month at the top of the range.</li>
           </ul></div>
       </div>
     </details>`;
@@ -193,12 +175,8 @@
 
     el.innerHTML = `
       <div class="block-head"><div><h2>Breakeven: when does buying servers pay off?</h2>
-        <p class="muted">${yMode === 'perM' ? 'Cost per 1M tokens' : 'Monthly cost'} of each way to run ${esc((data.models.models.find(m => m.id === w.model_id) || {}).name || 'the model')} as usage grows.</p></div>
+        <p class="muted">Monthly cost of each way to run ${esc((data.models.models.find(m => m.id === w.model_id) || {}).name || 'the model')} as usage grows.</p></div>
         <div class="be-controls">
-        <div class="seg small" role="group" aria-label="Chart shows">
-          <button type="button" data-ymode="perM" class="${yMode === 'perM' ? 'on' : ''}">Cost per 1M tokens</button>
-          <button type="button" data-ymode="monthly" class="${yMode === 'monthly' ? 'on' : ''}">Monthly cost</button>
-        </div>
         <label class="small">Show usage up to <select data-act="range">${[20, 100, 500, 2000].map(k => `<option value="${k}" ${k === kMax ? 'selected' : ''}>${k}× today</option>`).join('')}</select></label></div></div>
       ${help}
       ${headline ? `<p class="be-headline">${headline}</p>` : ''}
@@ -214,11 +192,6 @@
         ${table}
       </details>`;
 
-    el.querySelectorAll('[data-ymode]').forEach(b => b.onclick = () => {
-      yMode = b.dataset.ymode;
-      try { localStorage.setItem('tc.beMode', yMode); } catch (e) { /* ignore */ }
-      TC.renderBreakeven(el, data, w);
-    });
     const det = el.querySelector('.be-help');
     det.addEventListener('toggle', () => { showHelp = det.open; try { localStorage.setItem('tc.beHelp', det.open ? '1' : '0'); } catch (e) { /* ignore */ } });
     if (showTable) el.querySelector('.be-more').open = true;
@@ -254,7 +227,7 @@
       tip.hidden = false;
       tip.innerHTML = `<div class="tip-head">${f.tokens(p.tokensMonth)} tokens / month</div>` + active.map(s => {
         const v = p.series[s.key];
-        return `<div class="tip-row"><span class="swatch" style="background:${s.color}"></span><span class="tip-label">${esc(s.label)}</span><span class="tip-val">${v ? f.perM(v.monthly / p.tokensMonth * 1e6) + ' /1M' : '—'}</span></div>${v ? `<div class="tip-sub">${f.usd(v.monthly)}/month · ${esc(v.name)} · ${esc(v.sub)}</div>` : ''}`;
+        return `<div class="tip-row"><span class="swatch" style="background:${s.color}"></span><span class="tip-label">${esc(s.label)}</span><span class="tip-val">${v ? f.usd(v.monthly) + '/mo' : '—'}</span></div>${v ? `<div class="tip-sub">${esc(v.name)} · ${esc(v.sub)}</div>` : ''}`;
       }).join('');
       const wr = wrap.getBoundingClientRect();
       const left = evt.clientX - wr.left;
