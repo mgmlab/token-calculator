@@ -288,7 +288,7 @@
         const kind = t.dataset.kind;
         if (kind === 'wval') {
           // parent is the wrapped value object
-          if (parent.status !== 'override' && !parent.original) {
+          if (parent.status !== 'override' && !parent.original && parent.value != null) { // a first-time entry has nothing to revert to
             parent.original = { value: parent.value, source: parent.source, as_of: parent.as_of, status: parent.status };
           }
           parent.value = parseNum(t.value);
