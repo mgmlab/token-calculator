@@ -6,7 +6,7 @@
 
   const view = { sort: 'name', showInfeasible: false, expanded: new Set(), filters: {}, collapsed: new Set() };
   TC.resultsView = view;
-  const SECTIONS = ['onprem', 'cloud', 'api_same', 'api_closed'];
+  const SECTIONS = ['hybrid', 'onprem', 'cloud', 'api_same', 'api_closed'];
   SECTIONS.forEach(k => view.collapsed.add(k)); // start collapsed: the Analysis summary leads, details on demand
 
   // ---- Filters (GPU, server vendor, cloud provider, pricing type, API provider); reset on every page load.
@@ -146,6 +146,15 @@
       <span class="export-status muted small" aria-live="polite"></span>
     </div>` + filterBar(res);
 
+    {
+      const closed = view.collapsed.has('hybrid');
+      h += `<section class="card result-block ${closed ? 'collapsed' : ''}">
+        <div class="block-head"><div><h3><button type="button" class="sect-toggle" data-section="hybrid" aria-expanded="${!closed}">${closed ? '▸' : '▾'} Hybrid — owned baseline + pay-per-token overflow</button></h3>
+          <p class="muted">${closed ? 'Finds the cheapest split between owned GPUs and the API. Click the heading to expand.' : 'Own enough GPUs for the steady part of demand; send busy-hour overflow to the cheapest same-model API.'}</p></div></div>
+        ${closed ? '' : `<div class="hy-wrap" id="hybrid-body">${TC.lastExec && TC.lastExec.hybrid !== undefined && TC.lastExecKey === JSON.stringify(w) ? hybridBody(TC.lastExec.hybrid) : '<p class="muted">Working out the best mix…</p>'}</div>`}
+      </section>`;
+    }
+
     h += table('Buy servers (on-prem)', 'Purchase GPU servers and run the model yourself. One row per server model; sized in model copies (replicas), rounded to whole servers.',
       [{ label: 'Server' }, { label: 'GPU' }, { label: 'Layout' }, { label: 'Throughput basis' }, { label: 'Avg util', num: true }, ...moneyCols, { label: '' }],
       res.onprem,
@@ -181,6 +190,8 @@
       if (my !== execToken) return; // inputs changed again; a newer render will fill it
       const el = document.getElementById('exec-card');
       if (el) el.outerHTML = execCardHtml(data, w, res, notes);
+      const hb = document.getElementById('hybrid-body');
+      if (hb && TC.lastExec) hb.innerHTML = hybridBody(TC.lastExec.hybrid);
     }, 30);
     return `<section class="card exec" id="exec-card"><div class="exec-head"><h2>Analysis summary</h2></div><p class="muted">Working out the best option…</p></section>`;
   }
@@ -189,6 +200,7 @@
     let x;
     try { x = TC.execSummary(data, w, res); } catch (e) { console.error(e); return ''; }
     TC.lastExec = x;
+    TC.lastExecKey = JSON.stringify(w);
     const tile = (label, r, rng, note) => r
       ? `<div class="exec-tile"><span class="label">${label}</span><span class="value">${TC.fmtRangeYear(rng, r.monthly)}<small>/yr</small></span>
           <span class="muted small">${esc(r.name)} · ${esc(r.sub)}</span><span class="muted small">${f.perM(r.perM)} per 1M tokens${note ? ' · ' + note : ''}</span></div>`
@@ -205,6 +217,7 @@
         ${tile('Buy servers (on-prem)', x.on, x.onRange, x.on ? f.num(x.on.util * 100, x.on.util < 0.01 ? 1 : 0) + '% utilized' : '')}
         ${tile('Rent GPUs (GPU cloud)', x.cl, x.clRange, x.cl ? x.cl.pricing : '')}
         ${tile('Pay per token (same model)', x.api, null, '')}
+        ${hybridTile(x.hybrid)}
       </div>
       <p class="exec-be">${be}</p>
       <p class="exec-why"><strong>Why:</strong> ${esc(x.why)}</p>
@@ -214,6 +227,51 @@
         <p class="muted small">Ranges come from rerunning the calculation with optimistic and pessimistic values for throughput efficiency, placeholder server prices and power load. API prices are published list prices, so they carry no range.</p>
       </details>
     </section>`;
+  }
+
+  function hybridTile(hy) {
+    if (!hy) return `<div class="exec-tile"><span class="label">Hybrid (owned baseline + API)</span><span class="value muted">—</span><span class="muted small">Needs a same-model API price</span></div>`;
+    const b = hy.best;
+    const note = b.share <= 0.05 ? 'best mix is all API' : b.share >= 0.95 ? 'best mix is all owned' : `${f.num(b.share * 100, 0)}% of tokens on owned GPUs`;
+    return `<div class="exec-tile ${hy.wins ? 'hy-win' : ''}"><span class="label">Hybrid (owned baseline + API)</span><span class="value">${f.usdCompact(b.total * 12)}<small>/yr</small></span>
+      <span class="muted small">${b.row ? esc(b.row.name) + ' · ' + b.row.cost.gpus + ' GPUs + ' + esc(hy.api.name) : esc(hy.api.name) + ' only'}</span><span class="muted small">${note}</span></div>`;
+  }
+
+  // Hybrid section body (filled after the summary is computed).
+  function hybridBody(hy) {
+    if (!hy) return '<p class="empty">A hybrid needs both an on-prem option that fits and a same-model API price.</p>';
+    const b = hy.best, pts = hy.points;
+    const W = 860, H = 280, M = { l: 70, r: 20, t: 16, b: 42 };
+    const ys = pts.map(p => p.total).concat([hy.apiOnly, hy.onPremOnly]);
+    const top = Math.max(...ys) * 1.05, raw = top / 4, pw = Math.pow(10, Math.floor(Math.log10(raw)));
+    const stepY = [1, 2, 2.5, 5, 10].map(m => m * pw).find(x => x >= raw);
+    const yMax = Math.ceil(top / stepY) * stepY;
+    const X = pct => M.l + pct / 100 * (W - M.l - M.r), Y = v => H - M.b - v / yMax * (H - M.t - M.b);
+    const line = pts.map((p, i) => (i ? 'L' : 'M') + X(p.pct).toFixed(1) + ' ' + Y(p.total).toFixed(1)).join(' ');
+    const ticks = []; for (let t = 0; t <= yMax + 1e-9; t += stepY) ticks.push(t);
+    let svg = `<svg viewBox="0 0 ${W} ${H}" class="hy-chart" role="img" aria-label="Monthly cost by owned share of peak capacity">`;
+    ticks.forEach(t => { svg += `<line class="grid" x1="${M.l}" x2="${W - M.r}" y1="${Y(t)}" y2="${Y(t)}"/><text class="tick" x="${M.l - 8}" y="${Y(t) + 4}" text-anchor="end">${f.usdCompact(t)}</text>`; });
+    [0, 25, 50, 75, 100].forEach(p => { svg += `<text class="tick" x="${X(p)}" y="${H - M.b + 18}" text-anchor="middle">${p}%</text>`; });
+    svg += `<text class="axis-label" x="${(M.l + W - M.r) / 2}" y="${H - 6}" text-anchor="middle">Owned capacity (% of peak concurrency)</text>`;
+    svg += `<line class="ref" x1="${M.l}" x2="${W - M.r}" y1="${Y(hy.onPremOnly)}" y2="${Y(hy.onPremOnly)}"/><text class="ref-label" x="${W - M.r}" y="${Y(hy.onPremOnly) - 6}" text-anchor="end">All owned (with headroom): ${f.usdCompact(hy.onPremOnly)}/mo</text>`;
+    svg += `<path d="${line}" fill="none" stroke="var(--accent)" stroke-width="2.5"/>`;
+    svg += `<circle cx="${X(b.pct)}" cy="${Y(b.total)}" r="7" fill="var(--surface)" stroke="var(--accent)" stroke-width="3"/>`;
+    const lx = X(b.pct) > W * 0.6 ? X(b.pct) - 12 : X(b.pct) + 12;
+    svg += `<text class="hy-best" x="${lx}" y="${Y(b.total) - 12}" text-anchor="${X(b.pct) > W * 0.6 ? 'end' : 'start'}">Lowest cost: ${f.usdCompact(b.total)}/mo at ${b.pct}%</text>`;
+    svg += '</svg>';
+    const rows = pts.filter(p => p.pct % 25 === 0 || p === b);
+    const tbl = `<div class="table-wrap"><table class="results-table compact"><thead><tr><th>Owned capacity</th><th>Owned setup</th><th class="num">Tokens on owned GPUs</th><th class="num">Owned / mo</th><th class="num">API overflow / mo</th><th class="num">Total / mo</th><th class="num">vs all-API</th></tr></thead><tbody>` +
+      rows.map(p => `<tr class="${p === b ? 'hy-row-best' : ''}"><td>${p.pct}% of peak${p === b ? ' <span class="badge basis-bench">lowest</span>' : ''}</td><td>${p.row ? esc(p.row.name) + ' · ' + p.row.cost.gpus + ' GPUs' : 'none (all API)'}</td>
+        <td class="num">${f.num(p.share * 100, 0)}%</td><td class="num">${f.usd(p.ownedMonthly)}</td><td class="num">${f.usd(p.apiMonthly)}</td><td class="num strong">${f.usd(p.total)}</td>
+        <td class="num">${p.pct === 0 ? '—' : p.total <= hy.apiOnly ? '−' + f.usd(hy.apiOnly - p.total) : '+' + f.usd(p.total - hy.apiOnly)}</td></tr>`).join('') + '</tbody></table></div>';
+    const verdict = hy.wins
+      ? `Owning a baseline sized for <strong>${b.pct}%</strong> of peak and sending the overflow to <strong>${esc(hy.api.name)}</strong> is the lowest-cost mix — about <strong>${f.usdCompact(hy.savingsVsApi * 12)}/yr</strong> less than all-API${hy.savingsVsOnPrem > 0 ? ` and ${f.usdCompact(hy.savingsVsOnPrem * 12)}/yr less than owning for the full peak` : ''}.`
+      : b.share <= 0.05 ? 'At this volume the lowest-cost mix is <strong>all API</strong>: owned capacity costs more than the tokens it would serve.'
+      : b.share >= 0.95 ? 'At this volume the lowest-cost mix is <strong>all owned</strong>: overflow to the API costs more than owning for the peak.'
+      : `A mix at ${b.pct}% of peak is cheapest, but saves less than 5% versus the best single option.`;
+    return `<p class="hy-verdict">${verdict}</p>${svg}${tbl}
+      <details class="hy-how"><summary>How this is calculated</summary>${TC.renderSteps('Hybrid', hy.steps)}
+        <p class="muted small">Assumes requests can be routed to either owned GPUs or the API (e.g. through a gateway), and that the same model runs on both. Filters don't apply to this section.</p></details>`;
   }
 
   function apiCells(r) {

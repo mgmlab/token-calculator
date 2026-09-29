@@ -191,10 +191,25 @@
     eq(TC.fitVerdict({ onMonthly: 90, altMonthly: 100, multiple: 0 }).key, 'onprem', 'cheaper now');
     eq(TC.fitVerdict({ onMonthly: 90, altMonthly: 100, multiple: 0, onHigh: 95 }).key, 'onprem', 'cheaper even in the pessimistic case');
     eq(TC.fitVerdict({ onMonthly: 90, altMonthly: 100, multiple: 0, onHigh: 130 }).key, 'onprem-likely', 'range overlaps the alternative');
-    eq(TC.fitVerdict({ onMonthly: 150, altMonthly: 100, multiple: 2.5 }).key, 'hybrid', 'within 3x');
+    eq(TC.fitVerdict({ onMonthly: 150, altMonthly: 100, multiple: 2.5 }).key, 'near', 'within 3x');
+    eq(TC.fitVerdict({ onMonthly: 150, altMonthly: 100, multiple: 9, hybridWins: true }).key, 'hybrid', 'hybrid mix wins');
     eq(TC.fitVerdict({ onMonthly: 900, altMonthly: 100, multiple: 40 }).key, 'api', 'far from breakeven');
     eq(TC.fitVerdict({ onMonthly: 900, altMonthly: 100, multiple: Infinity }).key, 'api', 'never in range');
     eq(TC.fitVerdict({ onMonthly: null, altMonthly: 100, multiple: 1 }).key, 'unknown', 'no data');
+  });
+
+  test('hybrid traffic profile and served fraction', () => {
+    const flat = TC.trafficProfile(0.04);
+    eq(flat.length, 24, 'hours'); eq(Math.max(...flat), 1 / 24, 'flat when share <= 1/24');
+    const biz = TC.trafficProfile(0.15);
+    eq(Math.max(...biz), 0.15, 'busiest hour share', 1e-3);
+    eq(biz.reduce((a, b) => a + b, 0), 1, 'sums to 1', 1e-9);
+    eq(TC.servedFraction(10, 0), 0, 'no capacity');
+    if (!(TC.servedFraction(10, 1000) > 0.999)) throw new Error('huge capacity should serve ~all');
+    // Poisson(2), K = 1: E[min(X,1)] = P(X>=1) = 1 - e^-2 -> fraction = (1 - e^-2) / 2
+    eq(TC.servedFraction(2, 1), (1 - Math.exp(-2)) / 2, 'exact Poisson', 1e-9);
+    // normal branch continuity near the 30 threshold
+    if (Math.abs(TC.servedFraction(29.9, 30) - TC.servedFraction(30, 30)) > 0.02) throw new Error('approximation discontinuity');
   });
 
   // ---------- render

@@ -215,17 +215,19 @@
     const toneInk = { good: '16603A', mid: '7A4B00', cool: '1F3F8F', neutral: '444444' }[X.verdict.tone];
     se.addShape(pptx.ShapeType.roundRect, { x: 0.5, y: 1.45, w: 4.2, h: 0.55, rectRadius: 0.27, fill: { color: toneFill }, line: { color: toneFill } });
     se.addText(X.verdict.label, { x: 0.5, y: 1.45, w: 4.2, h: 0.55, fontFace: FONT, fontSize: 16, bold: true, color: toneInk, align: 'center', valign: 'middle' });
-    const tiles = [['Buy servers (on-prem)', X.on, X.onRange], ['Rent GPUs (GPU cloud)', X.cl, X.clRange], ['Pay per token (same model)', X.api, null]];
+    const HY = X.hybrid;
+    const hyRow = HY ? { monthly: HY.best.total, name: HY.best.row ? HY.best.row.name + ' + ' + HY.api.name : HY.api.name + ' only', sub: `${f.num(HY.best.share * 100, 0)}% of tokens owned`, perM: HY.best.total * 12 * w.term_years / (res.wl.tTerm / 1e6) } : null;
+    const tiles = [['Buy servers (on-prem)', X.on, X.onRange], ['Rent GPUs (GPU cloud)', X.cl, X.clRange], ['Pay per token (same model)', X.api, null], ['Hybrid (owned + API)', hyRow, null]];
     tiles.forEach(([lbl, r, rng], i) => {
-      const x0 = 0.5 + i * 4.18;
-      se.addShape(pptx.ShapeType.roundRect, { x: x0, y: 2.25, w: 3.95, h: 1.9, rectRadius: 0.15, fill: { color: 'F4ECFF' }, line: { color: 'F4ECFF' } });
+      const x0 = 0.5 + i * 3.1;
+      se.addShape(pptx.ShapeType.roundRect, { x: x0, y: 2.25, w: 2.95, h: 1.9, rectRadius: 0.15, fill: { color: 'F4ECFF' }, line: { color: 'F4ECFF' } });
       se.addText([
         { text: lbl, options: { fontSize: 13, color: P.ink2, breakLine: true } },
-        { text: r ? TC.fmtRangeYear(rng, r.monthly) : '—', options: { fontSize: 22, bold: true, color: P.purple, breakLine: true } },
+        { text: r ? TC.fmtRangeYear(rng, r.monthly) : '—', options: { fontSize: 19, bold: true, color: P.purple, breakLine: true } },
         { text: r ? 'per year' : '', options: { fontSize: 11, color: P.muted, breakLine: true } },
         { text: r ? `${r.name} · ${r.sub}` : 'No option fits', options: { fontSize: 11, color: P.ink2, breakLine: true } },
         { text: r ? `${f.perM(r.perM)} per 1M tokens` : '', options: { fontSize: 11, color: P.muted } },
-      ], { x: x0 + 0.2, y: 2.35, w: 3.55, h: 1.7, fontFace: FONT, valign: 'top' });
+      ], { x: x0 + 0.15, y: 2.35, w: 2.7, h: 1.7, fontFace: FONT, valign: 'top' });
     });
     const beText = X.multiple === 0 ? `Owning servers is already cheaper than ${X.altLabel} at today's volume.`
       : isFinite(X.multiple) ? `Owning servers becomes cheaper than ${X.altLabel} at about ${f.tokens(X.breakevenTokens)} tokens/month — ${f.num(X.multiple, X.multiple < 10 ? 1 : 0)}× today's usage.`
@@ -235,6 +237,30 @@
       { text: 'Why: ', options: { bold: true, color: P.ink } }, { text: X.why, options: { color: P.ink2, breakLine: true, paraSpaceAfter: 10 } },
       { text: `Confidence: ${X.level}. `, options: { bold: true, color: P.ink } }, { text: 'Ranges reflect uncertain throughput and placeholder prices — see the next slide.', options: { color: P.ink2 } },
     ], { x: 0.5, y: 4.4, w: 12.3, h: 2.0, fontFace: FONT, fontSize: 15, valign: 'top' });
+
+    if (HY) {
+      const sh = titled('Hybrid: owned baseline + pay-per-token overflow', 'Monthly cost as the owned share of peak capacity grows — overflow goes to ' + HY.api.name);
+      sh.addChart(pptx.ChartType.line, [
+        { name: 'Hybrid total', labels: HY.points.map(p => p.pct + '%'), values: HY.points.map(p => Math.round(p.total)) },
+        { name: 'All owned (with headroom)', labels: HY.points.map(p => p.pct + '%'), values: HY.points.map(() => Math.round(HY.onPremOnly)) },
+      ], {
+        x: 0.5, y: 1.45, w: 8.3, h: 4.9, chartColors: [P.purple, 'B7B2C6'], lineSize: 2, lineDataSymbol: 'none',
+        valAxisLabelFormatCode: '$#,##0', valAxisLabelFontSize: 9, catAxisLabelFontSize: 9, catAxisLabelFrequency: 4,
+        catAxisTitle: 'Owned capacity (% of peak concurrency)', showCatAxisTitle: true, catAxisTitleFontSize: 10, valAxisTitle: 'Monthly cost', showValAxisTitle: true, valAxisTitleFontSize: 10,
+        valGridLine: { color: P.line, size: 0.5 }, catGridLine: { style: 'none' }, showLegend: true, legendPos: 'b', legendFontSize: 10, legendFontFace: FONT,
+      });
+      const b = HY.best;
+      const msg = HY.wins
+        ? `Lowest cost: own a baseline for ${b.pct}% of peak (${b.row ? b.row.name + ', ' + b.row.cost.gpus + ' GPUs' : ''}) and send the rest to ${HY.api.name}. ${f.num(b.share * 100, 0)}% of tokens run on owned GPUs.`
+        : b.share <= 0.05 ? 'At this volume the lowest-cost mix is all API.' : b.share >= 0.95 ? 'At this volume the lowest-cost mix is all owned.' : `A ${b.pct}% baseline is cheapest, but saves under 5% versus the best single option.`;
+      sh.addText([
+        { text: msg, options: { breakLine: true, paraSpaceAfter: 12, color: P.ink } },
+        { text: `Hybrid: ${f.usdCompact(b.total * 12)}/yr`, options: { bold: true, color: P.purple, breakLine: true } },
+        { text: `All API: ${f.usdCompact(HY.apiOnly * 12)}/yr`, options: { color: P.ink2, breakLine: true } },
+        { text: `All owned: ${f.usdCompact(HY.onPremOnly * 12)}/yr`, options: { color: P.ink2, breakLine: true, paraSpaceAfter: 12 } },
+        { text: 'Assumes requests can be routed to either owned GPUs or the API (e.g. via a gateway) and the same model runs on both.', options: { color: P.muted, fontSize: 10 } },
+      ], { x: 9.1, y: 1.5, w: 3.73, h: 4.9, fontFace: FONT, fontSize: 13, valign: 'top' });
+    }
 
     const sc = titled(`Confidence: ${X.level}`, 'What is measured or current, and what is still an estimate');
     sc.addTable([hdr(['', 'Input', 'Status'])].concat(X.checks.map(c => [
