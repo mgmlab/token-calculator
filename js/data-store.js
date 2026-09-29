@@ -53,6 +53,10 @@
       TC.storage.remove(KEY_OVR(name));
       this.emit();
     },
+    resetAll() {
+      NAMES.forEach(n => TC.storage.remove(KEY_OVR(n)));
+      this.emit();
+    },
     onChange(fn) { this.listeners.push(fn); },
     emit() { this.listeners.forEach(fn => fn()); },
 

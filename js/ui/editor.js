@@ -149,7 +149,8 @@
           <button class="btn ghost small" data-act="import">Import JSON…</button>
           <button class="btn ghost small" data-act="export">Export ${LABELS[st.name].toLowerCase()}.json</button>
           <button class="btn ghost small" data-act="bundle">Export all</button>
-          <button class="btn ghost small ${ovr ? 'danger' : ''}" data-act="reset" ${ovr ? '' : 'disabled'}>Reset to file defaults</button>
+          <button class="btn ghost small ${ovr ? 'danger' : ''}" data-act="reset" ${ovr ? '' : 'disabled'}>Reset this dataset</button>
+          ${TC.store.NAMES.some(n => TC.store.isOverridden(n)) ? '<button class="btn ghost small danger" data-act="reset-all">Clear all my changes</button>' : ''}
           <button class="btn ghost small" data-act="raw">${st.raw ? 'Form view' : 'Raw JSON'}</button>
         </div>
       </div>
@@ -199,6 +200,7 @@
         else if (act === 'export') TC.store.exportDataset(st.name);
         else if (act === 'bundle') TC.store.exportBundle();
         else if (act === 'reset') { if (confirm(`Discard browser edits to ${st.name} and go back to data/${st.name}.json?`)) { TC.store.reset(st.name); } }
+        else if (act === 'reset-all') { if (confirm('Clear all your data edits (every dataset) and go back to the shared data?')) TC.store.resetAll(); }
         else if (act === 'raw') { st.raw = !st.raw; render(el); }
         else if (act === 'apply-raw') {
           const msg = el.querySelector('.raw-msg');

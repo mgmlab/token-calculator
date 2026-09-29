@@ -12,7 +12,9 @@
   function overridePopover() {
     const esc = TC.esc;
     const ovr = TC.store.NAMES.filter(n => TC.store.isOverridden(n));
-    return `<div class="ovr-head"><strong>Edited in this browser</strong><span class="muted small">Only you see these changes. Export the file and commit it to /data to share.</span></div>` +
+    return `<div class="ovr-head"><div class="ovr-head-row"><strong>Edited in this browser</strong>
+        <button class="btn small danger-solid" data-reset-all>Clear all my changes</button></div>
+        <span class="muted small">Saved in this browser so they survive a refresh. Only you see them. Clear them to go back to the shared data.</span></div>` +
       ovr.map(n => {
         const items = TC.store.diff(n);
         const nChanges = items.reduce((a, it) => a + Math.max(1, it.changes.length), 0);
@@ -72,6 +74,10 @@
         close();
         showTab('data');
         TC.editor.open(g.dataset.goto, g.dataset.idx != null ? Number(g.dataset.idx) : null, g.dataset.path || null);
+        return;
+      }
+      if (e.target.closest('[data-reset-all]')) {
+        if (confirm('Clear all your data edits and go back to the shared data for everyone?')) { close(); TC.store.resetAll(); }
         return;
       }
       const r = e.target.closest('[data-reset]');
