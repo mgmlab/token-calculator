@@ -24,6 +24,29 @@
       "rack_units": 4
     },
     {
+      "id": "cisco-c845a-m8-rtxpro6000-2",
+      "vendor": "Cisco",
+      "sku": "UCS C845A M8 (2-GPU config)",
+      "gpu_id": "rtx-pro-6000-server",
+      "gpus_per_node": 2,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 45000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 1.8,
+        "source": "Estimate: 2 x 600 W GPUs + host; confirm on vendor spec sheet",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 2,
+      "note": "Small (2-GPU) configuration added so every vendor has a comparable entry for small deployments. Confirm this SKU supports 2× RTX PRO 6000 Server Edition in your region, and replace the placeholder price with current pricing."
+    },
+    {
       "id": "cisco-ucs-c885a-m8-b200",
       "vendor": "Cisco",
       "sku": "UCS C885A M8",
@@ -132,7 +155,8 @@
         "as_of": "2026-09-28",
         "status": "placeholder"
       },
-      "rack_units": 2
+      "rack_units": 2,
+      "note": "Confirm this SKU supports 2× RTX PRO 6000 Server Edition in your region, and replace the placeholder price with current pricing."
     },
     {
       "id": "dell-poweredge-xe9680-h100",
@@ -335,6 +359,52 @@
       "rack_units": 4
     },
     {
+      "id": "hpe-dl380a-gen12-rtxpro6000-2",
+      "vendor": "HPE",
+      "sku": "ProLiant DL380a Gen12 (2-GPU config)",
+      "gpu_id": "rtx-pro-6000-server",
+      "gpus_per_node": 2,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 45000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 1.8,
+        "source": "Estimate: 2 x 600 W GPUs + host; confirm on vendor spec sheet",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 2,
+      "note": "Small (2-GPU) configuration added so every vendor has a comparable entry for small deployments. Confirm this SKU supports 2× RTX PRO 6000 Server Edition in your region, and replace the placeholder price with current pricing."
+    },
+    {
+      "id": "lenovo-sr650a-v4-rtxpro6000-2",
+      "vendor": "Lenovo",
+      "sku": "ThinkSystem SR650a V4 (2-GPU config)",
+      "gpu_id": "rtx-pro-6000-server",
+      "gpus_per_node": 2,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 45000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 1.8,
+        "source": "Estimate: 2 x 600 W GPUs + host; confirm on vendor spec sheet",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 2,
+      "note": "Small (2-GPU) configuration added so every vendor has a comparable entry for small deployments. Confirm this SKU supports 2× RTX PRO 6000 Server Edition in your region, and replace the placeholder price with current pricing."
+    },
+    {
       "id": "lenovo-sr675-v3-l40s",
       "vendor": "Lenovo",
       "sku": "ThinkSystem SR675 V3",
@@ -466,6 +536,29 @@
         "status": "placeholder"
       },
       "rack_units": 8
+    },
+    {
+      "id": "supermicro-sys-221ge-nr-rtxpro6000-2",
+      "vendor": "Supermicro",
+      "sku": "SYS-221GE-NR (2-GPU config)",
+      "gpu_id": "rtx-pro-6000-server",
+      "gpus_per_node": 2,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 45000,
+        "source": "Placeholder. OEM GPU-server pricing is quote-only; replace with a current quote (all-in: chassis + GPUs + CPUs + memory + NICs).",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 1.8,
+        "source": "Estimate: 2 x 600 W GPUs + host; confirm on vendor spec sheet",
+        "as_of": "2026-09-28",
+        "status": "placeholder"
+      },
+      "rack_units": 2,
+      "note": "Small (2-GPU) configuration added so every vendor has a comparable entry for small deployments. Confirm this SKU supports 2× RTX PRO 6000 Server Edition in your region, and replace the placeholder price with current pricing."
     },
     {
       "id": "supermicro-sys-522ga-nrt-rtxpro6000",
