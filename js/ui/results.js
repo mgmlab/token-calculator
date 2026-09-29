@@ -114,7 +114,17 @@
   TC.renderResults = function (el, res, w, data) {
     const wl = res.wl;
     const model = data.models.models.find(m => m.id === w.model_id);
-    let h = execCard(data, w, res);
+    // Notes that explain confidence live inside the summary card's Confidence section.
+    const notes = [];
+    const anyTheory = res.onprem.concat(res.cloud).some(r => r.feasible && r.basis === 'theoretical');
+    notes.push(`<strong>Throughput:</strong> tokens/sec per replica depends on batch size, sequence length and inference engine (vLLM, TensorRT-LLM, SGLang…).
+      ${anyTheory ? 'Rows marked <span class="badge basis-theory">theoretical estimate</span> use the theoretical bandwidth-based estimate, not a measured benchmark — treat them as an optimistic upper bound.' : ''}
+      Expand any row to see the exact benchmark or estimate used.`);
+    const bestOn = res.onprem.filter(r => r.feasible).sort((a, b) => a.perM - b.perM)[0];
+    if (bestOn && bestOn.util < 0.3) {
+      notes.push("<strong>Utilization:</strong> " + esc(`Self-hosted capacity is only ${f.num(bestOn.util * 100, 1)}% utilized on average (sized for peak concurrency of ${f.int(w.peak_concurrent_requests)}). Fully utilized, the lowest-cost on-prem option would be ${f.perM(bestOn.perMFull)} per 1M tokens instead of ${f.perM(bestOn.perM)}. Utilization — not hardware price — is usually what decides on-prem vs API.`));
+    }
+    let h = execCard(data, w, res, notes);
 
     h += `<div class="summary">
       <div class="stat"><span class="label">Tokens / month</span><span class="value">${f.tokens(wl.tMo)}</span><span class="muted small">${f.tokens(wl.tInMo)} in · ${f.tokens(wl.tOutMo)} out</span></div>
@@ -123,16 +133,8 @@
       <div class="stat"><span class="label">Model</span><span class="value sm">${esc(model ? model.name : '—')}</span><span class="muted small">${esc(w.precision)} weights · ${esc(w.kv_precision)} KV</span></div>
     </div>`;
 
-    const wflags = wl.flags.slice();
-    const bestOn = res.onprem.filter(r => r.feasible).sort((a, b) => a.perM - b.perM)[0];
-    if (bestOn && bestOn.util < 0.3) {
-      wflags.push(`Self-hosted capacity is only ${f.num(bestOn.util * 100, 1)}% utilized on average (sized for peak concurrency of ${f.int(w.peak_concurrent_requests)}). Fully utilized, the lowest-cost on-prem option would be ${f.perM(bestOn.perMFull)} per 1M tokens instead of ${f.perM(bestOn.perM)}. Utilization — not hardware price — is usually what decides on-prem vs API.`);
-    }
-    const anyTheory = res.onprem.concat(res.cloud).some(r => r.feasible && r.basis === 'theoretical');
-    h += `<p class="callout warn"><strong>Throughput caveat:</strong> tokens/sec per replica depends on batch size, sequence length and inference engine (vLLM, TensorRT-LLM, SGLang…).
-      ${anyTheory ? 'Rows marked <span class="badge basis-theory">theoretical estimate</span> use the theoretical bandwidth-based estimate, not a measured benchmark — treat them as an optimistic upper bound.' : ''}
-      Expand any row to see the exact benchmark or estimate used.</p>`;
-    wflags.forEach(x => { h += `<p class="callout">${esc(x)}</p>`; });
+    // Input sanity warnings (e.g. peak below the average) stay visible — they point at a likely typo.
+    wl.flags.forEach(x => { h += `<p class="callout">${esc(x)}</p>`; });
 
     h += `<div class="toolbar">
       <label>Sort <select data-view="sort"><option value="name" ${view.sort === 'name' ? 'selected' : ''}>Alphabetical</option><option value="cost" ${view.sort === 'cost' ? 'selected' : ''}>$ / 1M tokens</option></select></label>
@@ -173,17 +175,17 @@
 
   // The summary needs a breakeven sweep (~0.5 s), so the tables render first and the card fills in right after.
   let execToken = 0;
-  function execCard(data, w, res) {
+  function execCard(data, w, res, notes) {
     const my = ++execToken;
     setTimeout(() => {
       if (my !== execToken) return; // inputs changed again; a newer render will fill it
       const el = document.getElementById('exec-card');
-      if (el) el.outerHTML = execCardHtml(data, w, res);
+      if (el) el.outerHTML = execCardHtml(data, w, res, notes);
     }, 30);
     return `<section class="card exec" id="exec-card"><div class="exec-head"><h2>Analysis summary</h2></div><p class="muted">Working out the best option…</p></section>`;
   }
 
-  function execCardHtml(data, w, res) {
+  function execCardHtml(data, w, res, notes) {
     let x;
     try { x = TC.execSummary(data, w, res); } catch (e) { console.error(e); return ''; }
     TC.lastExec = x;
@@ -208,6 +210,7 @@
       <p class="exec-why"><strong>Why:</strong> ${esc(x.why)}</p>
       <details class="exec-conf"><summary>Confidence: <span class="conf conf-${x.level.toLowerCase()}">${x.level}</span> — ${x.level === 'High' ? 'key inputs are measured or current' : 'treat as directional until the ⚠ items are firmed up'}</summary>
         <ul>${x.checks.map(c => `<li>${c.ok ? '✓' : '⚠'} <strong>${esc(c.label)}:</strong> ${esc(c.detail)}</li>`).join('')}</ul>
+        ${(notes || []).map(n => `<p class="conf-note">${n}</p>`).join('')}
         <p class="muted small">Ranges come from rerunning the calculation with optimistic and pessimistic values for throughput efficiency, placeholder server prices and power load. API prices are published list prices, so they carry no range.</p>
       </details>
     </section>`;

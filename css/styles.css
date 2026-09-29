@@ -422,3 +422,5 @@ button.pill { border: 0; font: inherit; font-size: 12px; cursor: pointer; }
 .sect-toggle:hover { color: var(--accent); }
 .result-block.collapsed { padding-bottom: 0; }
 .result-block.collapsed .block-head { padding-bottom: 12px; }
+
+.conf-note { margin: 6px 0; font-size: 13px; color: var(--text-2); }
