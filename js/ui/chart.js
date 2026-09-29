@@ -52,13 +52,28 @@
     const ys = [];
     pts.forEach(p => active.forEach(s => { const v = valOf(p, s.key); if (v != null) ys.push(v); }));
     const xMin = Math.min(...xs), xMax = Math.max(...xs);
-    const yMin = ys.length ? Math.pow(10, Math.floor(Math.log10(Math.min(...ys)))) : 1;
-    const yMax = ys.length ? Math.pow(10, Math.ceil(Math.log10(Math.max(...ys)))) : 10;
+    // Cost per token: log scale (spans 100×+). Monthly cost: plain dollar scale, so the growing
+    // dollar gap between options is visible (a log scale shrinks a 2× gap to a sliver).
+    const linear = yMode === 'monthly';
+    let yMin, yMax, yTicks;
+    if (linear) {
+      const top = ys.length ? Math.max(...ys) : 1;
+      const raw = top / 5, pow = Math.pow(10, Math.floor(Math.log10(raw)));
+      const step = [1, 2, 2.5, 5, 10].map(m => m * pow).find(x => x >= raw);
+      yMin = 0; yMax = Math.ceil(top / step) * step;
+      yTicks = []; for (let t = 0; t <= yMax + 1e-9; t += step) yTicks.push(t);
+    } else {
+      yMin = ys.length ? Math.pow(10, Math.floor(Math.log10(Math.min(...ys)))) : 1;
+      yMax = ys.length ? Math.pow(10, Math.ceil(Math.log10(Math.max(...ys)))) : 10;
+      yTicks = logTicks(yMin, yMax);
+    }
     const X = x => M.l + (Math.log10(x) - Math.log10(xMin)) / (Math.log10(xMax) - Math.log10(xMin)) * (W - M.l - M.r);
-    const Y = y => H - M.b - (Math.log10(y) - Math.log10(yMin)) / (Math.log10(yMax) - Math.log10(yMin)) * (H - M.t - M.b);
+    const Y = linear
+      ? y => H - M.b - (y - yMin) / (yMax - yMin) * (H - M.t - M.b)
+      : y => H - M.b - (Math.log10(y) - Math.log10(yMin)) / (Math.log10(yMax) - Math.log10(yMin)) * (H - M.t - M.b);
 
     let svg = `<svg viewBox="0 0 ${W} ${H}" class="be-chart" role="img" aria-label="Monthly cost versus monthly token volume for each option category">`;
-    logTicks(yMin, yMax).forEach(t => {
+    yTicks.forEach(t => {
       svg += `<line class="grid" x1="${M.l}" x2="${W - M.r}" y1="${Y(t)}" y2="${Y(t)}"/><text class="tick" x="${M.l - 8}" y="${Y(t) + 4}" text-anchor="end">${yMode === 'perM' ? '$' + (t < 1 ? t : f.int(t)) : f.usdCompact(t)}</text>`;
     });
     logTicks(xMin, xMax).forEach(t => {
@@ -66,7 +81,7 @@
     });
     svg += `<line class="axis" x1="${M.l}" x2="${W - M.r}" y1="${H - M.b}" y2="${H - M.b}"/>`;
     svg += `<text class="axis-label" x="${(M.l + W - M.r) / 2}" y="${H - 8}" text-anchor="middle">Tokens per month (input + output, log scale)</text>`;
-    svg += `<text class="axis-label" transform="translate(16 ${(M.t + H - M.b) / 2}) rotate(-90)" text-anchor="middle">${yMode === 'perM' ? 'Cost per 1M tokens (log scale)' : 'Monthly cost (log scale)'}</text>`;
+    svg += `<text class="axis-label" transform="translate(16 ${(M.t + H - M.b) / 2}) rotate(-90)" text-anchor="middle">${yMode === 'perM' ? 'Cost per 1M tokens (log scale)' : 'Monthly cost'}</text>`;
 
     const cx = X(be.currentTokens);
     if (be.currentTokens >= xMin && be.currentTokens <= xMax) {
@@ -98,6 +113,17 @@
       svg += `<text class="be-mark-label" x="${lx}" y="${ly}" text-anchor="${anchor}">Breakeven vs ${esc(c.label.replace(/ —.*/, '').toLowerCase())}${c.key === 'api_closed' ? ' (other models)' : ''}: ${f.tokens(p.tokensMonth)}</text>`;
       mk++;
     });
+
+    // Monthly view: show the dollar gap between owning servers and pay-per-token at the top of the range.
+    const lastPt = pts[pts.length - 1];
+    if (linear && !hidden.has('onprem') && !hidden.has('api_same') && lastPt.series.onprem && lastPt.series.api_same) {
+      const a = lastPt.series.onprem.monthly, b = lastPt.series.api_same.monthly;
+      const xr = X(lastPt.tokensMonth) - 4;
+      const ya = Y(a), yb = Y(b);
+      const diff = b - a;
+      svg += `<line class="gap" x1="${xr}" x2="${xr}" y1="${Math.min(ya, yb)}" y2="${Math.max(ya, yb)}"/>`;
+      svg += `<text class="gap-label" x="${xr - 8}" y="${(ya + yb) / 2 + 4}" text-anchor="end">${diff > 0 ? 'Owning saves' : 'Pay per token saves'} ${f.usdCompact(Math.abs(diff))}/month</text>`;
+    }
 
     svg += `<g class="hover" visibility="hidden"><line class="xhair" y1="${M.t}" y2="${H - M.b}"/>${active.map(s => `<circle r="4.5" fill="${s.color}" stroke="var(--surface)" stroke-width="2" data-k="${s.key}"/>`).join('')}</g>`;
     svg += `<rect class="hit" x="${M.l}" y="${M.t}" width="${W - M.l - M.r}" height="${H - M.t - M.b}" fill="transparent"/>`;
@@ -148,9 +174,9 @@
             ${yMode === 'perM'
               ? `<li><strong>Flat lines</strong> (pay per token): the price per token is the same whatever your volume.</li>
             <li><strong>Falling lines</strong> (buy / rent GPUs): hardware costs the same whether it's busy or idle, so the more you use it, the less each token costs. The line levels off once the servers are as busy as your traffic pattern allows; small bumps are new servers being added.</li>`
-              : `<li><strong>Flat, stepped lines</strong> (buy / rent GPUs): you pay for the hardware whether you use it or not; each step is another server added.</li>
-            <li><strong>Straight rising lines</strong> (pay per token): cost grows with usage.</li>
-            <li>At high volume every line rises at a similar angle — twice the usage needs twice the servers or twice the API bill. On this log scale only the vertical gap matters: one grid line = 10× the cost. Switch to <em>Cost per 1M tokens</em> to see the gap clearly.</li>`}
+              : `<li><strong>Stepped lines</strong> (buy / rent GPUs): you pay for the hardware whether you use it or not; each step is another server added.</li>
+            <li><strong>Smooth curves</strong> (pay per token): the bill grows with every token. (The usage axis is compressed so small and large volumes both fit, which is why a straight price line looks curved.)</li>
+            <li>The bracket at the right shows how much owning servers saves (or costs) per month at the top of the range. Small volumes sit near the bottom — switch to <em>Cost per 1M tokens</em> to see them.</li>`}
             <li><strong>Dashed line</strong> = your usage today. <strong>Circled dot</strong> = a breakeven point: to the right of it, owning servers is cheaper.</li>
           </ul></div>
       </div>
