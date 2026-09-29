@@ -7,6 +7,7 @@
   const view = { sort: 'name', showInfeasible: false, expanded: new Set(), filters: {}, collapsed: new Set() };
   TC.resultsView = view;
   const SECTIONS = ['onprem', 'cloud', 'api_same', 'api_closed'];
+  SECTIONS.forEach(k => view.collapsed.add(k)); // start collapsed: the Analysis summary leads, details on demand
 
   // ---- Filters (GPU, server vendor, cloud provider, pricing type, API provider); reset on every page load.
   view.filters = { gpu: '', vendor: '', cloud: '', pricing: '', api: '' };
