@@ -7,10 +7,10 @@
   const view = { sort: 'name', showInfeasible: false, expanded: new Set(), filters: {} };
   TC.resultsView = view;
 
-  // ---- Filters (GPU, server vendor, cloud provider, pricing type, API provider); remembered per browser.
-  const FKEY = 'tc.filters';
-  view.filters = Object.assign({ gpu: '', vendor: '', cloud: '', pricing: '', api: '' }, TC.storage.get(FKEY) || {});
-  const saveFilters = () => TC.storage.set(FKEY, view.filters);
+  // ---- Filters (GPU, server vendor, cloud provider, pricing type, API provider); reset on every page load.
+  view.filters = { gpu: '', vendor: '', cloud: '', pricing: '', api: '' };
+  TC.storage.remove('tc.filters'); // clear filters saved by the earlier version
+  const saveFilters = () => {};
   const F = view.filters;
   TC.filtersActive = () => Object.values(F).some(Boolean);
   TC.filterSummary = () => [
