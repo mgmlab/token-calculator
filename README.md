@@ -8,7 +8,7 @@ Internal, vendor-neutral calculator for the Pellera AI team. It takes one worklo
 
 It is a static HTML/JS app with no backend and no build step. All tunable numbers live in JSON files under [`data/`](data/), so they can be edited without touching code.
 
-**Live site:** https://mgmlab.github.io/token-calculator/ (GitHub Pages from `main`; every push to `main` goes live in a minute or two). It is public, so don't put client names or confidential pricing in the committed data files.
+**Live site:** https://mgmlab.github.io/token-calculator/ (GitHub Pages from `main`; every push to `main` goes live in a minute or two). It is public, so don't put client names or confidential pricing in the committed data files. Before pushing code changes, run `sh release.sh` so browsers pick up the new CSS/JS immediately instead of using a cached copy (data-file changes don't need it).
 
 **Maintainers:** Darren Livingston & Brad Ramsey, Pellera Technologies. Send questions, comments and change requests to them, or use **Request a change** in the app header.
 
