@@ -1,5 +1,5 @@
 {
-  "_readme": "Model catalog. Architecture fields drive KV-cache sizing; api_prices are USD per 1M tokens. self_hostable=false models appear only in the API comparison.",
+  "_readme": "Model catalog. Architecture fields drive KV-cache sizing; api_prices are USD per 1M tokens. self_hostable=false models appear only in the API comparison. Rows with a \"feed\" block are updated automatically every week from OpenRouter's public price list (scripts/update_api_prices.py via GitHub Actions); rows without one are updated by hand.",
   "models": [
     {
       "id": "llama-3.1-8b",
@@ -90,6 +90,34 @@
             "source": "docs.fireworks.ai/serverless/pricing (generic size-tier price; serverless availability of this model not verified)",
             "as_of": "2026-09-28",
             "status": "placeholder"
+          }
+        },
+        {
+          "provider": "OpenRouter",
+          "input_per_m": {
+            "value": 0.05,
+            "source": "openrouter.ai/api/v1/models (meta-llama/llama-3.1-8b-instruct)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 0.08,
+            "source": "openrouter.ai/api/v1/models (meta-llama/llama-3.1-8b-instruct)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.025,
+            "source": "openrouter.ai/api/v1/models (meta-llama/llama-3.1-8b-instruct)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "batch_discount_pct": null,
+          "note": "OpenRouter routes each request to one of several hosting providers; this is its listed price for the model. Throughput, rate limits and data-handling terms depend on the underlying provider.",
+          "feed": {
+            "source": "openrouter",
+            "id": "meta-llama/llama-3.1-8b-instruct",
+            "mode": "own"
           }
         }
       ]
@@ -183,6 +211,29 @@
             "source": "docs.fireworks.ai/serverless/pricing (generic size-tier price; serverless availability of this model not verified)",
             "as_of": "2026-09-28",
             "status": "placeholder"
+          }
+        },
+        {
+          "provider": "OpenRouter",
+          "input_per_m": {
+            "value": 0.1,
+            "source": "openrouter.ai/api/v1/models (meta-llama/llama-3.3-70b-instruct)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 0.32,
+            "source": "openrouter.ai/api/v1/models (meta-llama/llama-3.3-70b-instruct)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "cached_input_per_m": null,
+          "batch_discount_pct": null,
+          "note": "OpenRouter routes each request to one of several hosting providers; this is its listed price for the model. Throughput, rate limits and data-handling terms depend on the underlying provider.",
+          "feed": {
+            "source": "openrouter",
+            "id": "meta-llama/llama-3.3-70b-instruct",
+            "mode": "own"
           }
         }
       ]
@@ -314,6 +365,29 @@
             "as_of": "2026-09-28",
             "status": "placeholder"
           }
+        },
+        {
+          "provider": "OpenRouter",
+          "input_per_m": {
+            "value": 0.08,
+            "source": "openrouter.ai/api/v1/models (qwen/qwen3-32b)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 0.28,
+            "source": "openrouter.ai/api/v1/models (qwen/qwen3-32b)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "cached_input_per_m": null,
+          "batch_discount_pct": null,
+          "note": "OpenRouter routes each request to one of several hosting providers; this is its listed price for the model. Throughput, rate limits and data-handling terms depend on the underlying provider.",
+          "feed": {
+            "source": "openrouter",
+            "id": "qwen/qwen3-32b",
+            "mode": "own"
+          }
         }
       ],
       "note": "Native context 32,768; up to 131,072 with YaRN rope scaling (edit max_context if you enable it)."
@@ -369,7 +443,31 @@
       "kv_layout": {
         "type": "standard"
       },
-      "api_prices": [],
+      "api_prices": [
+        {
+          "provider": "OpenRouter",
+          "input_per_m": {
+            "value": 0.455,
+            "source": "openrouter.ai/api/v1/models (qwen/qwen3-235b-a22b)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 1.82,
+            "source": "openrouter.ai/api/v1/models (qwen/qwen3-235b-a22b)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "cached_input_per_m": null,
+          "batch_discount_pct": null,
+          "note": "OpenRouter routes each request to one of several hosting providers; this is its listed price for the model. Throughput, rate limits and data-handling terms depend on the underlying provider.",
+          "feed": {
+            "source": "openrouter",
+            "id": "qwen/qwen3-235b-a22b",
+            "mode": "own"
+          }
+        }
+      ],
       "note": "Native context 32,768; up to 131,072 with YaRN. No verified public serverless price found on 2026-09-28."
     },
     {
@@ -444,6 +542,29 @@
             "source": "docs.fireworks.ai/serverless/pricing (generic size-tier price; serverless availability of this model not verified)",
             "as_of": "2026-09-28",
             "status": "placeholder"
+          }
+        },
+        {
+          "provider": "OpenRouter",
+          "input_per_m": {
+            "value": 0.09375,
+            "source": "openrouter.ai/api/v1/models (mistralai/mistral-small-3.2-24b-instruct)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 0.25,
+            "source": "openrouter.ai/api/v1/models (mistralai/mistral-small-3.2-24b-instruct)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "cached_input_per_m": null,
+          "batch_discount_pct": null,
+          "note": "OpenRouter routes each request to one of several hosting providers; this is its listed price for the model. Throughput, rate limits and data-handling terms depend on the underlying provider.",
+          "feed": {
+            "source": "openrouter",
+            "id": "mistralai/mistral-small-3.2-24b-instruct",
+            "mode": "own"
           }
         }
       ]
@@ -527,6 +648,34 @@
             "source": "aws.amazon.com/bedrock/pricing (on-demand, US East)",
             "as_of": "2026-09-28",
             "status": "estimate"
+          }
+        },
+        {
+          "provider": "OpenRouter",
+          "input_per_m": {
+            "value": 0.018,
+            "source": "openrouter.ai/api/v1/models (openai/gpt-oss-20b)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 0.09,
+            "source": "openrouter.ai/api/v1/models (openai/gpt-oss-20b)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.009,
+            "source": "openrouter.ai/api/v1/models (openai/gpt-oss-20b)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "batch_discount_pct": null,
+          "note": "OpenRouter routes each request to one of several hosting providers; this is its listed price for the model. Throughput, rate limits and data-handling terms depend on the underlying provider.",
+          "feed": {
+            "source": "openrouter",
+            "id": "openai/gpt-oss-20b",
+            "mode": "own"
           }
         }
       ]
@@ -655,6 +804,34 @@
             "as_of": "2026-09-28",
             "status": "estimate"
           }
+        },
+        {
+          "provider": "OpenRouter",
+          "input_per_m": {
+            "value": 0.15,
+            "source": "openrouter.ai/api/v1/models (openai/gpt-oss-120b)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 0.6,
+            "source": "openrouter.ai/api/v1/models (openai/gpt-oss-120b)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.075,
+            "source": "openrouter.ai/api/v1/models (openai/gpt-oss-120b)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "batch_discount_pct": null,
+          "note": "OpenRouter routes each request to one of several hosting providers; this is its listed price for the model. Throughput, rate limits and data-handling terms depend on the underlying provider.",
+          "feed": {
+            "source": "openrouter",
+            "id": "openai/gpt-oss-120b",
+            "mode": "own"
+          }
         }
       ]
     },
@@ -713,7 +890,36 @@
         "as_of": "2026-09-28",
         "status": "estimate"
       },
-      "api_prices": [],
+      "api_prices": [
+        {
+          "provider": "OpenRouter",
+          "input_per_m": {
+            "value": 0.29,
+            "source": "openrouter.ai/api/v1/models (deepseek/deepseek-chat-v3-0324)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 1.14,
+            "source": "openrouter.ai/api/v1/models (deepseek/deepseek-chat-v3-0324)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.11,
+            "source": "openrouter.ai/api/v1/models (deepseek/deepseek-chat-v3-0324)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "batch_discount_pct": null,
+          "note": "OpenRouter routes each request to one of several hosting providers; this is its listed price for the model. Throughput, rate limits and data-handling terms depend on the underlying provider.",
+          "feed": {
+            "source": "openrouter",
+            "id": "deepseek/deepseek-chat-v3-0324",
+            "mode": "own"
+          }
+        }
+      ],
       "note": "Multi-head Latent Attention: KV cache is a 576-element latent per token per layer, not 2 x kv_heads x head_dim. DeepSeek's own API now serves V4 models (see API-only reference models)."
     },
     {
@@ -748,6 +954,11 @@
             "source": "developers.openai.com/api/docs/pricing (standard tier)",
             "as_of": "2026-09-28",
             "status": "estimate"
+          },
+          "feed": {
+            "source": "openrouter",
+            "id": "openai/gpt-6-sol",
+            "mode": "mirror"
           }
         }
       ],
@@ -785,6 +996,11 @@
             "source": "developers.openai.com/api/docs/pricing (standard tier)",
             "as_of": "2026-09-28",
             "status": "estimate"
+          },
+          "feed": {
+            "source": "openrouter",
+            "id": "openai/gpt-5.6-terra",
+            "mode": "mirror"
           }
         }
       ],
@@ -822,6 +1038,11 @@
             "source": "developers.openai.com/api/docs/pricing (standard tier)",
             "as_of": "2026-09-28",
             "status": "estimate"
+          },
+          "feed": {
+            "source": "openrouter",
+            "id": "openai/gpt-5.4-mini",
+            "mode": "mirror"
           }
         }
       ],
@@ -859,6 +1080,11 @@
             "source": "platform.claude.com/docs/en/about-claude/pricing",
             "as_of": "2026-09-28",
             "status": "estimate"
+          },
+          "feed": {
+            "source": "openrouter",
+            "id": "anthropic/claude-opus-5.5",
+            "mode": "mirror"
           }
         }
       ],
@@ -896,6 +1122,11 @@
             "source": "platform.claude.com/docs/en/about-claude/pricing",
             "as_of": "2026-09-28",
             "status": "estimate"
+          },
+          "feed": {
+            "source": "openrouter",
+            "id": "anthropic/claude-sonnet-5.5",
+            "mode": "mirror"
           }
         }
       ],
@@ -933,6 +1164,11 @@
             "source": "platform.claude.com/docs/en/about-claude/pricing",
             "as_of": "2026-09-28",
             "status": "estimate"
+          },
+          "feed": {
+            "source": "openrouter",
+            "id": "anthropic/claude-haiku-4.5",
+            "mode": "mirror"
           }
         }
       ],
@@ -970,6 +1206,11 @@
             "source": "ai.google.dev/gemini-api/docs/pricing (paid tier, prompts <=200k)",
             "as_of": "2026-09-28",
             "status": "estimate"
+          },
+          "feed": {
+            "source": "openrouter",
+            "id": "google/gemini-3.1-pro-preview",
+            "mode": "mirror"
           }
         }
       ],
@@ -1007,6 +1248,11 @@
             "source": "ai.google.dev/gemini-api/docs/pricing (paid tier, prompts <=200k); promotional price through 2026-12-31, doubles on 2027-01-01",
             "as_of": "2026-09-28",
             "status": "estimate"
+          },
+          "feed": {
+            "source": "openrouter",
+            "id": "google/gemini-3.8-flash",
+            "mode": "mirror"
           }
         }
       ],
@@ -1076,5 +1322,13 @@
       ],
       "note": "API-only reference model (weights not available for self-hosting). Not an apples-to-apples quality comparison with open-weight models."
     }
-  ]
+  ],
+  "prices_checked": {
+    "date": "2026-09-29",
+    "source": "OpenRouter public price list (https://openrouter.ai/api/v1/models), weekly GitHub Actions job",
+    "rows_checked": 16,
+    "values_changed": 20,
+    "needs_review": [],
+    "missing_from_feed": []
+  }
 }

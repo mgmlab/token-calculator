@@ -44,7 +44,18 @@
     const fromFile = names.every(n => s[n] === 'file');
     const ovr = names.filter(n => TC.store.isOverridden(n));
     let txt = fromFile ? 'Data: /data files' : names.some(n => s[n] === 'cache') ? 'Data: cached copy' : names.some(n => s[n] === 'missing') ? 'Data: missing' : 'Data: imported';
-    $('#data-status').innerHTML = `<span class="pill ${fromFile ? '' : 'warn'}">${txt}</span>` +
+    const pc = (TC.store.get('models') || {}).prices_checked;
+    let priceTag = '';
+    if (pc && pc.date) {
+      const days = Math.round((Date.now() - new Date(pc.date + 'T12:00:00')) / 864e5);
+      const stale = days > 14;
+      const review = (pc.needs_review || []).length;
+      const tip = `API prices for ${pc.rows_checked} provider rows are checked automatically every Monday against OpenRouter's public price list; last check ${pc.date} (${pc.values_changed} value(s) changed).`
+        + (review ? ` ${review} change(s) over 50% are waiting for review.` : '')
+        + ' GPU rental and server prices are updated by hand.';
+      priceTag = `<span class="pill ${stale || review ? 'warn' : ''}" title="${TC.esc(tip)}">API prices checked ${new Date(pc.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}${review ? ' · ' + review + ' to review' : ''}</span>`;
+    }
+    $('#data-status').innerHTML = `<span class="pill ${fromFile ? '' : 'warn'}">${txt}</span>` + priceTag +
       (ovr.length ? `<span class="ovr-wrap"><button type="button" class="pill override" aria-expanded="false" aria-controls="ovr-pop">${ovr.length} dataset${ovr.length > 1 ? 's' : ''} overridden ▾</button>
         <div class="ovr-pop" id="ovr-pop" role="dialog" aria-label="Overridden data" hidden></div></span>` : '');
     const btn = $('#data-status .pill.override');

@@ -1,0 +1,53 @@
+name: Update API prices
+
+on:
+  schedule:
+    - cron: '17 11 * * 1'   # Mondays 11:17 UTC
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Apply price changes larger than 50% (normally held for review)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: update-api-prices
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Pull prices from OpenRouter
+        run: python scripts/update_api_prices.py ${{ inputs.force && '--force' || '' }}
+
+      - name: Commit and publish
+        id: commit
+        run: |
+          if git diff --quiet data/models.json; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git config user.name "price-update-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/models.json
+          git commit -m "Weekly API price update ($(date -u +%Y-%m-%d))"
+          git push
+          echo "pushed=true" >> "$GITHUB_OUTPUT"
+
+      # Pushes made with the workflow token may not start a Pages build on their own.
+      - name: Rebuild the site
+        if: steps.commit.outputs.pushed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST "repos/${{ github.repository }}/pages/builds" || echo "::warning::Could not trigger a Pages build; the next push will publish the new prices."

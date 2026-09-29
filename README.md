@@ -107,6 +107,24 @@ Plain values without a wrapper (ids, names, `gpus_per_node`, enum settings) are 
 1. **In the app (no git needed).** Open **Data editor**, change values, and they are saved **in your browser only** as overrides. The files on disk never change. To share a change: click **Export \<file\>.json**, replace the file in `data/`, and commit. **Export all** saves a single bundle file that anyone can import.
 2. **Edit the JSON directly.** Change `data/*.json` in any editor, update `source` and `as_of`, set `status`, then commit. Reload the app. If you had browser overrides for that file, click **Reset to file defaults** to see the file's values.
 
+### Automatic API price updates
+
+Every Monday, the **Update API prices** GitHub Action (`.github/workflows/update-api-prices.yml`) runs `scripts/update_api_prices.py`. The script:
+
+- **Reads** OpenRouter's public price list; no API key is needed.
+- **Updates** every price row in `data/models.json` that has a `feed` block:
+  - `mode: mirror`: first-party rows (OpenAI, Anthropic, Google) whose OpenRouter price was verified to match the provider's own list price
+  - `mode: own`: the **OpenRouter** provider row on each open model (its lowest routed price)
+- **Commits** the change and republishes the site. The header shows **API prices checked \<date\>**, and hovering over it gives details.
+- **Holds back big jumps:** a price that moves more than **50%** is not applied. It's listed as "to review" in the header and in the run summary. To accept it, run the workflow manually from GitHub → Actions → Update API prices → **Run workflow**, with **force** checked.
+- **Leaves models missing from the feed unchanged** and reports them.
+
+**Manual runs:** run it any time from the Actions tab, or locally with `python scripts/update_api_prices.py` (add `--dry-run` to preview without saving).
+
+**Not automated:** Together AI, Fireworks, Bedrock and DeepSeek rows, GPU rental rates, and server and GPU purchase prices. Use the checklist below for those.
+
+**To put another row on automatic updates:** add a `feed` block with the OpenRouter model id, e.g. `"feed": {"source": "openrouter", "id": "anthropic/claude-sonnet-5.5", "mode": "mirror"}`. Only use `mirror` after checking that OpenRouter's price equals the provider's own list price. Some differ; DeepSeek's does.
+
 ### Refreshing models and pricing (checklist)
 
 Prices change often, so re-check them at least quarterly. Update `value`, `source` and `as_of` for each item.
