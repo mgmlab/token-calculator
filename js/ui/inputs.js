@@ -22,7 +22,7 @@
   // Shown under "Advanced settings" (collapsed by default) — the essentials stay visible.
   const ADVANCED = new Set(['peak_concurrency_mode', 'busy_hour_share_pct', 'burst_percentile', 'peak_concurrent_requests', 'target_output_tps_per_request',
     'max_context', 'precision', 'kv_precision', 'kv_sizing_basis', 'throughput_source', 'headroom_pct', 'n_plus_one',
-    'cloud_active_hours_per_month', 'api_cache_hit_pct', 'api_batch_share_pct', 'include_closed_models']);
+    'cloud_active_hours_per_month', 'api_cache_hit_pct', 'api_batch_share_pct', 'api_excluded', 'include_closed_models']);
   const ADV_KEY = 'tc.advancedOpen';
 
   const GROUPS = [
@@ -88,6 +88,8 @@
         tip: 'Share of input tokens the API provider serves from its prompt cache — repeated system prompts, tool definitions or documents reused across requests. Cached input is billed at a steep discount (often 90%).' },
       { k: 'api_batch_share_pct', label: 'API batch share %', type: 'number', min: 0, max: 100, step: 'any', hint: 'Share of traffic that can wait for async batch pricing',
         tip: 'Share of traffic that can wait (up to ~24 h) for asynchronous batch pricing, usually 50% off. Interactive chat = 0%; overnight document processing could be 100%.' },
+      { k: 'api_excluded', label: 'API providers to compare', type: 'providers',
+        tip: 'Untick providers your customer would not realistically buy from — for example the lowest-cost routed hosts when the customer needs an enterprise agreement. Unticked providers are left out of the tables, the Analysis summary, breakeven and hybrid.' },
       { k: 'include_closed_models', label: 'Show closed-model API reference', type: 'checkbox',
         tip: 'Also list closed models (GPT, Claude, Gemini, DeepSeek API) for cost context. They are different models, so this is not a like-for-like quality comparison.' },
     ]},
@@ -147,7 +149,8 @@
   document.addEventListener('keydown', e => { if (e.key === 'Escape') tipHide(); });
   window.addEventListener('scroll', e => { if (tipEl && !tipEl.hidden && !(e.target.closest && e.target.closest('.field-tip'))) tipHide(); }, true);
 
-  function advOpen() { try { return localStorage.getItem(ADV_KEY) === '1'; } catch (e) { return false; } }
+  let advIsOpen = false; // open state survives re-renders, not page refreshes
+  function advOpen() { return advIsOpen; }
 
   // Share links carry the inputs in the #hash, which browsers never send to the server or analytics.
   TC.shareUrl = w => {
@@ -188,6 +191,14 @@
         if (fd.type === 'checkbox') {
           return `<div class="field check"><input type="checkbox" id="${id}" data-k="${fd.k}" ${val ? 'checked' : ''}><label for="${id}">${esc(fd.label)}</label>${tipBtn(fd)}</div>`;
         }
+        if (fd.type === 'providers') {
+          const md = (TC.store.get('models') || { models: [] }).models;
+          const provs = [...new Set(md.flatMap(m => (m.api_prices || []).map(p => p.provider)))].sort((a, b) => a.localeCompare(b));
+          const ex = new Set(val || []);
+          return `<div class="field"><div class="field-label"><label>${esc(fd.label)}</label>${tipBtn(fd)}</div>
+            <div class="prov-list">${provs.map(p => `<label class="check"><input type="checkbox" data-provider="${esc(p)}" ${ex.has(p) ? '' : 'checked'}> ${esc(p)}</label>`).join('')}</div>
+            <small>${ex.size ? `${ex.size} excluded · <button type="button" class="linkish" data-act="prov-all">include all</button>` : 'All providers included'}</small></div>`;
+        }
         if (fd.type === 'model') {
           ctl = `<select id="${id}" data-k="${fd.k}">` + models.map(m => `<option value="${esc(m.id)}" ${m.id === val ? 'selected' : ''}>${esc(m.name)}</option>`).join('') + '</select>';
         } else if (fd.type === 'select') {
@@ -221,10 +232,24 @@
         <p class="share-msg muted small" hidden></p>
         <input type="file" accept=".json" hidden data-act="file"></form>`;
       const form = el.firstElementChild;
-      form.querySelector('.adv-settings').addEventListener('toggle', e => { try { localStorage.setItem(ADV_KEY, e.target.open ? '1' : '0'); } catch (x) { /* ignore */ } });
+      form.querySelector('.adv-settings').addEventListener('toggle', e => { advIsOpen = e.target.open; });
+      try { localStorage.removeItem(ADV_KEY); } catch (x) { /* clear the old saved state */ }
 
+      form.addEventListener('click', e => {
+        if (e.target.closest('[data-act="prov-all"]')) { w.api_excluded = []; this.save(w); this.render(el, w, onChange); onChange(); }
+      });
       form.addEventListener('input', e => {
         const t = e.target;
+        if (t.dataset.provider) {
+          const ex = new Set(w.api_excluded || []);
+          if (t.checked) ex.delete(t.dataset.provider); else ex.add(t.dataset.provider);
+          w.api_excluded = [...ex];
+          this.save(w);
+          TC.track('api-provider-filter', 'Changed API providers');
+          this.render(el, w, onChange);
+          onChange();
+          return;
+        }
         if (!t.dataset.k) return;
         if (t.type === 'file' || t.readOnly) return;
         let val;

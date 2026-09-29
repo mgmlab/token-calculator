@@ -78,7 +78,7 @@
     let h = `<section class="card result-block ${closed ? 'collapsed' : ''}">
       <div class="block-head"><div><h3><button type="button" class="sect-toggle" data-section="${csvKey}" aria-expanded="${!closed}" title="${closed ? 'Expand' : 'Collapse'} this section">${closed ? '▸' : '▾'} ${esc(title)}</button></h3>
         ${closed
-          ? `<p class="muted">${allRows.length} option${allRows.length === 1 ? '' : 's'}${rows.length < allRows.length ? ` — ${rows.length} match the current filters` : ''}${fits < rows.length ? ` · ${fits} fit this workload` : ''}. Click the heading to expand.</p>`
+          ? `<p class="muted">${allRows.length} option${allRows.length === 1 ? '' : 's'}${rows.length < allRows.length ? ` — ${rows.length} match the current filters` : ''}${fits < rows.length ? ` · ${fits} fit this workload` : ''}${csvKey && csvKey.startsWith('api') && view.apiExcluded ? ` · ${view.apiExcluded} provider${view.apiExcluded > 1 ? 's' : ''} excluded in Advanced settings` : ''}. Click the heading to expand.</p>`
           : `<p class="muted">${subtitle}</p>`}</div>
       <div class="block-actions">${rows.length < allRows.length ? `<span class="badge filtered">Filtered: ${rows.length} of ${allRows.length}</span>` : ''}${hidden && !view.showInfeasible ? `<span class="muted small">${hidden} option(s) don't fit — tick "show options that don't fit"</span>` : ''}
       ${rows.length && csvKey ? `<button class="btn ghost small" data-export="${csvKey}" title="Download this table as CSV (opens in Excel)">CSV</button>` : ''}</div></div>`;
@@ -170,7 +170,9 @@
 
     const same = res.api.filter(r => r.sameModel);
     const closed = res.api.filter(r => !r.sameModel);
-    h += table('Pay per token (API) — same model', `A provider runs ${esc(model ? model.name : '')} for you; you pay per token used. Directly comparable with buying or renting GPUs.`,
+    const exN = (w.api_excluded || []).length;
+    view.apiExcluded = exN;
+    h += table('Pay per token (API) — same model', `A provider runs ${esc(model ? model.name : '')} for you; you pay per token used. Directly comparable with buying or renting GPUs.${exN ? ` <strong>${exN} provider${exN > 1 ? 's' : ''} excluded</strong> under Advanced settings (${esc(w.api_excluded.join(', '))}).` : ''}`,
       [{ label: 'Provider' }, { label: 'Model' }, { label: 'In / out per 1M' }, ...moneyCols, { label: '' }],
       same, apiCells, wl, 'api_same', keepApi);
     if (w.include_closed_models) {

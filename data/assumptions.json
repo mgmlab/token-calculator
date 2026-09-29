@@ -141,6 +141,7 @@
     "cloud_active_hours_per_month": 730,
     "api_cache_hit_pct": 30,
     "api_batch_share_pct": 0,
+    "api_excluded": [],
     "include_closed_models": true
   }
 }

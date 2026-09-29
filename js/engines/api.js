@@ -60,7 +60,8 @@
 
   TC.runApi = function (data, w, wl) {
     const rows = [];
-    const priced = p => typeof v(p.input_per_m) === 'number' && typeof v(p.output_per_m) === 'number';
+    const excluded = new Set(w.api_excluded || []);
+    const priced = p => typeof v(p.input_per_m) === 'number' && typeof v(p.output_per_m) === 'number' && !excluded.has(p.provider);
     const sel = data.models.models.find(m => m.id === w.model_id);
     if (sel) (sel.api_prices || []).filter(priced).forEach(p => rows.push(TC.apiRow(sel, p, w, wl)));
     if (w.include_closed_models) {
