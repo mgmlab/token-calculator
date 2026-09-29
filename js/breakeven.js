@@ -8,9 +8,9 @@
     return {
       w,
       wl,
-      onprem: TC.runOnPrem(data, w, wl),
-      cloud: TC.runCloud(data, w, wl),
-      api: TC.runApi(data, w, wl),
+      onprem: TC.excl.filterRows(TC.runOnPrem(data, w, wl)),
+      cloud: TC.excl.filterRows(TC.runCloud(data, w, wl)),
+      api: TC.excl.filterRows(TC.runApi(data, w, wl)),
     };
   };
 

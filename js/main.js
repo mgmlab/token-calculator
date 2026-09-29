@@ -157,7 +157,7 @@
 
   function compute() {
     if (!TC.store.ready()) return;
-    const data = TC.store.all();
+    const data = TC.store.analysis();
     if (!data.models.models.some(m => m.id === w.model_id && m.self_hostable)) {
       const first = data.models.models.find(m => m.self_hostable);
       if (first) w.model_id = first.id;
@@ -190,9 +190,10 @@
     const saved = TC.storage.get('tc.workload');
     const d = TC.inputs.defaults();
     const changed = saved && Object.keys(saved).some(k => JSON.stringify(saved[k]) !== JSON.stringify(d[k]));
-    return !!changed || editCount() > 0;
+    return !!changed || editCount() > 0 || TC.excl.count() > 0;
   }
-  function startFresh(clearData) {
+  function startFresh(clearData, restore) {
+    if (restore) TC.excl.clear();
     Object.keys(w).forEach(k => delete w[k]);
     Object.assign(w, TC.inputs.defaults());
     TC.inputs.save(w);
@@ -203,15 +204,16 @@
   }
   TC.newAnalysis = function () {
     const dlg = $('#new-dialog');
-    const n = editCount();
+    const n = editCount(), nx = TC.excl.count();
     dlg.innerHTML = `<form method="dialog" class="new-form">
       <h3>Start a new analysis?</h3>
       <p>This clears every workload input${w.scenario_name ? ` for <strong>${TC.esc(w.scenario_name)}</strong>` : ''} — scenario name, preset, usage, model and excluded providers — and goes back to the defaults.</p>
+      ${nx ? `<label class="check"><input type="checkbox" name="restore" checked> Bring back the ${nx} option${nx > 1 ? 's' : ''} removed from this analysis</label>` : ''}
       ${n ? `<label class="check"><input type="checkbox" name="data"> Also clear my Data editor changes (${n} dataset${n > 1 ? 's' : ''} edited)</label>
       <p class="muted small">Leave this unchecked to keep prices and benchmarks you entered for use with the next customer.</p>` : ''}
       <p class="muted small">Want to keep this scenario? Cancel and use <em>Copy share link</em> or <em>Export scenario</em> first.</p>
       <div class="btn-row"><button value="cancel" class="btn ghost">Cancel</button><button value="ok" class="btn primary">Start new analysis</button></div></form>`;
-    dlg.onclose = () => { if (dlg.returnValue === 'ok') startFresh(!!(dlg.querySelector('[name=data]') || {}).checked); };
+    dlg.onclose = () => { if (dlg.returnValue === 'ok') startFresh(!!(dlg.querySelector('[name=data]') || {}).checked, !!(dlg.querySelector('[name=restore]') || {}).checked); };
     dlg.returnValue = '';
     dlg.showModal();
   };
@@ -221,6 +223,8 @@
     const n = editCount();
     const bits = [w.scenario_name ? `<strong>${TC.esc(w.scenario_name)}</strong>` : 'your last inputs'];
     if (n) bits.push(`${n} dataset${n > 1 ? 's' : ''} with Data editor changes`);
+    const nx = TC.excl.count();
+    if (nx) bits.push(`${nx} option${nx > 1 ? 's' : ''} removed from the analysis`);
     b.innerHTML = `<div>Continuing from last time: ${bits.join(' · ')}. Starting work for a different customer?</div>
       <div class="btn-row"><button class="btn small primary" data-rb="new">Start new analysis</button><button class="btn small ghost" data-rb="dismiss">Keep going</button></div>`;
     b.hidden = false;
@@ -260,6 +264,13 @@
     TC.editor.init($('#editor'));
     TC.request.init();
     TC.currentWorkload = () => Object.assign({}, w);
+    TC.showTab = showTab;
+    TC.excl.onChange(() => {
+      if (!TC.store.ready()) return;
+      TC.inputs.render($('#inputs'), w, schedule);
+      if (activeTab === 'data') TC.editor.render();
+      schedule();
+    });
     TC.bindResults($('#results'), compute);
 
     let started = false;

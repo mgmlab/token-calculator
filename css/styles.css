@@ -434,7 +434,7 @@ button.pill { border: 0; font: inherit; font-size: 12px; cursor: pointer; }
 .hy-chart .grid { stroke: var(--grid); }
 .hy-chart .tick { fill: var(--muted); font-size: 11px; }
 .hy-chart .axis-label { fill: var(--text-2); font-size: 12px; }
-.hy-chart .ref { stroke: var(--axis); stroke-width: 1.5; stroke-dasharray: 6 5; }
+.hy-chart .ref { stroke: var(--axis); stroke-width: 1.5; stroke-dasharray: 2 4; stroke-linecap: round; }
 .hy-chart .ref-label { fill: var(--muted); font-size: 11.5px; }
 .hy-chart .hy-best { fill: var(--text); font-size: 12.5px; font-weight: 700; paint-order: stroke; stroke: var(--surface); stroke-width: 4px; }
 .hy-row-best td { background: var(--accent-soft); font-weight: 600; }
@@ -456,3 +456,24 @@ dialog#new-dialog::backdrop { background: rgba(0,0,0,.35); }
 .new-form h3 { margin: 0; }
 .new-form p { margin: 0; }
 .new-form .btn-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+
+/* ---------- multi-select + exclusions */
+.ed-list li { flex-direction: row; align-items: flex-start; gap: 8px; }
+.ed-list li > div { display: flex; flex-direction: column; pointer-events: none; min-width: 0; }
+.ed-list li .pick { margin-top: 3px; flex: none; cursor: pointer; }
+.ed-list li.excluded > div { opacity: .55; }
+.ed-list li.excluded span { text-decoration: line-through; }
+.pick-all { font-size: 12.5px; color: var(--muted); }
+.bulk-bar { display: flex; flex-direction: column; gap: 6px; padding: 8px 10px; border: 1px solid var(--accent); border-radius: 8px; background: var(--accent-soft); }
+.row-acts { white-space: nowrap; }
+.row-act { border: 1px solid transparent; background: none; color: var(--muted); cursor: pointer; font-size: 12px; padding: 2px 6px; border-radius: 6px; }
+.row-act:hover { border-color: var(--border-strong); color: var(--text); background: var(--surface); }
+.row-act.x:hover { color: var(--err-border); }
+.edit-link { background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+.edit-link:hover { color: var(--accent); }
+.excl-bar { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; margin: 0 0 12px; padding: 8px 12px; border: 1px dashed var(--border-strong); border-radius: var(--radius); font-size: 13px; }
+.excl-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 4px 2px 9px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); font-size: 12px; }
+.excl-chip button { border: 0; background: none; cursor: pointer; color: var(--muted); padding: 0 4px; font-size: 13px; }
+.excl-chip button:hover { color: var(--accent); }
+.hy-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12.5px; color: var(--muted); margin: 4px 0 2px; }
+.hy-legend i { display: inline-block; width: 22px; height: 0; border-top: 2.5px solid; vertical-align: middle; margin-right: 6px; }

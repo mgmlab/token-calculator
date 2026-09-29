@@ -31,7 +31,8 @@
     cloud: () => ({ provider: '', instance: '', gpus_per_instance: 8, on_demand_per_gpu_hr: W(null), reserved_per_gpu_hr: null, reserved_term: '' }),
   };
 
-  const st = { name: 'models', sel: 0, work: null, raw: false, filter: '' };
+  const st = { name: 'models', sel: 0, work: null, raw: false, filter: '', picked: new Set() };
+  const EXCLUDABLE = new Set(['models', 'gpus', 'servers']);
   let saving = false;
   let pendingHeader = false;
 
@@ -195,14 +196,30 @@
         <div class="btn-row"><button class="btn" data-act="apply-raw">Apply JSON</button><span class="raw-msg muted small"></span></div>`;
     } else if (recs) {
       const q = st.filter.toLowerCase();
+      const shown = recs.map((r, i) => ({ r, i })).filter(({ r }) => !q || (recordLabel(st.name, r) + ' ' + recordSub(st.name, r)).toLowerCase().includes(q));
+      const canEx = EXCLUDABLE.has(st.name);
+      const isEx = r => canEx && r.id && TC.excl.has(st.name, r.id);
+      const np = st.picked.size;
+      const allOn = shown.length && shown.every(({ i }) => st.picked.has(i));
+      const pickedRecs = [...st.picked].map(i => recs[i]).filter(Boolean);
+      const cur = recs[st.sel];
       h += `<div class="ed-body">
         <div class="ed-list">
           <input class="search" placeholder="Filter…" value="${esc(st.filter)}" data-act="filter">
-          <ul>${recs.map((r, i) => ({ r, i })).filter(({ r }) => !q || (recordLabel(st.name, r) + ' ' + recordSub(st.name, r)).toLowerCase().includes(q)).map(({ r, i }) => {
+          <label class="check pick-all"><input type="checkbox" data-act="pick-all" ${allOn ? 'checked' : ''}> Select ${q ? 'all shown' : 'all'}${np ? ` · <strong>${np} selected</strong>` : ''}</label>
+          <ul>${shown.map(({ r, i }) => {
             const ph = countPlaceholders(r);
-            return `<li class="${i === st.sel ? 'on' : ''}" data-sel="${i}"><span>${esc(recordLabel(st.name, r))}</span><small>${esc(recordSub(st.name, r))}${ph ? ` · ⚠ ${ph}` : ''}</small></li>`;
+            const ex = isEx(r);
+            return `<li class="${i === st.sel ? 'on' : ''} ${ex ? 'excluded' : ''}" data-sel="${i}"><input type="checkbox" class="pick" data-pick="${i}" ${st.picked.has(i) ? 'checked' : ''} aria-label="Select ${esc(recordLabel(st.name, r))}">
+              <div><span>${esc(recordLabel(st.name, r))}</span><small>${esc(recordSub(st.name, r))}${ph ? ` · ⚠ ${ph}` : ''}${ex ? ' · <em>excluded from analysis</em>' : ''}</small></div></li>`;
           }).join('')}</ul>
-          <div class="btn-row">${st.name === 'benchmarks' ? '<button class="btn small" data-act="new-bench">+ New benchmark</button>' : ''}<button class="btn ghost small" data-act="dup">Duplicate</button><button class="btn ghost small danger" data-act="del">Delete</button></div>
+          ${np ? `<div class="bulk-bar"><span class="small"><strong>${np}</strong> selected</span><div class="btn-row">
+              ${canEx && pickedRecs.some(r => !isEx(r)) ? `<button class="btn small" data-act="bulk-exclude" title="Leave these out of the Compare results; the data is kept">Exclude from analysis</button>` : ''}
+              ${canEx && pickedRecs.some(isEx) ? `<button class="btn ghost small" data-act="bulk-include">Include again</button>` : ''}
+              <button class="btn ghost small danger" data-act="bulk-del">Delete</button>
+              <button class="btn ghost small" data-act="pick-none">Clear selection</button></div></div>`
+          : `<div class="btn-row">${st.name === 'benchmarks' ? '<button class="btn small" data-act="new-bench">+ New benchmark</button>' : ''}<button class="btn ghost small" data-act="dup">Duplicate</button>${canEx && cur && cur.id ? `<button class="btn ghost small" data-act="${isEx(cur) ? 'include-one' : 'exclude-one'}">${isEx(cur) ? 'Include again' : 'Exclude'}</button>` : ''}<button class="btn ghost small danger" data-act="del">Delete</button></div>`}
+          ${canEx ? '<p class="muted small">Exclude leaves an item out of the analysis without deleting it. Tick several to act on them together.</p>' : ''}
         </div>
         <div class="ed-form">${recs.length ? Object.keys(recs[st.sel]).map(k => node(recs[st.sel][k], k, [LIST_KEY[st.name], st.sel, k])).join('') : '<p class="empty">No records.</p>'}</div>
       </div>`;
@@ -220,12 +237,38 @@
       TC.store.onChange(() => { if (!saving) { st.base = null; render(el); } });
 
       el.addEventListener('click', async e => {
+        if (e.target.dataset.pick != null) {
+          const i = Number(e.target.dataset.pick);
+          if (e.target.checked) st.picked.add(i); else st.picked.delete(i);
+          render(el); return;
+        }
         const t = e.target.closest('[data-ds],[data-sel],[data-act]');
         if (!t) return;
-        if (t.dataset.ds) { st.name = t.dataset.ds; st.sel = 0; st.base = null; st.filter = ''; render(el); return; }
+        if (t.dataset.ds) { st.name = t.dataset.ds; st.sel = 0; st.base = null; st.filter = ''; st.picked.clear(); render(el); return; }
         if (t.dataset.sel != null && t.tagName === 'LI') { st.sel = Number(t.dataset.sel); render(el); return; }
         const act = t.dataset.act;
         const recs = records();
+        const q = st.filter.toLowerCase();
+        const shownIdx = () => (recs || []).map((r, i) => ({ r, i })).filter(({ r }) => !q || (recordLabel(st.name, r) + ' ' + recordSub(st.name, r)).toLowerCase().includes(q)).map(x => x.i);
+        const picked = () => [...st.picked].filter(i => recs && recs[i]).sort((a, b) => a - b);
+        if (act === 'pick-all') { const ids = shownIdx(); if (t.checked) ids.forEach(i => st.picked.add(i)); else ids.forEach(i => st.picked.delete(i)); render(el); return; }
+        if (act === 'pick-none') { st.picked.clear(); render(el); return; }
+        if (act === 'bulk-exclude' || act === 'bulk-include' || act === 'exclude-one' || act === 'include-one') {
+          const idx = act.endsWith('one') ? [st.sel] : picked();
+          const rs = idx.map(i => recs[i]).filter(r => r && r.id);
+          const on = act === 'bulk-exclude' || act === 'exclude-one';
+          TC.excl.set(st.name, rs.map(r => r.id), on, rs.map(r => LABELS[st.name].replace(/s$/, '') + ': ' + recordLabel(st.name, r)));
+          TC.track(on ? 'exclude-editor' : 'include-editor', (on ? 'Excluded ' : 'Included ') + rs.length + ' ' + st.name);
+          st.picked.clear(); render(el); return;
+        }
+        if (act === 'bulk-del') {
+          const idx = picked();
+          if (!idx.length) return;
+          const names = idx.slice(0, 6).map(i => '• ' + recordLabel(st.name, recs[i])).join('\n') + (idx.length > 6 ? `\n…and ${idx.length - 6} more` : '');
+          if (!confirm(`Delete ${idx.length} item${idx.length > 1 ? 's' : ''} from ${st.name}?\n\n${names}\n\nBrowser override only; "Reset this dataset" restores them. To keep them but leave them out of the comparison, use Exclude instead.`)) return;
+          idx.reverse().forEach(i => recs.splice(i, 1));
+          st.picked.clear(); st.sel = 0; save(); render(el); return;
+        }
         if (act === 'import') fileIn.click();
         else if (act === 'export') TC.store.exportDataset(st.name);
         else if (act === 'bundle') TC.store.exportBundle();
@@ -251,11 +294,11 @@
           const c = TC.clone(recs[st.sel]);
           if (c.id) c.id += '-copy';
           if (c.name) c.name += ' (copy)';
-          recs.splice(st.sel + 1, 0, c); st.sel++; save(); render(el);
+          recs.splice(st.sel + 1, 0, c); st.sel++; st.picked.clear(); save(); render(el);
         }
         else if (act === 'del' && recs && recs.length) {
           if (confirm(`Delete "${recordLabel(st.name, recs[st.sel])}" from ${st.name}? (Browser override only; Reset restores it.)`)) {
-            recs.splice(st.sel, 1); save(); render(el);
+            recs.splice(st.sel, 1); st.picked.clear(); save(); render(el);
           }
         }
         else if (act === 'add') {
@@ -335,6 +378,11 @@
 
     /** Jump to a dataset, record and (optionally) field; highlights the field. */
     open(name, index, path) {
+      if (typeof index === 'string') { // a record id
+        const list = ((TC.store.get(name) || {})[LIST_KEY[name]] || []);
+        index = Math.max(0, list.findIndex(r => r.id === index));
+      }
+      if (st.name !== name) st.picked.clear();
       st.name = name; st.filter = ''; st.raw = false; st.base = null;
       if (index != null) st.sel = index;
       render(this.el);

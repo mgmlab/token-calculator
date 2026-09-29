@@ -184,7 +184,7 @@
     save(w) { TC.storage.set(KEY, w); },
 
     render(el, w, onChange) {
-      const models = (TC.store.get('models') || { models: [] }).models.filter(m => m.self_hostable);
+      const models = (TC.store.analysis().models || { models: [] }).models.filter(m => m.self_hostable);
       const tipBtn = fd => fd.tip
         ? `<button type="button" class="tip-btn" data-tip="${esc(fd.k)}" aria-label="What is ${esc(fd.label)}?">?</button>`
         : '';

@@ -26,6 +26,8 @@
       NAMES.forEach(n => (d[n] = this.get(n)));
       return d;
     },
+    /** Datasets as the analysis sees them: excluded models/GPUs/servers removed. */
+    analysis() { return TC.excl ? TC.excl.filterData(this.all()) : this.all(); },
     ready() { return NAMES.every(n => this.get(n)); },
     missing() { return NAMES.filter(n => !this.get(n)); },
 
