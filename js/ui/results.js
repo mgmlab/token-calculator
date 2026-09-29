@@ -285,12 +285,12 @@
     [0, 25, 50, 75, 100].forEach(p => { svg += `<text class="tick" x="${X(p)}" y="${H - M.b + 18}" text-anchor="middle">${p}%</text>`; });
     svg += `<text class="axis-label" x="${(M.l + W - M.r) / 2}" y="${H - 6}" text-anchor="middle">Owned GPU capacity, as % of peak demand (0% = all API)</text>`;
     svg += `<text class="axis-label" transform="translate(16 ${(M.t + H - M.b) / 2}) rotate(-90)" text-anchor="middle">Cost per year</text>`;
-    svg += `<line class="ref" x1="${M.l}" x2="${W - M.r}" y1="${Y(Y12(hy.onPremOnly))}" y2="${Y(Y12(hy.onPremOnly))}"/><text class="ref-label" x="${M.l + 6}" y="${Y(Y12(hy.onPremOnly)) - 6}">All owned, sized for peak + headroom: ${f.usdCompact(Y12(hy.onPremOnly))}/yr</text>`;
+    svg += `<line class="ref" x1="${M.l}" x2="${W - M.r}" y1="${Y(Y12(hy.onPremOnly))}" y2="${Y(Y12(hy.onPremOnly))}"/>`;
     svg += `<path d="${path('ownedMonthly')}" fill="none" stroke="var(--muted)" stroke-width="1.5"/>`;
     svg += `<path d="${path('apiMonthly')}" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4"/>`;
     svg += `<path d="${path('total')}" fill="none" stroke="var(--accent)" stroke-width="2.5"/>`;
     // Direct labels at the right end of each line (nudged apart if they collide).
-    const ends = [['Total', Y(Y12(last.total)), 'hy-best'], ['Owned GPUs', Y(Y12(last.ownedMonthly)), 'tick'], ['API overflow', Y(Y12(last.apiMonthly)), 'tick']].sort((p, q) => p[1] - q[1]);
+    const ends = [['Total', Y(Y12(last.total)), 'hy-best'], ['Owned GPUs', Y(Y12(last.ownedMonthly)), 'tick'], ['API overflow', Y(Y12(last.apiMonthly)), 'tick'], [`All owned: ${f.usdCompact(Y12(hy.onPremOnly))}`, Y(Y12(hy.onPremOnly)), 'ref-label']].sort((p, q) => p[1] - q[1]);
     for (let i = 1; i < ends.length; i++) if (ends[i][1] - ends[i - 1][1] < 14) ends[i][1] = ends[i - 1][1] + 14;
     ends.forEach(([l, y, c]) => { svg += `<text class="${c}" x="${W - M.r + 8}" y="${y + 4}">${l}</text>`; });
     pts.forEach(p => { svg += `<circle cx="${X(p.pct)}" cy="${Y(Y12(p.total))}" r="9" fill="transparent"><title>${p.pct}% of peak owned${p.row ? ' (' + p.setup + ')' : ''}\nOwned GPUs: ${f.usd(Y12(p.ownedMonthly))}/yr\nAPI overflow: ${f.usd(Y12(p.apiMonthly))}/yr\nTotal: ${f.usd(Y12(p.total))}/yr</title></circle>`; });
@@ -298,7 +298,7 @@
     const lx = X(b.pct) > (W - M.r) * 0.6 ? X(b.pct) - 12 : X(b.pct) + 12;
     svg += `<text class="hy-best" x="${lx}" y="${Y(Y12(b.total)) - 12}" text-anchor="${X(b.pct) > (W - M.r) * 0.6 ? 'end' : 'start'}">Lowest total: ${f.usdCompact(Y12(b.total))}/yr at ${b.pct}%</text>`;
     svg += '</svg>';
-    const legend = `<div class="hy-legend"><span><i style="border-color:var(--accent)"></i>Total = owned + API overflow</span><span><i style="border-color:var(--muted)"></i>Owned GPUs</span><span><i style="border-color:var(--muted);border-top-style:dashed"></i>API overflow</span><span><i style="border-color:var(--muted);border-top-style:dotted"></i>All owned, sized for peak</span></div>
+    const legend = `<div class="hy-legend"><span><i style="border-color:var(--accent)"></i>Total = owned + API overflow</span><span><i style="border-color:var(--muted)"></i>Owned GPUs</span><span><i style="border-color:var(--muted);border-top-style:dashed"></i>API overflow</span><span><i style="border-color:var(--muted);border-top-style:dotted"></i>All owned, sized for peak + headroom (no API)</span></div>
       <p class="muted small">Read left to right: owning more GPUs moves tokens off the API. Owned cost rises in steps because hardware comes in whole servers; where it stays flat, one server already covers that share. Hover a point for the numbers.</p>`;
     const rows = pts.filter(p => p.pct % 25 === 0 || p === b);
     const tbl = `<div class="table-wrap"><table class="results-table compact"><thead><tr><th>Owned capacity</th><th>Owned setup</th><th class="num">Tokens on owned GPUs</th><th class="num">Owned / yr</th><th class="num">API overflow / yr</th><th class="num">Total / yr</th><th class="num">vs all-API</th></tr></thead><tbody>` +
