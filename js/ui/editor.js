@@ -16,6 +16,12 @@
     architecture: ['dense', 'moe'],
     type: ['standard', 'hybrid_sliding', 'mla'],
   };
+  const LOOKUPS = {
+    gpu_id: () => ((TC.store.get('gpus') || {}).gpus || []).map(g => [g.id, g.name]),
+    model_id: () => ((TC.store.get('models') || {}).models || []).filter(m => m.self_hostable).map(m => [m.id, m.name]),
+    tp: () => [1, 2, 4, 8].map(n => [n, n + (n === 1 ? ' GPU' : ' GPUs') + ' per model copy']),
+    pp: () => [1, 2, 4].map(n => [n, n === 1 ? '1 (single server)' : n + ' servers']),
+  };
   const NUMERIC_NULL = /(_per_m|_pct|_usd|_hr|_tflops_fp\d+|_tps|_kw)$/;
 
   const W = v => ({ value: v, source: 'User entry', as_of: TC.today(), status: 'override' });
@@ -37,7 +43,7 @@
     if (name === 'servers') return r.gpu_id + ' · ' + r.gpus_per_node + ' GPUs';
     if (name === 'models') return r.self_hostable ? 'self-hostable' : 'API only';
     if (name === 'gpus') return r.vendor;
-    if (name === 'benchmarks') return (r.engine || '') + (TC.v(r.aggregate_output_tps) == null ? ' · empty' : '');
+    if (name === 'benchmarks') return (r.engine || '') + (TC.v(r.aggregate_output_tps) == null ? ' · no speed entered (ignored)' : ' · ' + TC.v(r.aggregate_output_tps) + ' tok/s');
     return '';
   }
   function countPlaceholders(o) {
@@ -110,6 +116,12 @@
     if (typeof val === 'boolean') {
       return `<div class="frow"><label>${esc(pretty(key))}</label><input type="checkbox" data-path="${esc(p)}" data-kind="bool" ${val ? 'checked' : ''}></div>`;
     }
+    const lookup = LOOKUPS[key] && LOOKUPS[key]();
+    if (lookup) {
+      const opts = lookup.some(o => String(o[0]) === String(val)) ? lookup : [[val, val + ' (unknown)'], ...lookup];
+      const kind = typeof val === 'number' ? 'num' : 'str';
+      return `<div class="frow"><label>${esc(pretty(key))}</label><select data-path="${esc(p)}" data-kind="${kind}">${opts.map(([v, l]) => `<option value="${esc(v)}" ${String(v) === String(val) ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></div>`;
+    }
     if (ENUMS[key] && typeof val === 'string') {
       const opts = ENUMS[key].includes(val) ? ENUMS[key] : [val, ...ENUMS[key]];
       return `<div class="frow"><label>${esc(pretty(key))}</label><select data-path="${esc(p)}" data-kind="str">${opts.map(o => `<option ${o === val ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select></div>`;
@@ -160,7 +172,13 @@
         ${ovr ? '<strong>Browser overrides active</strong> — export this file and commit it to <code>/data</code> to share the change with the team.' : 'Edits are saved in this browser as overrides; the files on disk are never changed.'}
         ${countPlaceholders(st.work)} placeholder value(s) in this dataset.</p>`;
 
-    if (st.work._readme) h += `<p class="readme">${esc(st.work._readme)}</p>`;
+    if (st.name === 'benchmarks') {
+      h += `<div class="readme bench-help"><strong>What this tab is for:</strong> record <em>measured</em> speed tests (e.g. from vLLM or TensorRT-LLM) so the calculator uses real throughput instead of its theoretical estimate.
+        <ol><li>Click <strong>+ New benchmark</strong>.</li>
+        <li>Pick the GPU, model, precision and TP size (GPUs per model copy) you tested.</li>
+        <li>Enter the measured <strong>aggregate output tokens/sec</strong> (all requests combined) and, if you have it, tokens/sec per request, plus the engine, input/output lengths and concurrency you tested with.</li></ol>
+        A row is used only when GPU, model, precision and TP match the workload exactly; on the Compare tab that row then shows <span class="badge basis-bench">measured benchmark</span>. Rows with an empty speed are ignored — the shipped Llama 3.3 row is just an example. Export benchmarks.json and commit it to share results with the team.</div>`;
+    } else if (st.work._readme) h += `<p class="readme">${esc(st.work._readme)}</p>`;
 
     if (st.raw) {
       h += `<textarea class="raw" spellcheck="false">${esc(JSON.stringify(st.work, null, 2))}</textarea>
@@ -174,7 +192,7 @@
             const ph = countPlaceholders(r);
             return `<li class="${i === st.sel ? 'on' : ''}" data-sel="${i}"><span>${esc(recordLabel(st.name, r))}</span><small>${esc(recordSub(st.name, r))}${ph ? ` · ⚠ ${ph}` : ''}</small></li>`;
           }).join('')}</ul>
-          <div class="btn-row"><button class="btn ghost small" data-act="dup">Duplicate</button><button class="btn ghost small danger" data-act="del">Delete</button></div>
+          <div class="btn-row">${st.name === 'benchmarks' ? '<button class="btn small" data-act="new-bench">+ New benchmark</button>' : ''}<button class="btn ghost small" data-act="dup">Duplicate</button><button class="btn ghost small danger" data-act="del">Delete</button></div>
         </div>
         <div class="ed-form">${recs.length ? Object.keys(recs[st.sel]).map(k => node(recs[st.sel][k], k, [LIST_KEY[st.name], st.sel, k])).join('') : '<p class="empty">No records.</p>'}</div>
       </div>`;
@@ -212,6 +230,12 @@
             if (errs.length) throw new Error(errs.join('; '));
             st.work = obj; st.base = obj; save(); msg.textContent = 'Applied.';
           } catch (err) { msg.textContent = 'Not applied: ' + err.message; }
+        }
+        else if (act === 'new-bench' && recs) {
+          const W = v => ({ value: v, source: 'Measured by (name, date, link to run)', as_of: TC.today(), status: 'estimate' });
+          recs.push({ gpu_id: 'h100-sxm', model_id: 'llama-3.3-70b', precision: 'FP8', tp: 2, pp: 1, engine: 'vLLM', engine_version: '',
+            input_len: 1500, output_len: 400, concurrency: 32, aggregate_output_tps: W(null), per_request_output_tps: W(null) });
+          st.sel = recs.length - 1; save(); render(el);
         }
         else if (act === 'dup' && recs) {
           const c = TC.clone(recs[st.sel]);
@@ -284,7 +308,7 @@
         if (save()) pendingHeader = true;
       });
       // Refresh the header (override notice, tab dot) once the first edit is committed.
-      el.addEventListener('change', () => { if (pendingHeader) { pendingHeader = false; render(el); } });
+      el.addEventListener('change', e => { if (pendingHeader || (st.name === 'benchmarks' && e.target.dataset.path)) { pendingHeader = false; render(el); } });
 
       fileIn.addEventListener('change', async () => {
         const msgs = [];

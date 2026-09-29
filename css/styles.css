@@ -384,3 +384,6 @@ button.pill { border: 0; font: inherit; font-size: 12px; cursor: pointer; }
 .filter-bar { padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); gap: 10px 16px; }
 .filter-bar select { max-width: 220px; }
 .badge.filtered { background: var(--accent-soft); color: var(--accent); }
+
+.bench-help ol { margin: 6px 0; padding-left: 20px; }
+.bench-help li { margin: 2px 0; }
