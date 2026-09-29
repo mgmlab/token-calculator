@@ -853,13 +853,13 @@
         {
           "provider": "OpenRouter",
           "input_per_m": {
-            "value": 0.15,
+            "value": 0.037,
             "source": "openrouter.ai/api/v1/models (openai/gpt-oss-120b)",
             "as_of": "2026-09-29",
             "status": "estimate"
           },
           "output_per_m": {
-            "value": 0.6,
+            "value": 0.17,
             "source": "openrouter.ai/api/v1/models (openai/gpt-oss-120b)",
             "as_of": "2026-09-29",
             "status": "estimate"

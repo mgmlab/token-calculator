@@ -1,25 +1,12 @@
 {
-  "checked_at": "2026-09-29T14:00Z",
+  "checked_at": "2026-09-29T14:27Z",
   "date": "2026-09-29",
-  "values_changed": 12,
+  "values_changed": 2,
   "changed": [
-    "gpt-oss-20b (MoE) / Amazon Bedrock / output per m: 0.2 → 0.15",
-    "NVIDIA A100 80GB SXM / Azure ND96amsr_A100_v4 / on demand per gpu hr: 4.0963 → 4.09625",
-    "NVIDIA A100 80GB SXM / Azure ND96amsr_A100_v4 / reserved terms per gpu hr.3: 1.8024 → 1.80235",
-    "NVIDIA H100 SXM 80GB / Azure ND96isr_H100_v5 / reserved terms per gpu hr.3: 5.3953 → 5.39531",
-    "NVIDIA H100 SXM 80GB / CoreWeave HGX H100 8x / on demand per gpu hr: 6.16 → 6.155",
-    "NVIDIA H100 SXM 80GB / Google Cloud a3-highgpu-8g / reserved terms per gpu hr.1: 7.673 → 7.67296",
-    "NVIDIA H100 SXM 80GB / Google Cloud a3-highgpu-8g / reserved terms per gpu hr.3: 4.858 → 4.85805",
-    "NVIDIA H200 SXM 141GB / Azure ND96isr_H200_v5 / reserved terms per gpu hr.1: 5.8151 → 5.81515",
-    "NVIDIA H200 SXM 141GB / Azure ND96isr_H200_v5 / reserved terms per gpu hr.3: 5.2778 → 5.27774",
-    "NVIDIA H200 SXM 141GB / CoreWeave HGX H200 8x / on demand per gpu hr: 6.31 → 6.305",
-    "NVIDIA H200 SXM 141GB / Google Cloud a3-ultragpu-8g / reserved terms per gpu hr.1: 7.309 → 7.30899",
-    "NVIDIA H200 SXM 141GB / Google Cloud a3-ultragpu-8g / reserved terms per gpu hr.3: 4.6511 → 4.65105"
+    "gpt-oss-120b (MoE) / OpenRouter / input $/1M: 0.15 → 0.037",
+    "gpt-oss-120b (MoE) / OpenRouter / output $/1M: 0.6 → 0.17"
   ],
-  "needs_review": [
-    "gpt-oss-120b (MoE) / OpenRouter / input per m: 0.15 → 0.037 (not applied; over 50% change)",
-    "gpt-oss-120b (MoE) / OpenRouter / output per m: 0.6 → 0.17 (not applied; over 50% change)"
-  ],
+  "needs_review": [],
   "problems": [],
   "sources_failed": [],
   "manual_rows": [
@@ -39,7 +26,7 @@
       "ok": true,
       "url": "https://openrouter.ai/api/v1/models",
       "rows": 20,
-      "changed": 1,
+      "changed": 2,
       "error": ""
     },
     "DeepSeek": {
@@ -53,21 +40,21 @@
       "ok": true,
       "url": "https://prices.azure.com/api/retail/prices",
       "rows": 4,
-      "changed": 5,
+      "changed": 0,
       "error": ""
     },
     "CoreWeave": {
       "ok": true,
       "url": "https://www.coreweave.com/pricing",
       "rows": 5,
-      "changed": 2,
+      "changed": 0,
       "error": ""
     },
     "Google Cloud": {
       "ok": true,
       "url": "https://cloud.google.com/products/compute/pricing/accelerator-optimized",
       "rows": 4,
-      "changed": 4,
+      "changed": 0,
       "error": ""
     },
     "Lambda": {
