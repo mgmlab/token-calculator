@@ -6,6 +6,7 @@
 
   const view = { sort: 'name', showInfeasible: false, expanded: new Set(), filters: {}, collapsed: new Set() };
   TC.resultsView = view;
+  const SECTIONS = ['onprem', 'cloud', 'api_same', 'api_closed'];
 
   // ---- Filters (GPU, server vendor, cloud provider, pricing type, API provider); reset on every page load.
   view.filters = { gpu: '', vendor: '', cloud: '', pricing: '', api: '' };
@@ -135,7 +136,7 @@
     h += `<div class="toolbar">
       <label>Sort <select data-view="sort"><option value="name" ${view.sort === 'name' ? 'selected' : ''}>Alphabetical</option><option value="cost" ${view.sort === 'cost' ? 'selected' : ''}>$ / 1M tokens</option></select></label>
       <label class="check"><input type="checkbox" data-view="showInfeasible" ${view.showInfeasible ? 'checked' : ''}> Show options that don't fit</label>
-      <button class="btn ghost small" data-view="collapse">Collapse all</button>
+      <button class="btn ghost small" data-view="collapse">${SECTIONS.every(k => view.collapsed.has(k)) ? 'Expand all' : 'Collapse all'}</button>
       <span class="toolbar-spacer"></span>
       <button class="btn ghost small" data-export="all" title="All tables plus the workload profile in one CSV (opens in Excel)">Export CSV</button>
       <button class="btn small" data-export="pptx" title="Generate a PowerPoint deck with every result on its own slide">Export PowerPoint</button>
@@ -234,7 +235,13 @@
       const sect = e.target.closest('[data-section]');
       if (sect) { const k = sect.dataset.section; if (view.collapsed.has(k)) view.collapsed.delete(k); else view.collapsed.add(k); rerender(); return; }
       const ctl = e.target.closest('[data-view]');
-      if (ctl && ctl.dataset.view === 'collapse') { view.expanded.clear(); rerender(); return; }
+      if (ctl && ctl.dataset.view === 'collapse') {
+        const allClosed = SECTIONS.every(k => view.collapsed.has(k));
+        view.expanded.clear();
+        if (allClosed) view.collapsed.clear(); else SECTIONS.forEach(k => view.collapsed.add(k));
+        rerender();
+        return;
+      }
       if (ctl && ctl.dataset.view === 'clear-filters') { Object.keys(F).forEach(k => { F[k] = ''; }); saveFilters(); rerender(); return; }
       if (e.target.closest('.detail')) return;
       const tr = e.target.closest('tr.row');
