@@ -344,6 +344,8 @@ dialog#request-dialog::backdrop { background: rgba(0,0,0,.35); }
 .be-chart .be-mark-label { fill: var(--text); font-size: 12px; font-weight: 600; paint-order: stroke; stroke: var(--surface); stroke-width: 4px; }
 .be-chart .current-label { font-weight: 600; }
 .be-more { margin-top: 14px; }
+.be-controls { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+.seg.small button { padding: 4px 11px; font-size: 12.5px; }
 .be-more p { font-size: 13px; color: var(--text-2); }
 .crossovers li { display: flex; gap: 8px; align-items: baseline; }
 .crossovers li .swatch { flex: none; transform: translateY(-3px); }

@@ -5,9 +5,19 @@
   const esc = TC.esc;
   const hidden = new Set();
   let showTable = false;
-  let kMax = 100;
+  let kMax = 500;
   let showHelp = true;
-  try { showHelp = localStorage.getItem('tc.beHelp') !== '0'; } catch (e) { /* ignore */ }
+  let yMode = 'perM'; // 'perM' = cost per 1M tokens, 'monthly' = total monthly cost
+  try {
+    showHelp = localStorage.getItem('tc.beHelp') !== '0';
+    yMode = localStorage.getItem('tc.beMode') || 'perM';
+  } catch (e) { /* ignore */ }
+  const valOf = (p, key) => {
+    const v = p.series[key];
+    if (!v || !(v.monthly > 0)) return null;
+    return yMode === 'perM' ? v.monthly / p.tokensMonth * 1e6 : v.monthly;
+  };
+  const fmtY = n => (yMode === 'perM' ? f.perM(n) : f.usd(n));
 
   const W = 920, H = 440, M = { l: 72, r: 24, t: 20, b: 48 };
 
@@ -40,7 +50,7 @@
 
     const xs = pts.map(p => p.tokensMonth);
     const ys = [];
-    pts.forEach(p => active.forEach(s => { const v = p.series[s.key]; if (v && v.monthly > 0) ys.push(v.monthly); }));
+    pts.forEach(p => active.forEach(s => { const v = valOf(p, s.key); if (v != null) ys.push(v); }));
     const xMin = Math.min(...xs), xMax = Math.max(...xs);
     const yMin = ys.length ? Math.pow(10, Math.floor(Math.log10(Math.min(...ys)))) : 1;
     const yMax = ys.length ? Math.pow(10, Math.ceil(Math.log10(Math.max(...ys)))) : 10;
@@ -49,14 +59,14 @@
 
     let svg = `<svg viewBox="0 0 ${W} ${H}" class="be-chart" role="img" aria-label="Monthly cost versus monthly token volume for each option category">`;
     logTicks(yMin, yMax).forEach(t => {
-      svg += `<line class="grid" x1="${M.l}" x2="${W - M.r}" y1="${Y(t)}" y2="${Y(t)}"/><text class="tick" x="${M.l - 8}" y="${Y(t) + 4}" text-anchor="end">${f.usdCompact(t)}</text>`;
+      svg += `<line class="grid" x1="${M.l}" x2="${W - M.r}" y1="${Y(t)}" y2="${Y(t)}"/><text class="tick" x="${M.l - 8}" y="${Y(t) + 4}" text-anchor="end">${yMode === 'perM' ? '$' + (t < 1 ? t : f.int(t)) : f.usdCompact(t)}</text>`;
     });
     logTicks(xMin, xMax).forEach(t => {
       svg += `<line class="grid" x1="${X(t)}" x2="${X(t)}" y1="${M.t}" y2="${H - M.b}"/><text class="tick" x="${X(t)}" y="${H - M.b + 18}" text-anchor="middle">${f.tokens(t)}</text>`;
     });
     svg += `<line class="axis" x1="${M.l}" x2="${W - M.r}" y1="${H - M.b}" y2="${H - M.b}"/>`;
     svg += `<text class="axis-label" x="${(M.l + W - M.r) / 2}" y="${H - 8}" text-anchor="middle">Tokens per month (input + output, log scale)</text>`;
-    svg += `<text class="axis-label" transform="translate(16 ${(M.t + H - M.b) / 2}) rotate(-90)" text-anchor="middle">Monthly cost (log scale)</text>`;
+    svg += `<text class="axis-label" transform="translate(16 ${(M.t + H - M.b) / 2}) rotate(-90)" text-anchor="middle">${yMode === 'perM' ? 'Cost per 1M tokens (log scale)' : 'Monthly cost (log scale)'}</text>`;
 
     const cx = X(be.currentTokens);
     if (be.currentTokens >= xMin && be.currentTokens <= xMax) {
@@ -66,9 +76,9 @@
     active.forEach(s => {
       let d = '', pen = false;
       pts.forEach(p => {
-        const v = p.series[s.key];
-        if (!v || !(v.monthly > 0)) { pen = false; return; }
-        d += (pen ? 'L' : 'M') + X(p.tokensMonth).toFixed(1) + ' ' + Y(v.monthly).toFixed(1) + ' ';
+        const v = valOf(p, s.key);
+        if (v == null) { pen = false; return; }
+        d += (pen ? 'L' : 'M') + X(p.tokensMonth).toFixed(1) + ' ' + Y(v).toFixed(1) + ' ';
         pen = true;
       });
       svg += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round"/>`;
@@ -79,7 +89,7 @@
     be.crossovers.forEach(c => {
       if (!(c.index > 0) || hidden.has(c.key) || hidden.has('onprem')) return;
       const p = pts[c.index];
-      const x = X(p.tokensMonth), y = Y(p.series.onprem.monthly);
+      const x = X(p.tokensMonth), y = Y(valOf(p, 'onprem'));
       const col = series.find(s2 => s2.key === c.key).color;
       const ly = Math.max(M.t + 26, y - 16 - mk * 18);
       const anchor = x > W - 220 ? 'end' : 'start';
@@ -133,10 +143,14 @@
           </ul></div>
         <div><h4>Reading the lines</h4>
           <ul>
-            <li>Left to right = more usage (tokens per month). Lower = cheaper per month.</li>
+            <li>Left to right = more usage (tokens per month). Lower = cheaper${yMode === 'perM' ? ' per token' : ' per month'}.</li>
             <li>Each line is the cheapest choice of that type at each usage level.</li>
-            <li><strong>Flat, stepped lines</strong> (buy / rent GPUs): you pay for the hardware whether you use it or not; each step is another server added.</li>
+            ${yMode === 'perM'
+              ? `<li><strong>Flat lines</strong> (pay per token): the price per token is the same whatever your volume.</li>
+            <li><strong>Falling lines</strong> (buy / rent GPUs): hardware costs the same whether it's busy or idle, so the more you use it, the less each token costs. The line levels off once the servers are as busy as your traffic pattern allows; small bumps are new servers being added.</li>`
+              : `<li><strong>Flat, stepped lines</strong> (buy / rent GPUs): you pay for the hardware whether you use it or not; each step is another server added.</li>
             <li><strong>Straight rising lines</strong> (pay per token): cost grows with usage.</li>
+            <li>At high volume every line rises at a similar angle — twice the usage needs twice the servers or twice the API bill. On this log scale only the vertical gap matters: one grid line = 10× the cost. Switch to <em>Cost per 1M tokens</em> to see the gap clearly.</li>`}
             <li><strong>Dashed line</strong> = your usage today. <strong>Circled dot</strong> = a breakeven point: to the right of it, owning servers is cheaper.</li>
           </ul></div>
       </div>
@@ -147,14 +161,19 @@
       table = `<div class="table-wrap"><table class="results-table compact"><thead><tr><th>Tokens / month</th>${series.map(s => `<th class="num">${esc(s.label)}</th>`).join('')}</tr></thead><tbody>` +
         pts.filter((_, i) => i % 4 === 0 || i === pts.length - 1).map(p => `<tr><td>${f.tokens(p.tokensMonth)}</td>${series.map(s => {
           const v = p.series[s.key];
-          return `<td class="num" title="${v ? esc(v.name + ' · ' + v.sub) : ''}">${v ? f.usd(v.monthly) : '—'}</td>`;
+          return `<td class="num" title="${v ? esc(v.name + ' · ' + v.sub) : ''}">${v ? f.usd(v.monthly) + '<br><span class="muted small">' + f.perM(v.monthly / p.tokensMonth * 1e6) + ' /1M</span>' : '—'}</td>`;
         }).join('')}</tr>`).join('') + '</tbody></table></div>';
     }
 
     el.innerHTML = `
       <div class="block-head"><div><h2>Breakeven: when does buying servers pay off?</h2>
-        <p class="muted">Monthly cost of each way to run ${esc((data.models.models.find(m => m.id === w.model_id) || {}).name || 'the model')} as usage grows.</p></div>
-        <label class="small">Show usage up to <select data-act="range">${[20, 100, 500, 2000].map(k => `<option value="${k}" ${k === kMax ? 'selected' : ''}>${k}× today</option>`).join('')}</select></label></div>
+        <p class="muted">${yMode === 'perM' ? 'Cost per 1M tokens' : 'Monthly cost'} of each way to run ${esc((data.models.models.find(m => m.id === w.model_id) || {}).name || 'the model')} as usage grows.</p></div>
+        <div class="be-controls">
+        <div class="seg small" role="group" aria-label="Chart shows">
+          <button type="button" data-ymode="perM" class="${yMode === 'perM' ? 'on' : ''}">Cost per 1M tokens</button>
+          <button type="button" data-ymode="monthly" class="${yMode === 'monthly' ? 'on' : ''}">Monthly cost</button>
+        </div>
+        <label class="small">Show usage up to <select data-act="range">${[20, 100, 500, 2000].map(k => `<option value="${k}" ${k === kMax ? 'selected' : ''}>${k}× today</option>`).join('')}</select></label></div></div>
       ${help}
       ${headline ? `<p class="be-headline">${headline}</p>` : ''}
       <div class="legend">${legend}</div>
@@ -169,6 +188,11 @@
         ${table}
       </details>`;
 
+    el.querySelectorAll('[data-ymode]').forEach(b => b.onclick = () => {
+      yMode = b.dataset.ymode;
+      try { localStorage.setItem('tc.beMode', yMode); } catch (e) { /* ignore */ }
+      TC.renderBreakeven(el, data, w);
+    });
     const det = el.querySelector('.be-help');
     det.addEventListener('toggle', () => { showHelp = det.open; try { localStorage.setItem('tc.beHelp', det.open ? '1' : '0'); } catch (e) { /* ignore */ } });
     if (showTable) el.querySelector('.be-more').open = true;
@@ -197,14 +221,14 @@
       hov.querySelector('.xhair').setAttribute('x1', px);
       hov.querySelector('.xhair').setAttribute('x2', px);
       hov.querySelectorAll('circle').forEach(c => {
-        const v = p.series[c.dataset.k];
-        if (v && v.monthly > 0) { c.setAttribute('cx', px); c.setAttribute('cy', Y(v.monthly)); c.setAttribute('visibility', 'visible'); }
+        const v = valOf(p, c.dataset.k);
+        if (v != null) { c.setAttribute('cx', px); c.setAttribute('cy', Y(v)); c.setAttribute('visibility', 'visible'); }
         else c.setAttribute('visibility', 'hidden');
       });
       tip.hidden = false;
       tip.innerHTML = `<div class="tip-head">${f.tokens(p.tokensMonth)} tokens / month</div>` + active.map(s => {
         const v = p.series[s.key];
-        return `<div class="tip-row"><span class="swatch" style="background:${s.color}"></span><span class="tip-label">${esc(s.label)}</span><span class="tip-val">${v ? f.usd(v.monthly) : '—'}</span></div>${v ? `<div class="tip-sub">${esc(v.name)} · ${esc(v.sub)}</div>` : ''}`;
+        return `<div class="tip-row"><span class="swatch" style="background:${s.color}"></span><span class="tip-label">${esc(s.label)}</span><span class="tip-val">${v ? f.perM(v.monthly / p.tokensMonth * 1e6) + ' /1M' : '—'}</span></div>${v ? `<div class="tip-sub">${f.usd(v.monthly)}/month · ${esc(v.name)} · ${esc(v.sub)}</div>` : ''}`;
       }).join('');
       const wr = wrap.getBoundingClientRect();
       const left = evt.clientX - wr.left;

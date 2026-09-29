@@ -294,6 +294,28 @@
     s6.addText(`Peak concurrency is ${f.num(ratio, 1)}× the 24-hour average. Self-hosted capacity is sized for peak and paid for 24/7, while API cost follows volume — utilization decides the breakeven.${bestOn ? ` At this profile the lowest-cost on-prem option is ${f.num(bestOn.util * 100, 1)}% utilized; fully utilized it would cost ${f.perM(bestOn.perMFull)} per 1M tokens.` : ''}`,
       { x: 9.1, y: 5.1, w: 3.73, h: 1.3, fontFace: FONT, fontSize: 10, color: P.ink2, fill: { color: P.tint }, margin: 0.1 });
 
+    // Cost per 1M tokens view — flat API lines vs falling hardware lines
+    const s6b = titled('Cost per 1M tokens as usage grows', 'Pay-per-token prices stay flat; owned or rented hardware gets cheaper per token the more it is used');
+    if (complete.length) {
+      s6b.addChart(pptx.ChartType.line, complete.map(sr => ({
+        name: sr.label,
+        labels: be.points.map(p => f.tokens(p.tokensMonth)),
+        values: be.points.map(p => Math.round(p.series[sr.key].monthly / p.tokensMonth * 1e6 * 1000) / 1000),
+      })), {
+        x: 0.5, y: 1.4, w: 8.4, h: 5.0, chartColors: complete.map(sr => SERIES[TC.SERIES.indexOf(sr)]), lineSize: 2, lineDataSymbol: 'none',
+        valAxisLogScaleBase: 10, valAxisLabelFormatCode: '$#,##0.00', valAxisLabelFontSize: 9, catAxisLabelFontSize: 9, catAxisLabelFrequency: 6,
+        catAxisTitle: 'Tokens per month', showCatAxisTitle: true, catAxisTitleFontSize: 10, valAxisTitle: 'Cost per 1M tokens (log scale)', showValAxisTitle: true, valAxisTitleFontSize: 10,
+        valGridLine: { color: P.line, size: 0.5 }, catGridLine: { style: 'none' }, showLegend: true, legendPos: 'b', legendFontSize: 10, legendFontFace: FONT,
+      });
+    }
+    const lastP = be.points[be.points.length - 1];
+    const perAt = (p, k) => (p.series[k] ? p.series[k].monthly / p.tokensMonth * 1e6 : null);
+    const bullets6 = [];
+    if (lastP.series.onprem) bullets6.push(`Owning servers: ${f.perM(perAt(be.points[0], 'onprem'))} per 1M tokens at the low end, falling to ${f.perM(perAt(lastP, 'onprem'))} at ${f.tokens(lastP.tokensMonth)} tokens/month.`);
+    if (lastP.series.api_same) bullets6.push(`Pay per token (same model): ${f.perM(perAt(lastP, 'api_same'))} per 1M tokens at any volume.`);
+    bullets6.push('Hardware cost per token levels off once servers are as busy as the traffic pattern allows — adding overnight or batch work raises utilization and lowers it further.');
+    s6b.addText(bullets6.map(b => ({ text: b, options: { bullet: true, breakLine: true, paraSpaceAfter: 8 } })), { x: 9.1, y: 1.45, w: 3.73, h: 4.9, fontFace: FONT, fontSize: 11, color: P.ink2, valign: 'top' });
+
     // Assumptions
     const a = data.assumptions;
     const aRows = [
