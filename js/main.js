@@ -45,8 +45,10 @@
     }
     if (activeTab === 'compare') {
       const res = TC.computeAll(data, w);
-      TC.lastResults = { res, w: Object.assign({}, w), data };
-      TC.renderResults($('#results'), res, w, data);
+      TC.lastResults = { res, w: res.w, data };
+      TC.renderResults($('#results'), res, res.w, data);
+      const pk = document.getElementById('in-peak_concurrent_requests');
+      if (pk && w.peak_concurrency_mode === 'derived') pk.value = res.w.peak_concurrent_requests;
     } else if (activeTab === 'breakeven') {
       TC.renderBreakeven($('#breakeven'), data, w);
     }

@@ -19,8 +19,14 @@
         tip: 'Days per month the workload runs. Use 21.7 for weekday-only business use, 30.4 for customer-facing or 24/7 systems.' },
     ]},
     { title: 'Performance', fields: [
+      { k: 'peak_concurrency_mode', label: 'Peak concurrency', type: 'select', options: [['derived', 'Derive from traffic pattern'], ['manual', 'Enter manually']],
+        tip: 'Derive (recommended): calculated from requests per day, the busy-hour share and a burst allowance, so it stays consistent with volume. Manual: enter a measured peak from a pilot or monitoring data.' },
+      { k: 'busy_hour_share_pct', label: 'Busy-hour share of daily requests %', type: 'number', min: 1, max: 100, step: 'any', only: 'derived', hint: '4% = flat 24/7 · 12.5% = even over 8 h · 15–20% = typical workday peak',
+        tip: 'What share of a day’s requests arrive in the busiest hour. Flat 24/7 traffic = 4%. Traffic spread evenly across an 8-hour workday = 12.5%. Typical office use peaks at 15–20% (mid-morning).' },
+      { k: 'burst_percentile', label: 'Burst allowance', type: 'select', options: [[95, '95th percentile'], [99, '99th percentile'], [99.9, '99.9th percentile']], only: 'derived',
+        tip: 'Extra concurrency above the busy-hour average for random bursts, based on Poisson arrivals. 99th percentile means capacity is exceeded in about 1% of busy-hour moments (those requests queue briefly).' },
       { k: 'peak_concurrent_requests', label: 'Peak concurrent requests', type: 'number', min: 1,
-        tip: 'The most requests being generated at the same moment during the busiest period. Estimate: peak requests per second × seconds per request (output tokens ÷ tok/s). This input drives GPU count more than any other.' },
+        tip: 'The most requests being generated at the same moment during the busiest period. In derived mode this shows the calculated value. This input drives GPU count more than any other.' },
       { k: 'target_output_tps_per_request', label: 'Target output tok/s per request', type: 'number', min: 1, step: 'any', hint: 'Reading speed is roughly 5–10 tok/s; chat UIs often target 20–50',
         tip: 'How fast each user sees text stream (output tokens per second). People read ~5–10 tok/s; 20–50 feels responsive for chat. Batch or back-office jobs can accept less, which lowers cost.' },
       { k: 'max_context', label: 'Max context length', type: 'number', min: 256,
@@ -147,8 +153,10 @@
             return `<option value="${esc(ov)}" ${String(ov) === String(val) ? 'selected' : ''}>${esc(ol)}</option>`;
           }).join('') + '</select>';
         } else {
-          ctl = `<input type="number" id="${id}" data-k="${fd.k}" value="${esc(val)}" ${fd.min != null ? `min="${fd.min}"` : ''} ${fd.max != null ? `max="${fd.max}"` : ''} step="${fd.step || 1}">`;
+          const locked = fd.k === 'peak_concurrent_requests' && w.peak_concurrency_mode === 'derived';
+          ctl = `<input type="number" id="${id}" data-k="${fd.k}" value="${esc(val)}" ${fd.min != null ? `min="${fd.min}"` : ''} ${fd.max != null ? `max="${fd.max}"` : ''} step="${fd.step || 1}" ${locked ? 'readonly class="derived" title="Calculated from the traffic pattern — switch Peak concurrency to manual to edit"' : ''}>`;
         }
+        if (fd.only && w.peak_concurrency_mode !== fd.only) return '';
         return `<div class="field"><div class="field-label"><label for="${id}">${esc(fd.label)}</label>${tipBtn(fd)}</div>${ctl}${fd.hint ? `<small>${esc(fd.hint)}</small>` : ''}</div>`;
       };
 
@@ -172,8 +180,10 @@
         else if (t.type === 'number' || t.dataset.num) { val = parseFloat(t.value); if (!isFinite(val)) return; }
         if (t.type === 'file') return;
         else val = t.value;
+        if (t.readOnly) return;
         w[t.dataset.k] = val;
         this.save(w);
+        if (t.dataset.k === 'peak_concurrency_mode') this.render(el, w, onChange);
         onChange();
       });
 

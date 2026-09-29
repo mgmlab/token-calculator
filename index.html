@@ -54,6 +54,11 @@
 
         <h3>Workload</h3>
         <pre>req/day          = users × requests per user per day
+peak concurrent  = manual input, or derived (default):
+                   busy-hour req/s  = req/day × busy-hour share ÷ 3,600
+                   seconds/request  = output tokens ÷ target tok/s + 1 s
+                   mean             = busy-hour req/s × seconds/request          (Little's law)
+                   peak             = ceil(mean + z × √mean)   z = 1.645 / 2.326 / 3.09 for p95 / p99 / p99.9
 tokens in/month  = req/day × active days/month × avg input tokens
 tokens out/month = req/day × active days/month × avg output tokens
 tokens over term = (in + out) per month × 12 × years</pre>
@@ -106,8 +111,13 @@ monthly             = (input tokens × effective input + output tokens × output
                       × (1 − batch share % × batch discount %)</pre>
         <p>Same-model rows (hosted open-weight providers) are directly comparable with self-hosting. Closed models are shown as a separate reference group; they are a different model, not a like-for-like quality comparison.</p>
 
+        <h3>Utilization: why on-prem wins or loses</h3>
+        <pre>average utilization = average output tok/s over the month ÷ output capacity of all installed replica slots
+fully-utilized $/1M = $/1M × utilization</pre>
+        <p>Self-hosted capacity is sized for the peak and paid for around the clock; API providers pool many customers, so their price follows volume. On-prem wins when utilization is high enough — which happens at higher volume (bursts shrink relative to the average) and with flatter traffic (24/7 or mixed batch workloads). Every on-prem and cloud row shows its average utilization, and the math panel shows the fully-utilized cost.</p>
+
         <h3>Breakeven</h3>
-        <p>Users and peak concurrency are scaled together (0.02× to 50× your profile), keeping per-request shape fixed. For each volume the cheapest option in each category is plotted. On-prem and reserved cloud are step functions; API is linear. The crossover is the lowest volume above which on-prem stays cheaper for the rest of the range.</p>
+        <p>Users are scaled from 0.02× up to 2,000× your profile, keeping per-request shape fixed. With derived peak concurrency, the peak is recomputed at each volume, so bursts shrink relative to the average as usage grows; a manually entered peak scales linearly instead. For each volume the cheapest option in each category is plotted. On-prem and reserved cloud are step functions; API is linear. The crossover is the lowest volume above which on-prem stays cheaper for the rest of the range.</p>
 
         <h3>Data provenance</h3>
         <p>Every seeded number carries <code>source</code>, <code>as_of</code> and <code>status</code>:</p>

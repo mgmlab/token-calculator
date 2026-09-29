@@ -343,13 +343,33 @@
     if (residual) steps.push(S('Residual value credit', `−${f.usd(capexServers)} × ${f.num(resPct)}%`, residual, 'USD'));
 
     const total = capex + financing + support + power + colo + software + ops + residual;
+    const util = TC.utilization(c, server.gpus_per_node, wl);
     steps.push(S('Total cost over term', 'capex + financing + support + power + colo + software + ops − residual', total, 'USD'));
     const monthly = total / months;
     steps.push(S('Monthly equivalent', `${f.usd(total)} ÷ ${months} months (straight-line)`, monthly, 'USD/mo'));
     const perM = total / (wl.tTerm / 1e6);
     steps.push(S('$ per million tokens', `${f.usd(total)} ÷ ${f.tokens(wl.tTerm)} tokens over term × 1M`, perM, 'USD/M'));
+    util.steps.forEach(s => steps.push(s));
+    steps.push(S('$ per million tokens if fully utilized', `${f.perM(perM)} × ${f.num(util.util * 100, 1)}% utilization`, perM * util.util, 'USD/M',
+      'What the same hardware costs per token if the workload (or other workloads) kept it busy. Low utilization — capacity sized for peak — is what makes self-hosting expensive at low volume.'));
 
-    return { total, monthly, perM, capex, nodes, gpus, steps, prov, breakdown: { capexServers, net, install, financing, support, power, colo, software, ops, residual } };
+    return { total, monthly, perM, capex, nodes, gpus, util: util.util, perMFull: perM * util.util, steps, prov, breakdown: { capexServers, net, install, financing, support, power, colo, software, ops, residual } };
+  };
+
+  /** Average utilization: average output demand ÷ output capacity of every installed replica slot. */
+  TC.utilization = function (c, gpn, wl) {
+    const slots = c.pp === 1 ? Math.floor(gpn / c.tp) * c.nodes : c.replicas;
+    const capacity = slots * c.aggTps;
+    const demand = wl.tOutMo / (730 * 3600);
+    const util = Math.min(1, demand / Math.max(capacity, 1e-9));
+    return {
+      util, capacity, demand,
+      steps: [
+        S('Average output demand', `${f.tokens(wl.tOutMo)} output tokens/month ÷ 730 h ÷ 3,600 s`, demand, 'tok/s'),
+        S('Installed output capacity', `${slots} replica slots × ${f.int(c.aggTps)} tok/s`, capacity, 'tok/s'),
+        S('Average utilization', `${f.num(demand, 1)} ÷ ${f.int(capacity)}`, util * 100, '%'),
+      ],
+    };
   };
 
   /** Runs sizing + cost for every server SKU. */
@@ -367,7 +387,7 @@
       row.sizing = sizing;
       if (!sizing.feasible) { row.feasible = false; row.reason = sizing.reason; rows.push(row); return; }
       const cost = TC.onpremCost({ sizing, server, gpu, w, wl, a: data.assumptions });
-      Object.assign(row, { feasible: true, cost, monthly: cost.monthly, total: cost.total, perM: cost.perM });
+      Object.assign(row, { feasible: true, cost, monthly: cost.monthly, total: cost.total, perM: cost.perM, util: cost.util, perMFull: cost.perMFull });
       row.flags = [...sizing.flags, ...sizing.best.flags];
       row.basis = sizing.best.basis;
       row.placeholders = [...sizing.prov.placeholders, ...cost.prov.placeholders];

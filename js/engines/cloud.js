@@ -36,13 +36,17 @@
           steps.push(S('Total cost over term', `${f.usd(monthly)} × ${months} months`, total, 'USD'));
           const perM = total / (wl.tTerm / 1e6);
           steps.push(S('$ per million tokens', `${f.usd(total)} ÷ ${f.tokens(wl.tTerm)} tokens × 1M`, perM, 'USD/M'));
+          const u = TC.utilization(c, gpi, wl);
+          if (kind === 'ondemand') u.util = Math.min(1, u.util * 730 / Math.max(hours, 1));
+          u.steps.forEach(s => steps.push(s));
+          if (kind === 'ondemand') steps.push(S('Utilization while running', `× 730 ÷ ${f.num(hours)} active hours`, u.util * 100, '%'));
           const flags = [...sizing.flags, ...c.flags];
           if (kind === 'ondemand') flags.push('On-demand capacity for high-end GPUs is not guaranteed; excludes storage, egress and data-transfer charges.');
           if (kind === 'reserved' && offer.reserved_term && months > 12 && /1 yr|Capacity Block/i.test(offer.reserved_term)) {
             flags.push(`Published reserved rate is for "${offer.reserved_term}"; a ${w.term_years}-year commitment is usually quoted lower.`);
           }
           return Object.assign(row, {
-            feasible: true, monthly, total, perM, flags, basis: c.basis,
+            feasible: true, monthly, total, perM, flags, basis: c.basis, util: u.util,
             cost: { steps, prov, nodes: c.nodes, gpus },
             placeholders: [...sizing.prov.placeholders, ...prov.placeholders],
           });

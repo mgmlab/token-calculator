@@ -116,12 +116,15 @@
     "hours_per_month": 730
   },
   "workload_defaults": {
-    "_note": "Example workload only - not a recommendation.",
+    "_note": "Example workload only - not a recommendation: a business-hours internal assistant. peak_concurrent_requests is used only when peak_concurrency_mode = manual.",
     "users": 500,
     "requests_per_user_per_day": 20,
     "avg_input_tokens": 1500,
     "avg_output_tokens": 400,
-    "active_days_per_month": 30.4,
+    "active_days_per_month": 21.7,
+    "peak_concurrency_mode": "derived",
+    "busy_hour_share_pct": 15,
+    "burst_percentile": 99,
     "peak_concurrent_requests": 50,
     "target_output_tps_per_request": 20,
     "max_context": 32768,

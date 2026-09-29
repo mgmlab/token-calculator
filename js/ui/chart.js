@@ -18,6 +18,18 @@
     return out;
   }
 
+  function peakNote(w, be) {
+    const we = TC.effectiveWorkload(w);
+    const wl = TC.workload(we);
+    const ratio = we.peak_concurrent_requests / Math.max(wl.avgConc24h, 1e-9);
+    const first = be.points[0], last = be.points[be.points.length - 1];
+    const u = p => (p.series.onprem && p.series.onprem.util != null ? f.num(p.series.onprem.util * 100, 1) + '%' : '—');
+    let s = `Peak concurrency (${f.int(we.peak_concurrent_requests)}) is ${f.num(ratio, 1)}× the 24-hour average implied by your volume. Self-hosted capacity is sized for the peak and paid for around the clock, while API cost follows volume — so utilization decides the breakeven. Lowest-cost on-prem utilization runs from ${u(first)} at the low end of the range to ${u(last)} at the high end.`;
+    if (w.peak_concurrency_mode === 'derived') s += ' Peak is derived from your traffic pattern, so bursts shrink relative to volume as usage grows.';
+    else s += ' Peak concurrency is entered manually, so it scales linearly with users and utilization never improves — switch to "Derive from traffic pattern" for a more realistic curve.';
+    return TC.esc(s);
+  }
+
   TC.renderBreakeven = function (el, data, w) {
     const be = TC.breakeven(data, w, { kMax });
     const pts = be.points;
@@ -82,13 +94,13 @@
 
     el.innerHTML = `
       <div class="block-head"><div><h2>Breakeven</h2>
-        <p class="muted">Users and peak concurrency scaled together from 0.02× to ${kMax}× your profile. Each line is the cheapest option in that category at each volume. On-prem is amortized straight-line over ${w.term_years} years.</p></div>
+        <p class="muted">Users scaled from 0.02× to ${kMax}× your profile (peak concurrency ${w.peak_concurrency_mode === 'derived' ? 'recomputed from the traffic pattern at each volume' : 'scaled linearly'}). Each line is the cheapest option in that category at each volume. On-prem is amortized straight-line over ${w.term_years} years.</p></div>
         <label class="small">Range up to <select data-act="range">${[20, 100, 500, 2000].map(k => `<option value="${k}" ${k === kMax ? 'selected' : ''}>${k}× profile</option>`).join('')}</select></label></div>
       <div class="legend">${legend}</div>
       <div class="chart-wrap">${svg}<div class="tooltip" hidden></div></div>
       <h3>Crossover points</h3>
       <ul class="crossovers">${cross}</ul>
-      <p class="callout">Your peak concurrency (${f.int(w.peak_concurrent_requests)}) is ${f.num(w.peak_concurrent_requests / Math.max(TC.workload(w).avgConc24h, 1e-9), 1)}× the 24-hour average implied by your volume (${f.num(TC.workload(w).avgConc24h, 1)}). Self-hosted capacity is sized for the peak and paid for around the clock, while API cost follows volume — so this ratio largely decides the breakeven.</p>
+      <p class="callout">${peakNote(w, be)}</p>
       <p class="muted small">Your profile: ${f.tokens(be.currentTokens)} tokens/month. On-prem and reserved-cloud lines step up as nodes are added; placeholder server prices strongly affect where the lines cross — check the ⚠ values on the Compare tab.</p>
       <button class="btn ghost small" data-act="table">${showTable ? 'Hide' : 'Show'} data table</button>
       ${table}`;

@@ -167,6 +167,14 @@ The full formulas are in the **Method & assumptions** tab.
    - API = tokens × price, with optional cache and batch discounts.
 7. **$ per 1M tokens** = total cost over term ÷ total tokens over term.
 
+### Why on-prem can look expensive at low volume
+
+Self-hosted capacity is sized for **peak** concurrency and paid for 24/7. API pricing follows volume, because the provider pools many customers. So the comparison mostly comes down to **average utilization**, which every on-prem and cloud row now shows.
+
+Peak concurrency defaults to **derived from the traffic pattern**: busy-hour share plus a Poisson burst allowance. Bursts shrink relative to the average as volume grows, so utilization rises and on-prem becomes cheaper at scale.
+
+With the default business-hours example, on-prem beats the same-model API above roughly 12B tokens/month. Flatter 24/7 traffic crosses over much earlier. A manually entered peak scales linearly in the breakeven sweep, which keeps utilization flat and can hide the crossover.
+
 ### Known limitations: read before quoting
 
 - **Throughput is the least certain input.** It depends on batch size, sequence lengths, inference engine and version, quantization kernels and interconnect. Theoretical rows are optimistic. Replace them with measured benchmarks.

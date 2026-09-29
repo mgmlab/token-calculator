@@ -2,9 +2,11 @@
 (function () {
   const TC = window.TC;
 
-  TC.computeAll = function (data, w) {
+  TC.computeAll = function (data, wIn) {
+    const w = TC.effectiveWorkload(wIn);
     const wl = TC.workload(w);
     return {
+      w,
       wl,
       onprem: TC.runOnPrem(data, w, wl),
       cloud: TC.runCloud(data, w, wl),
@@ -35,15 +37,14 @@
     const pts = [];
     for (let i = 0; i < o.points; i++) {
       const k = o.kMin * Math.pow(o.kMax / o.kMin, i / (o.points - 1));
-      const wk = Object.assign({}, w, {
-        users: w.users * k,
-        peak_concurrent_requests: Math.max(1, Math.ceil(w.peak_concurrent_requests * k)),
-      });
+      // Derived peak is recomputed from the scaled volume (smoothing); a manual peak scales linearly.
+      const wk = Object.assign({}, w, { users: w.users * k });
+      if (w.peak_concurrency_mode !== 'derived') wk.peak_concurrent_requests = Math.max(1, Math.ceil(w.peak_concurrent_requests * k));
       const r = TC.computeAll(data, wk);
-      const p = { k, tokensMonth: r.wl.tMo, series: {} };
+      const p = { k, tokensMonth: r.wl.tMo, peak: r.w.peak_concurrent_requests, series: {} };
       TC.SERIES.forEach(s => {
         const b = cheapest(s.pick(r));
-        p.series[s.key] = b ? { monthly: b.monthly, name: b.name, sub: b.sub } : null;
+        p.series[s.key] = b ? { monthly: b.monthly, name: b.name, sub: b.sub, util: b.util } : null;
       });
       pts.push(p);
     }
@@ -65,6 +66,6 @@
       return { key: s.key, label: s.label, index: idx, tokensMonth: idx > 0 ? pts[idx].tokensMonth : null, text };
     });
 
-    return { points: pts, crossovers, currentTokens: TC.workload(w).tMo };
+    return { points: pts, crossovers, currentTokens: TC.workload(TC.effectiveWorkload(w)).tMo };
   };
 })();

@@ -109,6 +109,7 @@ seconds per request ≈ avg output tokens ÷ target tok/s   (+ ~1 s for the prom
         <p><strong>Peak requests per second</strong> is roughly the daily requests squeezed into the busy hours. For business use, about 20–25% of a day's requests often land in the busiest hour:</p>
         <pre>peak req/s ≈ (users × requests per user per day × busy-hour share) ÷ 3,600</pre>
         <div class="ask">Ask: "When is usage heaviest?" (e.g. Monday 9–10 am, month-end close). "Any events that spike usage?"</div>
+        <p><strong>The calculator does this for you</strong> when Peak concurrency is set to "Derive from traffic pattern" (the default). Enter the busy-hour share: 4% for flat 24/7 traffic, 12.5% for traffic spread evenly across an 8-hour day, 15–20% for a typical office peak. It then adds a burst allowance (99th percentile by default). Switch to manual only when you have a measured peak from a pilot.</p>
         <p>The calculator warns if your peak is below the 24-hour average implied by the volume. A peak <em>far</em> above the average (10–30×) is normal for business-hours use. It is also the main reason self-hosting can cost more than an API at low volumes.</p>
       </section>
 

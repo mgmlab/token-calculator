@@ -47,10 +47,11 @@
   }
 
   // ------------------------------------------------------------------ CSV
-  const HEAD = ['Category', 'Option', 'Detail', 'Configuration', 'Throughput basis', 'Monthly (USD)', 'Total over term (USD)', 'USD per 1M tokens', 'Placeholder values used', 'Warnings', 'Fits'];
+  const HEAD = ['Category', 'Option', 'Detail', 'Configuration', 'Throughput basis', 'Avg utilization %', 'Monthly (USD)', 'Total over term (USD)', 'USD per 1M tokens', 'Placeholder values used', 'Warnings', 'Fits'];
   function csvRow(r) {
     return [
       CAT[catOf(r)], r.name, r.sub, config(r), basis(r),
+      r.feasible && r.util != null ? Math.round(r.util * 1000) / 10 : '',
       r.feasible ? Math.round(r.monthly * 100) / 100 : '',
       r.feasible ? Math.round(r.total * 100) / 100 : '',
       r.feasible ? Math.round(r.perM * 10000) / 10000 : '',
@@ -81,7 +82,8 @@
       ['Weight / KV precision', `${w.precision} / ${w.kv_precision}`],
       ['Users', w.users], ['Requests per user per day', w.requests_per_user_per_day],
       ['Avg input tokens', w.avg_input_tokens], ['Avg output tokens', w.avg_output_tokens],
-      ['Active days per month', w.active_days_per_month], ['Peak concurrent requests', w.peak_concurrent_requests],
+      ['Active days per month', w.active_days_per_month],
+      ['Peak concurrent requests', w.peak_concurrent_requests + (w.peak_concurrency_mode === 'derived' ? ` (derived: ${w.busy_hour_share_pct}% busy-hour share, ${w.burst_percentile}th-percentile burst)` : ' (manual)')],
       ['Target output tok/s per request', w.target_output_tps_per_request], ['Max context', w.max_context],
       ['Headroom %', w.headroom_pct], ['N+1', w.n_plus_one ? 'yes' : 'no'], ['Term (years)', w.term_years],
       ['Tokens per month', Math.round(wl.tMo)], ['Tokens over term', Math.round(wl.tTerm)],
@@ -188,7 +190,8 @@
     const L = [
       ['Users', f.int(w.users)], ['Requests per user per day', f.num(w.requests_per_user_per_day)],
       ['Avg input / output tokens', `${f.int(w.avg_input_tokens)} / ${f.int(w.avg_output_tokens)}`],
-      ['Active days per month', f.num(w.active_days_per_month)], ['Peak concurrent requests', f.int(w.peak_concurrent_requests)],
+      ['Active days per month', f.num(w.active_days_per_month)],
+      ['Peak concurrent requests', f.int(w.peak_concurrent_requests) + (w.peak_concurrency_mode === 'derived' ? ` (derived, ${f.num(w.busy_hour_share_pct)}% busy hour)` : '')],
       ['Target output speed', `${f.num(w.target_output_tps_per_request)} tok/s per request`], ['Max context', f.int(w.max_context) + ' tokens'],
     ];
     const R = [
@@ -244,11 +247,11 @@
     const on = sortRows(res.onprem).filter(r => r.feasible);
     const onHidden = res.onprem.length - on.length;
     paged('On-prem (self-hosted)', `${model ? model.name : ''} · one row per server SKU · sized in model replicas, rounded to whole nodes`,
-      ['Server', 'GPU', 'Layout', 'Throughput', 'Monthly', `Total (${w.term_years} yr)`, '$ / 1M', '⚠'],
-      [2.1, 2.5, 2.2, 1.45, 1.05, 1.25, 1.05, 0.733], on,
+      ['Server', 'GPU', 'Layout', 'Throughput', 'Util', 'Monthly', `Total (${w.term_years} yr)`, '$ / 1M', '⚠'],
+      [1.95, 2.35, 2.1, 1.4, 0.7, 1.0, 1.2, 1.0, 0.633], on,
       r => [r.name, r.sub, `${r.cost.nodes} node(s) · ${r.cost.gpus} GPUs · ${r.sizing.best.replicas}×TP${r.sizing.best.tp}${r.sizing.best.pp > 1 ? '×PP' + r.sizing.best.pp : ''}`,
-        basis(r), f.usd(r.monthly), f.usd(r.total), { text: f.perM(r.perM), options: { bold: true } }, warnCell(r)],
-      `⚠ = number of placeholder values (e.g. server price quotes) the row depends on.${onHidden ? ` ${onHidden} SKU(s) cannot fit this model and are omitted.` : ''} Monthly = total ÷ months, straight-line.`);
+        basis(r), f.num(r.util * 100, 1) + '%', f.usd(r.monthly), f.usd(r.total), { text: f.perM(r.perM), options: { bold: true } }, warnCell(r)],
+      `Util = average share of installed capacity in use. ⚠ = number of placeholder values (e.g. server price quotes) the row depends on.${onHidden ? ` ${onHidden} SKU(s) cannot fit this model and are omitted.` : ''} Monthly = total ÷ months, straight-line.`);
 
     const cl = sortRows(res.cloud).filter(r => r.feasible);
     paged('GPU cloud', 'Same replica sizing, priced per GPU-hour · reserved billed 24/7 · on-demand uses active hours',
@@ -270,7 +273,7 @@
     status('Computing breakeven…');
     const be = TC.breakeven(data, w, { kMax: 100, points: 40 });
     const complete = TC.SERIES.filter(sr => be.points.every(p => p.series[sr.key]));
-    const s6 = titled('Breakeven: monthly cost vs monthly token volume', 'Users and peak concurrency scaled together (0.02× – 100× this profile); cheapest option per category at each volume');
+    const s6 = titled('Breakeven: monthly cost vs monthly token volume', `Users scaled 0.02× – 100× this profile (peak concurrency ${w.peak_concurrency_mode === 'derived' ? 'recomputed from the traffic pattern' : 'scaled linearly'}); cheapest option per category at each volume`);
     if (complete.length) {
       s6.addChart(pptx.ChartType.line, complete.map(sr => ({
         name: sr.label.replace(' (cheapest)', ''),
@@ -287,7 +290,8 @@
       be.crossovers.map(c => ({ text: `On-prem vs ${c.label.replace(' (cheapest)', '')}: ${c.text}.`, options: { bullet: true, fontSize: 11, color: P.ink2, breakLine: true, paraSpaceAfter: 6 } }))),
       { x: 9.1, y: 1.45, w: 3.73, h: 3.6, fontFace: FONT, valign: 'top' });
     const ratio = w.peak_concurrent_requests / Math.max(wl.avgConc24h, 1e-9);
-    s6.addText(`Peak concurrency is ${f.num(ratio, 1)}× the 24-hour average. Self-hosted capacity is sized for peak and paid for 24/7, while API cost follows volume — this ratio largely decides the breakeven.`,
+    const bestOn = res.onprem.filter(r => r.feasible).sort((x, y) => x.perM - y.perM)[0];
+    s6.addText(`Peak concurrency is ${f.num(ratio, 1)}× the 24-hour average. Self-hosted capacity is sized for peak and paid for 24/7, while API cost follows volume — utilization decides the breakeven.${bestOn ? ` At this profile the lowest-cost on-prem option is ${f.num(bestOn.util * 100, 1)}% utilized; fully utilized it would cost ${f.perM(bestOn.perMFull)} per 1M tokens.` : ''}`,
       { x: 9.1, y: 5.1, w: 3.73, h: 1.3, fontFace: FONT, fontSize: 10, color: P.ink2, fill: { color: P.tint }, margin: 0.1 });
 
     // Assumptions

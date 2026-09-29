@@ -57,6 +57,9 @@
   const money = r => r.feasible
     ? `<td class="num">${f.usd(r.monthly)}</td><td class="num">${f.usd(r.total)}</td><td class="num strong">${f.perM(r.perM)}</td>`
     : `<td class="num muted" colspan="3">${esc(r.reason || 'n/a')}</td>`;
+  const utilCell = r => r.feasible
+    ? `<td class="num" title="Average share of installed capacity in use${r.perMFull != null ? ' · fully utilized: ' + f.perM(r.perMFull) + ' per 1M tokens' : ''}">${f.num(r.util * 100, 1)}%</td>`
+    : '<td></td>';
   const moneyCols = [{ label: 'Monthly', num: true }, { label: 'Total over term', num: true }, { label: '$ / 1M tokens', num: true }];
 
   TC.renderResults = function (el, res, w, data) {
@@ -72,6 +75,10 @@
     </div>`;
 
     const wflags = wl.flags.slice();
+    const bestOn = res.onprem.filter(r => r.feasible).sort((a, b) => a.perM - b.perM)[0];
+    if (bestOn && bestOn.util < 0.3) {
+      wflags.push(`Self-hosted capacity is only ${f.num(bestOn.util * 100, 1)}% utilized on average (sized for peak concurrency of ${f.int(w.peak_concurrent_requests)}). Fully utilized, the lowest-cost on-prem option would be ${f.perM(bestOn.perMFull)} per 1M tokens instead of ${f.perM(bestOn.perM)}. Utilization — not hardware price — is usually what decides on-prem vs API.`);
+    }
     const anyTheory = res.onprem.concat(res.cloud).some(r => r.feasible && r.basis === 'theoretical');
     h += `<p class="callout warn"><strong>Throughput caveat:</strong> tokens/sec per replica depends on batch size, sequence length and inference engine (vLLM, TensorRT-LLM, SGLang…).
       ${anyTheory ? 'Rows marked <span class="badge basis-theory">theoretical estimate</span> use the theoretical bandwidth-based estimate, not a measured benchmark — treat them as an optimistic upper bound.' : ''}
@@ -89,17 +96,17 @@
     </div>`;
 
     h += table('On-prem (self-hosted)', 'One row per server SKU and GPU. Sized in model replicas; rounded to whole nodes.',
-      [{ label: 'Server' }, { label: 'GPU' }, { label: 'Layout' }, { label: 'Throughput basis' }, ...moneyCols, { label: '' }],
+      [{ label: 'Server' }, { label: 'GPU' }, { label: 'Layout' }, { label: 'Throughput basis' }, { label: 'Avg util', num: true }, ...moneyCols, { label: '' }],
       res.onprem,
       r => `<td><strong>${esc(r.name)}</strong></td><td>${esc(r.sub)}</td>
         <td>${r.feasible ? `${r.cost.nodes} node${r.cost.nodes > 1 ? 's' : ''} · ${r.cost.gpus} GPUs<br><span class="muted small">${r.sizing.best.replicas} × TP${r.sizing.best.tp}${r.sizing.best.pp > 1 ? '×PP' + r.sizing.best.pp : ''}</span>` : '—'}</td>
-        <td>${r.feasible ? TC.basisLabel(r.basis) : ''}</td>${money(r)}<td class="badges">${warnBadge(r)}${flagBadge(r)}</td>`, wl, 'onprem');
+        <td>${r.feasible ? TC.basisLabel(r.basis) : ''}</td>${utilCell(r)}${money(r)}<td class="badges">${warnBadge(r)}${flagBadge(r)}</td>`, wl, 'onprem');
 
     h += table('GPU cloud', 'Same replica sizing, priced per GPU-hour. Reserved is billed 24/7; on-demand uses your active hours.',
-      [{ label: 'Provider' }, { label: 'GPU / instance' }, { label: 'Pricing' }, { label: 'GPUs' }, ...moneyCols, { label: '' }],
+      [{ label: 'Provider' }, { label: 'GPU / instance' }, { label: 'Pricing' }, { label: 'GPUs' }, { label: 'Avg util', num: true }, ...moneyCols, { label: '' }],
       res.cloud,
       r => `<td><strong>${esc(r.name)}</strong></td><td>${esc(r.sub)}</td><td>${esc(r.pricing)}</td>
-        <td>${r.feasible ? r.cost.gpus : '—'}</td>${money(r)}<td class="badges">${warnBadge(r)}${flagBadge(r)}</td>`, wl, 'cloud');
+        <td>${r.feasible ? r.cost.gpus : '—'}</td>${utilCell(r)}${money(r)}<td class="badges">${warnBadge(r)}${flagBadge(r)}</td>`, wl, 'cloud');
 
     const same = res.api.filter(r => r.sameModel);
     const closed = res.api.filter(r => !r.sameModel);

@@ -52,6 +52,26 @@
     eq(wl.tTerm, (30e6 + 15e6) * 36, 'term tokens');
   });
 
+  test('derived peak concurrency: busy-hour Little\'s law + Poisson burst', () => {
+    const w = Object.assign({}, baseW, { users: 500, requests_per_user_per_day: 20, avg_output_tokens: 400, target_output_tps_per_request: 20,
+      peak_concurrency_mode: 'derived', busy_hour_share_pct: 15, burst_percentile: 99 });
+    const we = TC.effectiveWorkload(w);
+    // 10,000 req/day × 15% ÷ 3,600 = 0.4167 req/s × (400/20 + 1) s = 8.75 → ceil(8.75 + 2.326 × √8.75) = 16
+    eq(we._peak.mean, 10000 * 0.15 / 3600 * 21, 'mean');
+    eq(we.peak_concurrent_requests, 16, 'peak');
+    const big = TC.effectiveWorkload(Object.assign({}, w, { users: 50000 }));
+    if (!(big.peak_concurrent_requests / big._peak.mean < we.peak_concurrent_requests / we._peak.mean)) throw new Error('burst ratio should shrink with volume');
+  });
+  test('manual peak passes through unchanged', () => {
+    eq(TC.effectiveWorkload(Object.assign({}, baseW, { peak_concurrency_mode: 'manual' })).peak_concurrent_requests, baseW.peak_concurrent_requests, 'peak');
+  });
+  test('utilization = average output demand ÷ installed capacity', () => {
+    const wl = TC.workload(baseW);
+    const u = TC.utilization({ pp: 1, tp: 2, nodes: 1, replicas: 1, aggTps: 1000 }, 8, wl);
+    eq(u.capacity, 4000, 'capacity (4 replica slots per 8-GPU node)');
+    eq(u.demand, wl.tOutMo / (730 * 3600), 'demand');
+  });
+
   // ---------- KV cache
   test('KV standard: Llama 70B, 1 token FP16 = 327,680 bytes', () => {
     eq(TC.kvBytes(llama70, 'FP16', 1).bytes, 2 * 80 * 8 * 128 * 2);
