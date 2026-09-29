@@ -100,9 +100,13 @@
   const FIELDS = {};
   GROUPS.forEach(g => g.fields.forEach(fd => { FIELDS[fd.k] = fd; }));
   let tipEl = null, pinned = null, hideTimer = null;
+  TC.inputTip = k => (FIELDS[k] ? FIELDS[k].tip : null);
   function tipShow(btn) {
-    const fd = FIELDS[btn.dataset.tip];
-    if (!fd) return;
+    // Data editor fields carry data-help-key; workload inputs carry data-tip.
+    const fd = btn.dataset.helpKey
+      ? { label: btn.dataset.helpLabel || btn.dataset.helpKey, tip: TC.fieldHelp(btn.dataset.helpDs, btn.dataset.helpKey), noDoc: true }
+      : FIELDS[btn.dataset.tip];
+    if (!fd || !fd.tip) return;
     if (!tipEl) {
       tipEl = document.createElement('div');
       tipEl.className = 'field-tip';
@@ -113,7 +117,7 @@
       document.body.appendChild(tipEl);
     }
     clearTimeout(hideTimer);
-    tipEl.innerHTML = `<strong>${esc(fd.label)}</strong><p>${esc(fd.tip)}</p><a href="${DOC}#${esc(fd.k)}" target="_blank" rel="noopener">How to estimate this for a client ↗</a>`;
+    tipEl.innerHTML = `<strong>${esc(fd.label)}</strong><p>${esc(fd.tip)}</p>` + (fd.noDoc ? '' : `<a href="${DOC}#${esc(fd.k)}" target="_blank" rel="noopener">How to estimate this for a client ↗</a>`);
     tipEl.hidden = false;
     btn.setAttribute('aria-describedby', 'field-tip');
     const r = btn.getBoundingClientRect();

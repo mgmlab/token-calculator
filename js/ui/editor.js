@@ -83,12 +83,20 @@
     return s.charAt(0).toUpperCase() + s.slice(1);
   }
 
+  // "?" button with a plain-English definition of the field (see field-help.js).
+  function help(key) {
+    const k = String(key);
+    if (!TC.fieldHelp || !TC.fieldHelp(st.name, k)) return '';
+    return ` <button type="button" class="tip-btn" data-help-ds="${esc(st.name)}" data-help-key="${esc(k)}" data-help-label="${esc(pretty(k))}" aria-label="What is ${esc(pretty(k))}?">?</button>`;
+  }
+  const lab = key => `<label>${esc(pretty(key))}${help(key)}</label>`;
+
   function node(val, key, path) {
     const p = path.join('.');
     if (key && key[0] === '_') return `<p class="readme">${esc(val)}</p>`;
     if (TC.isWrapped(val)) {
       return `<div class="vrow" data-row="${esc(p)}">
-        <label class="vlabel">${esc(pretty(key))}</label>
+        <label class="vlabel">${esc(pretty(key))}${help(key)}</label>
         <input class="vval" data-path="${esc(p)}.value" data-kind="wval" value="${val.value == null ? '' : esc(val.value)}" placeholder="not set">
         <select data-path="${esc(p)}.status" data-kind="str" class="st-sel st-${esc(val.status)}">${ENUMS.status.map(s => `<option ${s === val.status ? 'selected' : ''}>${s}</option>`).join('')}</select>
         <input class="vsrc" data-path="${esc(p)}.source" data-kind="str" value="${esc(val.source)}" placeholder="source">
@@ -98,9 +106,9 @@
     }
     if (Array.isArray(val)) {
       if (val.length && typeof val[0] !== 'object') {
-        return `<div class="frow"><label>${esc(pretty(key))}</label><input data-path="${esc(p)}" data-kind="list" value="${esc(val.join(', '))}"></div>`;
+        return `<div class="frow">${lab(key)}<input data-path="${esc(p)}" data-kind="list" value="${esc(val.join(', '))}"></div>`;
       }
-      return `<fieldset class="arr"><legend>${esc(pretty(key))} <span class="muted">(${val.length})</span></legend>
+      return `<fieldset class="arr"><legend>${esc(pretty(key))}${help(key)} <span class="muted">(${val.length})</span></legend>
         ${val.map((item, i) => `<div class="arr-item"><div class="arr-head"><strong>${esc(item.provider || item.name || item.id || '#' + (i + 1))}</strong>
           <button class="btn ghost small" data-act="rm" data-path="${esc(p)}" data-i="${i}">Remove</button></div>
           ${Object.keys(item).map(k => node(item[k], k, path.concat([i, k]))).join('')}</div>`).join('')}
@@ -108,27 +116,27 @@
       </fieldset>`;
     }
     if (val && typeof val === 'object') {
-      return `<fieldset class="obj"><legend>${esc(pretty(key))}</legend>${Object.keys(val).map(k => node(val[k], k, path.concat(k))).join('')}</fieldset>`;
+      return `<fieldset class="obj"><legend>${esc(pretty(key))}${help(key)}</legend>${Object.keys(val).map(k => node(val[k], k, path.concat(k))).join('')}</fieldset>`;
     }
     if (val === null) {
-      return `<div class="frow"><label>${esc(pretty(key))}</label><span class="muted">not set</span>
+      return `<div class="frow">${lab(key)}<span class="muted">not set</span>
         <button class="btn ghost small" data-act="setnull" data-path="${esc(p)}" data-key="${esc(key)}">Set value</button></div>`;
     }
     if (typeof val === 'boolean') {
-      return `<div class="frow"><label>${esc(pretty(key))}</label><input type="checkbox" data-path="${esc(p)}" data-kind="bool" ${val ? 'checked' : ''}></div>`;
+      return `<div class="frow">${lab(key)}<input type="checkbox" data-path="${esc(p)}" data-kind="bool" ${val ? 'checked' : ''}></div>`;
     }
     const lookup = LOOKUPS[key] && LOOKUPS[key]();
     if (lookup) {
       const opts = lookup.some(o => String(o[0]) === String(val)) ? lookup : [[val, val + ' (unknown)'], ...lookup];
       const kind = typeof val === 'number' ? 'num' : 'str';
-      return `<div class="frow"><label>${esc(pretty(key))}</label><select data-path="${esc(p)}" data-kind="${kind}">${opts.map(([v, l]) => `<option value="${esc(v)}" ${String(v) === String(val) ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></div>`;
+      return `<div class="frow">${lab(key)}<select data-path="${esc(p)}" data-kind="${kind}">${opts.map(([v, l]) => `<option value="${esc(v)}" ${String(v) === String(val) ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></div>`;
     }
     if (ENUMS[key] && typeof val === 'string') {
       const opts = ENUMS[key].includes(val) ? ENUMS[key] : [val, ...ENUMS[key]];
-      return `<div class="frow"><label>${esc(pretty(key))}</label><select data-path="${esc(p)}" data-kind="str">${opts.map(o => `<option ${o === val ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select></div>`;
+      return `<div class="frow">${lab(key)}<select data-path="${esc(p)}" data-kind="str">${opts.map(o => `<option ${o === val ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select></div>`;
     }
     const kind = typeof val === 'number' ? 'num' : 'str';
-    return `<div class="frow"><label>${esc(pretty(key))}</label><input data-path="${esc(p)}" data-kind="${kind}" value="${esc(val)}" ${kind === 'num' ? 'inputmode="decimal"' : ''}></div>`;
+    return `<div class="frow">${lab(key)}<input data-path="${esc(p)}" data-kind="${kind}" value="${esc(val)}" ${kind === 'num' ? 'inputmode="decimal"' : ''}></div>`;
   }
 
   function resolve(root, pathStr) {

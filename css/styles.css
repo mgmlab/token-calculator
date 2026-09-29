@@ -443,3 +443,5 @@ button.pill { border: 0; font: inherit; font-size: 12px; cursor: pointer; }
 
 .prov-list { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; font-size: 13px; }
 .prov-list label.check { display: flex; align-items: center; gap: 6px; }
+
+.frow > label, .vlabel, .ed-form legend { display: flex; align-items: center; gap: 6px; }
