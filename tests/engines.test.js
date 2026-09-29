@@ -175,6 +175,18 @@
     eq(od.monthly, 8 * 4 * 200, 'on-demand');
   });
 
+  test('reserved rate picks the longest commitment within the term', () => {
+    const offer = { reserved_terms_per_gpu_hr: { '1': E(8), '3': E(5), '5': E(4) } };
+    eq(TC.pickReserved(offer, 3).years, 3, '3-yr term → 3-yr rate');
+    eq(TC.pickReserved(offer, 5).years, 5, '5-yr term → 5-yr rate');
+    const no5 = { reserved_terms_per_gpu_hr: { '1': E(8), '3': E(5) } };
+    const r = TC.pickReserved(no5, 5);
+    eq(r.years, 3, '5-yr term without 5-yr rate → 3-yr rate');
+    eq(r.flags.length, 1, 'flagged');
+    eq(TC.pickReserved({ reserved_per_gpu_hr: E(6), reserved_term: '1 yr' }, 3).rate.value, 6, 'legacy single rate');
+    eq(TC.pickReserved({}, 3), null, 'no reserved rate');
+  });
+
   // ---------- render
   const ok = results.filter(r => r.ok).length;
   document.getElementById('summary').textContent = `${ok} / ${results.length} passed`;
