@@ -12,6 +12,7 @@
       "input_len": 1000,
       "output_len": 500,
       "concurrency": 64,
+      "source_type": "external",
       "aggregate_output_tps": {
         "value": null,
         "source": "Example row: replace with a measured value. Left empty on purpose so no invented benchmark is used.",

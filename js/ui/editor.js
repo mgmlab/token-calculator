@@ -154,6 +154,7 @@
     }
     const recs = records();
     if (recs && st.sel >= recs.length) st.sel = Math.max(0, recs.length - 1);
+    if (st.name === 'benchmarks' && recs) recs.forEach(r => { if (!('source_type' in r)) r.source_type = 'external'; });
     const src = TC.store.source[st.name];
     const ovr = TC.store.isOverridden(st.name);
 

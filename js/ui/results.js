@@ -4,7 +4,7 @@
   const f = TC.fmt;
   const esc = TC.esc;
 
-  const view = { sort: 'name', showInfeasible: false, expanded: new Set(), filters: {} };
+  const view = { sort: 'name', showInfeasible: false, expanded: new Set(), filters: {}, collapsed: new Set() };
   TC.resultsView = view;
 
   // ---- Filters (GPU, server vendor, cloud provider, pricing type, API provider); reset on every page load.
@@ -71,10 +71,16 @@
     const rows = keep ? allRows.filter(keep) : allRows;
     const vis = sortRows(rows).filter(r => r.feasible || view.showInfeasible);
     const hidden = rows.filter(r => !r.feasible).length;
-    let h = `<section class="card result-block">
-      <div class="block-head"><div><h3>${esc(title)}</h3><p class="muted">${subtitle}</p></div>
+    const closed = csvKey && view.collapsed.has(csvKey);
+    const fits = rows.filter(r => r.feasible).length;
+    let h = `<section class="card result-block ${closed ? 'collapsed' : ''}">
+      <div class="block-head"><div><h3><button type="button" class="sect-toggle" data-section="${csvKey}" aria-expanded="${!closed}" title="${closed ? 'Expand' : 'Collapse'} this section">${closed ? '▸' : '▾'} ${esc(title)}</button></h3>
+        ${closed
+          ? `<p class="muted">${allRows.length} option${allRows.length === 1 ? '' : 's'}${rows.length < allRows.length ? ` — ${rows.length} match the current filters` : ''}${fits < rows.length ? ` · ${fits} fit this workload` : ''}. Click the heading to expand.</p>`
+          : `<p class="muted">${subtitle}</p>`}</div>
       <div class="block-actions">${rows.length < allRows.length ? `<span class="badge filtered">Filtered: ${rows.length} of ${allRows.length}</span>` : ''}${hidden && !view.showInfeasible ? `<span class="muted small">${hidden} option(s) don't fit — tick "show options that don't fit"</span>` : ''}
       ${rows.length && csvKey ? `<button class="btn ghost small" data-export="${csvKey}" title="Download this table as CSV (opens in Excel)">CSV</button>` : ''}</div></div>`;
+    if (closed) return h + '</section>';
     if (!rows.length) return h + (allRows.length ? '<p class="empty">No options match the current filters.</p></section>' : '<p class="empty">No options available for this model. Add entries in the Data editor.</p></section>');
     h += `<div class="table-wrap"><table class="results-table"><thead><tr><th></th>${cols.map(c => `<th class="${c.num ? 'num' : ''}">${c.label}</th>`).join('')}</tr></thead><tbody>`;
     vis.forEach(r => {
@@ -225,6 +231,8 @@
         } else TC.exportCsv(ex.dataset.export);
         return;
       }
+      const sect = e.target.closest('[data-section]');
+      if (sect) { const k = sect.dataset.section; if (view.collapsed.has(k)) view.collapsed.delete(k); else view.collapsed.add(k); rerender(); return; }
       const ctl = e.target.closest('[data-view]');
       if (ctl && ctl.dataset.view === 'collapse') { view.expanded.clear(); rerender(); return; }
       if (ctl && ctl.dataset.view === 'clear-filters') { Object.keys(F).forEach(k => { F[k] = ''; }); saveFilters(); rerender(); return; }

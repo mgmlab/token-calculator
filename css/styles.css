@@ -417,3 +417,8 @@ button.pill { border: 0; font: inherit; font-size: 12px; cursor: pointer; }
 .adv-settings > summary { cursor: pointer; font-weight: 600; font-size: 13.5px; color: var(--text-2); }
 .inputs input[type="text"] { width: 100%; }
 .share-msg { margin: 6px 0 0; }
+
+.sect-toggle { appearance: none; background: none; border: 0; padding: 0; font: inherit; font-weight: 600; color: var(--text); cursor: pointer; text-align: left; }
+.sect-toggle:hover { color: var(--accent); }
+.result-block.collapsed { padding-bottom: 0; }
+.result-block.collapsed .block-head { padding-bottom: 12px; }
