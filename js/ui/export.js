@@ -87,6 +87,7 @@
       ['Target output tok/s per request', w.target_output_tps_per_request], ['Max context', w.max_context],
       ['Headroom %', w.headroom_pct], ['N+1', w.n_plus_one ? 'yes' : 'no'], ['Term (years)', w.term_years],
       ['Tokens per month', Math.round(wl.tMo)], ['Tokens over term', Math.round(wl.tTerm)],
+      ['Filters', TC.filtersActive && TC.filtersActive() ? TC.filterSummary() : 'none (all options)'],
       ['Exported', new Date().toLocaleString()], ['Note', 'Estimates, not quotes. See the app for sources and placeholder values.'],
       [],
     ];
@@ -96,7 +97,8 @@
     saveText(`token-calculator-${which || 'all'}-${TC.today()}.csv`, TC.buildCsv(which), 'text/csv;charset=utf-8');
   };
   TC.buildCsv = function (which) {
-    const { res, w, data } = TC.lastResults;
+    const { w, data } = TC.lastResults;
+    const res = TC.applyFilters ? TC.applyFilters(TC.lastResults.res) : TC.lastResults.res;
     let rows = allRows(res);
     if (which && which !== 'all') rows = rows.filter(r => catOf(r) === which || (which === 'cloud' && r.category.startsWith('cloud')));
     const lines = !which || which === 'all' ? workloadLines(w, res.wl, data) : [];
@@ -137,7 +139,8 @@
     status('Loading PowerPoint library…');
     await loadLib();
     const logo = await logoData();
-    const { res, w, data } = TC.lastResults;
+    const { w, data } = TC.lastResults;
+    const res = TC.applyFilters ? TC.applyFilters(TC.lastResults.res) : TC.lastResults.res;
     const wl = res.wl;
     const model = data.models.models.find(m => m.id === w.model_id);
     const C = TC.config;
@@ -186,7 +189,7 @@
     ], { x: 1.0, y: 6.2, w: 11, h: 0.7, fontFace: FONT, fontSize: 11, color: P.muted });
 
     // 2. Workload profile
-    const s2 = titled('Workload profile', 'The shared inputs every option below is sized and priced against');
+    const s2 = titled('Workload profile', TC.filtersActive && TC.filtersActive() ? 'Options in this deck are filtered — ' + TC.filterSummary() : 'The shared inputs every option below is sized and priced against');
     const L = [
       ['Users', f.int(w.users)], ['Requests per user per day', f.num(w.requests_per_user_per_day)],
       ['Avg input / output tokens', `${f.int(w.avg_input_tokens)} / ${f.int(w.avg_output_tokens)}`],
