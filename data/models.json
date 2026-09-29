@@ -1327,7 +1327,7 @@
     "date": "2026-09-29",
     "source": "OpenRouter public price list (https://openrouter.ai/api/v1/models), weekly GitHub Actions job",
     "rows_checked": 16,
-    "values_changed": 20,
+    "values_changed": 0,
     "needs_review": [],
     "missing_from_feed": []
   }
