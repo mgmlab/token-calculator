@@ -148,7 +148,7 @@
 
     const pptx = new window.PptxGenJS();
     pptx.layout = 'LAYOUT_WIDE'; // 13.33 x 7.5 in
-    pptx.author = C.contacts.map(c => c.name).join(' & ');
+    pptx.author = C.authors;
     pptx.company = C.org;
     pptx.title = `AI workload cost comparison — ${model ? model.name : ''}`;
     const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -406,7 +406,7 @@
     const s10 = pptx.addSlide();
     s10.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 13.333, h: 7.5, fill: { color: P.purple } });
     s10.addText('Questions, comments or change requests', { x: 1.0, y: 2.4, w: 11.3, h: 0.8, fontFace: FONT, fontSize: 32, bold: true, color: P.white });
-    s10.addText(C.contacts.map(c => ({ text: c.name + (c.email ? ` · ${c.email}` : ''), options: { breakLine: true } })), { x: 1.0, y: 3.3, w: 11.3, h: 1.2, fontFace: FONT, fontSize: 20, color: P.white });
+    s10.addText([{ text: 'Use Request a change in the calculator, or open the form:', options: { breakLine: true } }, { text: C.requestFormUrl, options: { hyperlink: { url: C.requestFormUrl }, color: P.white } }], { x: 1.0, y: 3.3, w: 11.3, h: 1.2, fontFace: FONT, fontSize: 20, color: P.white });
     s10.addText(C.copyright, { x: 1.0, y: 6.4, w: 11.3, h: 0.4, fontFace: FONT, fontSize: 12, color: 'E9DDFF' });
 
     status('Saving…');

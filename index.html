@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>AI Inference Economics Calculator</title>
   <link rel="icon" href="assets/favicon.png">
-  <link rel="stylesheet" href="css/styles.css?v=202609291735">
+  <link rel="stylesheet" href="css/styles.css?v=202609291758">
   <script data-goatcounter="https://pellera-token-calc.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>
 <body>
@@ -19,7 +19,7 @@
     </div>
     <div class="top-actions">
       <div id="data-status" class="data-status"></div>
-      <button type="button" class="btn ghost small" id="open-request">Request a change</button>
+      <a class="btn ghost small" id="open-request" href="https://forms.cloud.microsoft/r/XBxYVB3p4c" target="_blank" rel="noopener">Request a change</a>
     </div>
   </header>
 
@@ -149,58 +149,31 @@ K is tried from 0% to 100% of peak in 5% steps; the cheapest mix is reported</pr
 
   <footer class="site-footer">
     <div><span id="copyright"></span> · Internal use only · Figures are estimates, not quotes.</div>
-    <div>Questions, comments or concerns? Contact <span id="contact-names"></span> — or <button type="button" class="linkish" id="open-request-2">request a change or new model</button>.</div>
+    <div>Questions, comments or a change you’d like? <a id="open-request-2" href="https://forms.cloud.microsoft/r/XBxYVB3p4c" target="_blank" rel="noopener">Submit a request</a>.</div>
   </footer>
 
-  <dialog id="request-dialog" aria-labelledby="req-title">
-    <form method="dialog" class="req-form">
-      <h2 id="req-title">Request a change</h2>
-      <p class="muted small">Opens an email to <span id="req-to-names"></span> with your request filled in, so they're notified and can update the shared data files.</p>
-      <label class="field"><span>Type of request</span>
-        <select id="req-type">
-          <option>Add a model</option>
-          <option>Update pricing</option>
-          <option>Add a GPU, server or cloud provider</option>
-          <option>Add or correct a benchmark</option>
-          <option>Report a problem with a calculation</option>
-          <option>Feature request</option>
-          <option>Other</option>
-        </select></label>
-      <label class="field"><span>Summary</span><input id="req-summary" placeholder="e.g. Add Llama 4 Maverick with Together AI pricing"></label>
-      <label class="field"><span>Details</span><textarea id="req-details" rows="5" placeholder="What should change, and why?"></textarea></label>
-      <label class="field"><span>Source link (pricing page, model card, benchmark run)</span><input id="req-source" placeholder="https://…"></label>
-      <label class="field"><span>Your name</span><input id="req-name" autocomplete="name"></label>
-      <label class="field check"><input type="checkbox" id="req-scenario"> <span>Attach my current workload inputs</span></label>
-      <p class="req-msg small" id="req-msg" hidden></p>
-      <div class="btn-row">
-        <button type="button" class="btn" id="req-send">Open email</button>
-        <button type="button" class="btn ghost" id="req-copy">Copy text</button>
-        <button type="button" class="btn ghost" id="req-cancel">Cancel</button>
-      </div>
-    </form>
-  </dialog>
 
   <input type="file" id="file-import" accept=".json,application/json" multiple hidden>
 
-  <script src="js/config.js?v=202609291735"></script>
-  <script src="js/util.js?v=202609291735"></script>
-  <script src="js/data-store.js?v=202609291735"></script>
-  <script src="js/exclusions.js?v=202609291735"></script>
-  <script src="js/workload.js?v=202609291735"></script>
-  <script src="js/engines/onprem.js?v=202609291735"></script>
-  <script src="js/engines/cloud.js?v=202609291735"></script>
-  <script src="js/engines/api.js?v=202609291735"></script>
-  <script src="js/engines/hybrid.js?v=202609291735"></script>
-  <script src="js/summary.js?v=202609291735"></script>
-  <script src="js/breakeven.js?v=202609291735"></script>
-  <script src="js/ui/math.js?v=202609291735"></script>
-  <script src="js/ui/inputs.js?v=202609291735"></script>
-  <script src="js/ui/results.js?v=202609291735"></script>
-  <script src="js/ui/chart.js?v=202609291735"></script>
-  <script src="js/ui/field-help.js?v=202609291735"></script>
-  <script src="js/ui/editor.js?v=202609291735"></script>
-  <script src="js/ui/export.js?v=202609291735"></script>
-  <script src="js/ui/request.js?v=202609291735"></script>
-  <script src="js/main.js?v=202609291735"></script>
+  <script src="js/config.js?v=202609291758"></script>
+  <script src="js/util.js?v=202609291758"></script>
+  <script src="js/data-store.js?v=202609291758"></script>
+  <script src="js/exclusions.js?v=202609291758"></script>
+  <script src="js/workload.js?v=202609291758"></script>
+  <script src="js/engines/onprem.js?v=202609291758"></script>
+  <script src="js/engines/cloud.js?v=202609291758"></script>
+  <script src="js/engines/api.js?v=202609291758"></script>
+  <script src="js/engines/hybrid.js?v=202609291758"></script>
+  <script src="js/summary.js?v=202609291758"></script>
+  <script src="js/breakeven.js?v=202609291758"></script>
+  <script src="js/ui/math.js?v=202609291758"></script>
+  <script src="js/ui/inputs.js?v=202609291758"></script>
+  <script src="js/ui/results.js?v=202609291758"></script>
+  <script src="js/ui/chart.js?v=202609291758"></script>
+  <script src="js/ui/field-help.js?v=202609291758"></script>
+  <script src="js/ui/editor.js?v=202609291758"></script>
+  <script src="js/ui/export.js?v=202609291758"></script>
+  <script src="js/ui/request.js?v=202609291758"></script>
+  <script src="js/main.js?v=202609291758"></script>
 </body>
 </html>

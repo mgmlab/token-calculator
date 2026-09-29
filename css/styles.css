@@ -322,13 +322,6 @@ textarea.raw { width: 100%; min-height: 60vh; font-family: var(--mono); font-siz
 .toolbar-spacer { flex: 1; }
 .export-status { min-width: 1px; }
 
-dialog#request-dialog { border: 1px solid var(--border-strong); border-radius: 12px; padding: 0; width: min(560px, calc(100vw - 32px)); background: var(--surface); color: var(--text); box-shadow: 0 20px 60px rgba(0,0,0,.25); }
-dialog#request-dialog::backdrop { background: rgba(0,0,0,.35); }
-.req-form { padding: 20px; display: flex; flex-direction: column; gap: 2px; }
-.req-form .field > span { font-size: 12.5px; color: var(--text-2); }
-.req-form textarea, .req-form input:not([type=checkbox]), .req-form select { width: 100%; }
-.req-form .btn-row { margin-top: 10px; }
-.req-msg { margin: 6px 0 0; padding: 8px 10px; border-radius: 6px; background: var(--accent-soft); }
 @media (max-width: 600px) { .site-footer { padding: 14px 16px; } }
 @media print { .site-footer { display: none; } }
 
@@ -477,3 +470,4 @@ dialog#new-dialog::backdrop { background: rgba(0,0,0,.35); }
 .excl-chip button:hover { color: var(--accent); }
 .hy-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12.5px; color: var(--muted); margin: 4px 0 2px; }
 .hy-legend i { display: inline-block; width: 22px; height: 0; border-top: 2.5px solid; vertical-align: middle; margin-right: 6px; }
+a.btn { text-decoration: none; display: inline-flex; align-items: center; }
