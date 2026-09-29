@@ -221,7 +221,7 @@
       };
 
       el.innerHTML = `<form class="inputs-form" onsubmit="return false">
-        <div class="inputs-head"><h2>Workload profile</h2>
+        <div class="inputs-head"><div class="inputs-title"><h2>Workload profile</h2><button type="button" class="btn small" data-act="new" title="Clear these inputs and start a fresh analysis for a new customer">New analysis</button></div>
           <a class="guide-link" href="${DOC}" target="_blank" rel="noopener">How to gather these inputs from a client ↗</a></div>
         ${GROUPS.map(g => { const fs = g.fields.filter(fd => !ADVANCED.has(fd.k)); return fs.length ? `<fieldset><legend>${esc(g.title)}</legend>${fs.map(field).join('')}</fieldset>` : ''; }).join('')}
         <details class="adv-settings" ${advOpen() ? 'open' : ''}><summary>Advanced settings</summary>
@@ -229,7 +229,6 @@
         </details>
         <div class="btn-row">
           <button type="button" class="btn ghost" data-act="share" title="Copy a link that opens the calculator with these exact inputs">Copy share link</button>
-          <button type="button" class="btn ghost" data-act="reset">Reset</button>
           <button type="button" class="btn ghost" data-act="export">Export scenario</button>
           <button type="button" class="btn ghost" data-act="import">Import scenario</button>
         </div>
@@ -280,13 +279,7 @@
       });
 
       const fileIn = el.querySelector('[data-act="file"]');
-      el.querySelector('[data-act="reset"]').onclick = () => {
-        Object.keys(w).forEach(k => delete w[k]);
-        Object.assign(w, this.defaults());
-        this.save(w);
-        this.render(el, w, onChange);
-        onChange();
-      };
+      el.querySelector('[data-act="new"]').onclick = () => TC.newAnalysis();
       el.querySelector('[data-act="share"]').onclick = async () => {
         const url = TC.shareUrl(w);
         const m = form.querySelector('.share-msg');

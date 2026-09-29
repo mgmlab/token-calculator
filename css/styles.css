@@ -445,3 +445,14 @@ button.pill { border: 0; font: inherit; font-size: 12px; cursor: pointer; }
 .prov-list label.check { display: flex; align-items: center; gap: 6px; }
 
 .frow > label, .vlabel, .ed-form legend { display: flex; align-items: center; gap: 6px; }
+
+/* ---------- new analysis */
+.inputs-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.banner.resume { background: var(--accent-soft); border-color: var(--accent); color: var(--text); }
+.banner.resume .btn-row { display: flex; gap: 8px; }
+dialog#new-dialog { border: 1px solid var(--border-strong); border-radius: 12px; padding: 0; width: min(500px, calc(100vw - 32px)); background: var(--surface); color: var(--text); box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+dialog#new-dialog::backdrop { background: rgba(0,0,0,.35); }
+.new-form { padding: 20px 22px; display: flex; flex-direction: column; gap: 10px; }
+.new-form h3 { margin: 0; }
+.new-form p { margin: 0; }
+.new-form .btn-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }

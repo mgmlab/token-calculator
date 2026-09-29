@@ -184,6 +184,53 @@
     compute();
   }
 
+  // ---- New analysis: clear the workload (and optionally data edits) so one customer never bleeds into the next.
+  const editCount = () => TC.store.NAMES.filter(n => TC.store.isOverridden(n)).length;
+  function hasLeftovers() {
+    const saved = TC.storage.get('tc.workload');
+    const d = TC.inputs.defaults();
+    const changed = saved && Object.keys(saved).some(k => JSON.stringify(saved[k]) !== JSON.stringify(d[k]));
+    return !!changed || editCount() > 0;
+  }
+  function startFresh(clearData) {
+    Object.keys(w).forEach(k => delete w[k]);
+    Object.assign(w, TC.inputs.defaults());
+    TC.inputs.save(w);
+    $('#resume-bar').hidden = true;
+    TC.track('new-analysis', clearData ? 'New analysis (cleared data edits)' : 'New analysis');
+    if (clearData && editCount()) TC.store.resetAll(); // re-renders inputs via onChange
+    else { TC.inputs.render($('#inputs'), w, schedule); compute(); }
+  }
+  TC.newAnalysis = function () {
+    const dlg = $('#new-dialog');
+    const n = editCount();
+    dlg.innerHTML = `<form method="dialog" class="new-form">
+      <h3>Start a new analysis?</h3>
+      <p>This clears every workload input${w.scenario_name ? ` for <strong>${TC.esc(w.scenario_name)}</strong>` : ''} — scenario name, preset, usage, model and excluded providers — and goes back to the defaults.</p>
+      ${n ? `<label class="check"><input type="checkbox" name="data"> Also clear my Data editor changes (${n} dataset${n > 1 ? 's' : ''} edited)</label>
+      <p class="muted small">Leave this unchecked to keep prices and benchmarks you entered for use with the next customer.</p>` : ''}
+      <p class="muted small">Want to keep this scenario? Cancel and use <em>Copy share link</em> or <em>Export scenario</em> first.</p>
+      <div class="btn-row"><button value="cancel" class="btn ghost">Cancel</button><button value="ok" class="btn primary">Start new analysis</button></div></form>`;
+    dlg.onclose = () => { if (dlg.returnValue === 'ok') startFresh(!!(dlg.querySelector('[name=data]') || {}).checked); };
+    dlg.returnValue = '';
+    dlg.showModal();
+  };
+  function resumeBar() {
+    const b = $('#resume-bar');
+    if (!hasLeftovers()) { b.hidden = true; return; }
+    const n = editCount();
+    const bits = [w.scenario_name ? `<strong>${TC.esc(w.scenario_name)}</strong>` : 'your last inputs'];
+    if (n) bits.push(`${n} dataset${n > 1 ? 's' : ''} with Data editor changes`);
+    b.innerHTML = `<div>Continuing from last time: ${bits.join(' · ')}. Starting work for a different customer?</div>
+      <div class="btn-row"><button class="btn small primary" data-rb="new">Start new analysis</button><button class="btn small ghost" data-rb="dismiss">Keep going</button></div>`;
+    b.hidden = false;
+    b.onclick = e => {
+      const a = e.target.closest('[data-rb]');
+      if (!a) return;
+      if (a.dataset.rb === 'new') TC.newAnalysis(); else b.hidden = true;
+    };
+  }
+
   function start() {
     w = TC.inputs.load();
     const shared = TC.readShareHash();
@@ -196,7 +243,7 @@
       b.hidden = false; b.className = 'banner';
       b.innerHTML = `<div>Loaded a shared scenario${w.scenario_name ? ': <strong>' + TC.esc(w.scenario_name) + '</strong>' : ''}. Your previous inputs were replaced.</div>`;
       TC.track('share-link-opened', 'Opened a shared scenario');
-    }
+    } else resumeBar();
     TC.inputs.render($('#inputs'), w, schedule);
     compute();
   }
