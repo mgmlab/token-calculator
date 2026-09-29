@@ -294,5 +294,25 @@
       render(el);
     },
     render() { st.base = null; render(this.el); },
+
+    /** Jump to a dataset, record and (optionally) field; highlights the field. */
+    open(name, index, path) {
+      st.name = name; st.filter = ''; st.raw = false; st.base = null;
+      if (index != null) st.sel = index;
+      render(this.el);
+      const lk = LIST_KEY[name];
+      const prefix = lk ? `${lk}.${index}.` : '';
+      let target = null;
+      if (path) {
+        target = this.el.querySelector(`[data-path="${prefix}${path}.value"]`) || this.el.querySelector(`[data-path="${prefix}${path}"]`);
+      }
+      const box = target ? (target.closest('.vrow, .frow') || target) : this.el.querySelector('.ed-form');
+      if (box) {
+        box.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        box.classList.add('flash');
+        setTimeout(() => box.classList.remove('flash'), 2200);
+        if (target && target.focus) target.focus({ preventScroll: true });
+      }
+    },
   };
 })();

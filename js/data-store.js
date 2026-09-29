@@ -131,6 +131,57 @@
       }
     },
 
+    /**
+     * What a browser override changed relative to the file defaults.
+     * Returns [{ kind: 'changed'|'added'|'removed', label, index, changes: [{ path, from, to }] }].
+     */
+    diff(name) {
+      const ovr = TC.storage.get(KEY_OVR(name));
+      const base = this.defaults[name];
+      if (!ovr || !base) return [];
+      const strip = o => JSON.stringify(o, (k, val) => (k === 'original' ? undefined : val));
+      // path = editor path (array indexes); label = readable (array items named by provider/name/id).
+      const nice = k => String(k).replace(/_per_m$/, ' per 1M').replace(/_usd$/, ' (USD)').replace(/_pct$/, ' %').replace(/_/g, ' ');
+      const walk = (a, b, path, label, out) => {
+        if (strip(a) === strip(b)) return;
+        const wa = TC.isWrapped(a), wb = TC.isWrapped(b);
+        if (wa || wb || !a || !b || typeof a !== 'object' || typeof b !== 'object') {
+          const from = TC.v(a), to = TC.v(b);
+          out.push({ path, label, from, to, note: from === to ? 'source or status edited' : from === undefined ? 'added' : to === undefined ? 'removed' : '' });
+          return;
+        }
+        const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+        keys.forEach(k => {
+          if (k === 'original') return;
+          const item = Array.isArray(b) ? b[k] || a[k] : null;
+          const part = item ? (item.provider || item.name || item.id || '#' + (Number(k) + 1)) : nice(k);
+          walk(a[k], b[k], path ? path + '.' + k : String(k), label ? label + ' › ' + part : part, out);
+        });
+      };
+      const listKey = { models: 'models', gpus: 'gpus', servers: 'servers', benchmarks: 'benchmarks' }[name];
+      if (!listKey) {
+        const out = [];
+        walk(base, ovr, '', '', out);
+        return out.length ? [{ kind: 'changed', label: 'Global assumptions', index: null, changes: out }] : [];
+      }
+      const keyOf = r => r.id || [r.gpu_id, r.model_id, r.precision, 'TP' + r.tp, r.pp > 1 ? 'PP' + r.pp : ''].filter(Boolean).join(' · ');
+      const labelOf = r => (name === 'servers' ? `${r.vendor} ${r.sku} (${r.gpu_id})` : r.name || keyOf(r));
+      const baseBy = new Map((base[listKey] || []).map(r => [keyOf(r), r]));
+      const seen = new Set();
+      const items = [];
+      (ovr[listKey] || []).forEach((r, i) => {
+        const k = keyOf(r);
+        seen.add(k);
+        const b = baseBy.get(k);
+        if (!b) { items.push({ kind: 'added', label: labelOf(r), index: i, changes: [] }); return; }
+        const out = [];
+        walk(b, r, '', '', out);
+        if (out.length) items.push({ kind: 'changed', label: labelOf(r), index: i, changes: out });
+      });
+      baseBy.forEach((r, k) => { if (!seen.has(k)) items.push({ kind: 'removed', label: labelOf(r), index: null, changes: [] }); });
+      return items;
+    },
+
     exportDataset(name) {
       TC.download(name + '.json', this.get(name));
     },

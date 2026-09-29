@@ -352,3 +352,26 @@ dialog#request-dialog::backdrop { background: rgba(0,0,0,.35); }
 .crossovers li { display: flex; gap: 8px; align-items: baseline; }
 .crossovers li .swatch { flex: none; transform: translateY(-3px); }
 @media (max-width: 800px) { .be-help-grid { grid-template-columns: 1fr; } }
+
+/* ---------- override details popover */
+.ovr-wrap { position: relative; }
+button.pill { border: 0; font: inherit; font-size: 12px; cursor: pointer; }
+.ovr-pop {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 60; width: min(440px, calc(100vw - 32px)); max-height: 70vh; overflow: auto;
+  background: var(--surface); color: var(--text); border: 1px solid var(--border-strong); border-radius: 10px; box-shadow: 0 10px 32px rgba(0,0,0,.18); padding: 12px 14px; font-size: 13px;
+}
+.ovr-head { display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; }
+.ovr-ds { border-top: 1px solid var(--border); padding: 8px 0; }
+.ovr-ds-head { display: flex; align-items: center; gap: 8px; }
+.ovr-ds-head .btn { margin-left: auto; }
+.linkish.strong { font-weight: 600; }
+.ovr-list { margin: 6px 0 0; padding-left: 16px; }
+.ovr-list > li { margin: 4px 0; }
+.ovr-list ul { margin: 2px 0 0; padding-left: 14px; color: var(--text-2); font-size: 12.5px; }
+.ovr-list .linkish.field { font-size: 12.5px; }
+.ovr-kind { font-size: 11px; padding: 0 6px; border-radius: 999px; }
+.ovr-kind.add { background: var(--bench-bg); color: var(--bench-text); }
+.ovr-kind.del { background: var(--err-bg); color: var(--text); }
+.flash { animation: flash 2.2s ease-out; border-radius: 6px; }
+@keyframes flash { 0%, 40% { background: var(--accent-soft); box-shadow: 0 0 0 2px var(--accent); } 100% { background: transparent; box-shadow: none; } }
+.ovr-list ul li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 4px; }
