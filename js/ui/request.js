@@ -42,6 +42,7 @@
       $('#req-cancel').onclick = () => dlg.close();
       $('#req-send').onclick = () => {
         if (!$('#req-summary').value.trim()) { msg('Add a short summary first.'); $('#req-summary').focus(); return; }
+        TC.track('change-request-' + $('#req-type').value.toLowerCase().replace(/[^a-z]+/g, '-'), 'Change request: ' + $('#req-type').value);
         const to = C.contacts.map(c => c.email).filter(Boolean).join(',');
         const href = `mailto:${to}?subject=${encodeURIComponent(subject())}&body=${encodeURIComponent(body())}`;
         window.location.href = href;

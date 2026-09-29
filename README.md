@@ -10,6 +10,8 @@ It is a static HTML/JS app with no backend and no build step. All tunable number
 
 **Live site:** https://mgmlab.github.io/token-calculator/ (GitHub Pages from `main`; every push to `main` goes live in a minute or two). It is public, so don't put client names or confidential pricing in the committed data files. Before pushing code changes, run `sh release.sh` so browsers pick up the new CSS/JS immediately instead of using a cached copy (data-file changes don't need it).
 
+**Usage analytics:** GoatCounter at https://pellera-token-calc.goatcounter.com (visits, countries, referrers, and events such as `event/export-pptx`, `event/tab-breakeven`, `event/model-…`, `event/change-request-…`). No cookies or personal data; localhost visits are not counted.
+
 **Maintainers:** Darren Livingston & Brad Ramsey, Pellera Technologies. Send questions, comments and change requests to them, or use **Request a change** in the app header.
 
 © 2026 Darren Livingston & Brad Ramsey – Pellera Technologies. Internal use.

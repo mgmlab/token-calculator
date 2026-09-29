@@ -175,6 +175,7 @@
   function schedule() { clearTimeout(timer); timer = setTimeout(compute, 120); }
 
   function showTab(name) {
+    if (activeTab !== name) TC.track('tab-' + name, 'Opened ' + name + ' tab');
     activeTab = name;
     document.querySelectorAll('.tabs [data-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === name)));
     document.querySelectorAll('.tab-panel').forEach(p => { p.hidden = p.id !== 'tab-' + name; });

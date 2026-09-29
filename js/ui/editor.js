@@ -59,7 +59,9 @@
     return recs ? recs[st.sel] : st.work;
   }
 
+  const tracked = new Set();
   function save() {
+    if (!tracked.has(st.name)) { tracked.add(st.name); TC.track('edit-' + st.name, 'Edited ' + st.name + ' in Data editor'); }
     const first = !TC.store.isOverridden(st.name);
     saving = true;
     TC.store.setOverride(st.name, st.work);

@@ -133,6 +133,7 @@
       const ex = e.target.closest('[data-export]');
       if (ex) {
         const st = el.querySelector('.export-status');
+        TC.track('export-' + ex.dataset.export, 'Export ' + ex.dataset.export);
         if (ex.dataset.export === 'pptx') {
           ex.disabled = true;
           try { await TC.exportPptx(msg => { if (st) st.textContent = msg; }); }

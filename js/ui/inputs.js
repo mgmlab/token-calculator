@@ -182,6 +182,7 @@
         else val = t.value;
         if (t.readOnly) return;
         w[t.dataset.k] = val;
+        if (t.dataset.k === 'model_id') TC.track('model-' + val, 'Compared model ' + val);
         this.save(w);
         if (t.dataset.k === 'peak_concurrency_mode') this.render(el, w, onChange);
         onChange();

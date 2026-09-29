@@ -54,6 +54,7 @@
       this.emit();
     },
     resetAll() {
+      TC.track('clear-all-changes', 'Cleared all browser edits');
       NAMES.forEach(n => TC.storage.remove(KEY_OVR(n)));
       this.emit();
     },

@@ -90,6 +90,15 @@
     },
   };
 
+  /** Usage analytics (GoatCounter). Events show in the dashboard as paths like "event/export-pptx". */
+  TC.track = function (name, title) {
+    try {
+      if (window.goatcounter && window.goatcounter.count) {
+        window.goatcounter.count({ path: 'event/' + name, title: title || name, event: true });
+      }
+    } catch (e) { /* analytics must never break the app */ }
+  };
+
   TC.today = () => new Date().toLocaleDateString('en-CA'); // local YYYY-MM-DD
 
   TC.esc = s => String(s == null ? '' : s)
