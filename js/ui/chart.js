@@ -88,12 +88,14 @@
     // the "Breakeven points" list below, so labels never collide on the chart.
     let mk = 0;
     const markNo = {};
+    const markPos = []; // placed breakeven circles, so other labels can avoid them
     be.crossovers.forEach(c => {
       if (!(c.index > 0) || hidden.has(c.key) || hidden.has('onprem')) return;
       const p = pts[c.index];
       const x = X(p.tokensMonth), y = Y(valOf(p, 'onprem'));
       const col = series.find(s2 => s2.key === c.key).color;
       markNo[c.key] = ++mk;
+      markPos.push({ x, y });
       svg += `<g class="be-mark"><title>Breakeven vs ${esc(c.vs)}: ${f.tokens(p.tokensMonth)} tokens/month</title>
         <circle cx="${x}" cy="${y}" r="11" fill="var(--surface)" stroke="${col}" stroke-width="2.5"/>
         <text x="${x}" y="${y + 4}" text-anchor="middle" class="be-mark-num">${mk}</text></g>`;
@@ -107,7 +109,13 @@
       const ya = Y(a), yb = Y(b);
       const diff = b - a;
       svg += `<line class="gap" x1="${xr}" x2="${xr}" y1="${Math.min(ya, yb)}" y2="${Math.max(ya, yb)}"/>`;
-      svg += `<text class="gap-label" x="${xr - 8}" y="${(ya + yb) / 2 + 4}" text-anchor="end">${diff > 0 ? 'Owning saves' : 'Pay per token saves'} ${f.usdCompact(Math.abs(diff))}/month</text>`;
+      const label = `${diff > 0 ? 'Owning saves' : 'Pay per token saves'} ${f.usdCompact(Math.abs(diff))}/month`;
+      // Try beside the bracket, then above it, then below it — first spot clear of every breakeven circle and the "You are here" label.
+      const lw = label.length * 7.6, top = Math.min(ya, yb), bot = Math.max(ya, yb);
+      const clear = y => markPos.every(m => !(m.x > xr - 8 - lw - 14 && m.x < xr + 14 && Math.abs(m.y - (y - 4)) < 22)) && y > M.t + 30;
+      const spots = [(ya + yb) / 2 + 4, top - 12, bot + 22, top - 40, bot + 50];
+      const ly = spots.find(clear) ?? spots[0];
+      svg += `<text class="gap-label" x="${xr - 8}" y="${ly}" text-anchor="end">${label}</text>`;
     }
 
     svg += `<g class="hover" visibility="hidden"><line class="xhair" y1="${M.t}" y2="${H - M.b}"/>${active.map(s => `<circle r="4.5" fill="${s.color}" stroke="var(--surface)" stroke-width="2" data-k="${s.key}"/>`).join('')}</g>`;
