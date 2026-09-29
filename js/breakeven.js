@@ -14,12 +14,13 @@
     };
   };
 
+  // short = legend/tooltip name; vs = how it reads in "owning servers vs …" sentences.
   TC.SERIES = [
-    { key: 'onprem', label: 'On-prem (cheapest SKU)', pick: r => r.onprem },
-    { key: 'cloud_reserved', label: 'GPU cloud reserved (cheapest)', pick: r => r.cloud.filter(x => x.category === 'cloud_reserved') },
-    { key: 'cloud_ondemand', label: 'GPU cloud on-demand (cheapest)', pick: r => r.cloud.filter(x => x.category === 'cloud_ondemand') },
-    { key: 'api_same', label: 'API, same model (cheapest)', pick: r => r.api.filter(x => x.sameModel) },
-    { key: 'api_closed', label: 'API, closed reference (cheapest)', pick: r => r.api.filter(x => !x.sameModel) },
+    { key: 'onprem', label: 'Buy servers (on-prem)', vs: 'owning servers', pick: r => r.onprem },
+    { key: 'cloud_reserved', label: 'Rent GPUs — reserved', vs: 'renting reserved GPUs', pick: r => r.cloud.filter(x => x.category === 'cloud_reserved') },
+    { key: 'cloud_ondemand', label: 'Rent GPUs — on-demand', vs: 'renting on-demand GPUs', pick: r => r.cloud.filter(x => x.category === 'cloud_ondemand') },
+    { key: 'api_same', label: 'Pay per token — same model', vs: 'paying per token for the same model', pick: r => r.api.filter(x => x.sameModel) },
+    { key: 'api_closed', label: 'Pay per token — other models', vs: 'paying per token for other models (GPT, Claude, Gemini…)', pick: r => r.api.filter(x => !x.sameModel) },
   ];
 
   function cheapest(rows) {
@@ -63,7 +64,7 @@
       else if (idx === -1) text = `on-prem is still more expensive at the top of the range (${TC.fmt.tokens(pts[pts.length - 1].tokensMonth)} tokens/month)`;
       else if (idx === 0) text = `on-prem is cheaper across the whole range (from ${TC.fmt.tokens(pts[0].tokensMonth)} tokens/month)`;
       else text = `on-prem becomes cheaper above ≈ ${TC.fmt.tokens(pts[idx].tokensMonth)} tokens/month`;
-      return { key: s.key, label: s.label, index: idx, tokensMonth: idx > 0 ? pts[idx].tokensMonth : null, text };
+      return { key: s.key, label: s.label, vs: s.vs, index: idx, hasData, tokensMonth: idx > 0 ? pts[idx].tokensMonth : null, text };
     });
 
     return { points: pts, crossovers, currentTokens: TC.workload(TC.effectiveWorkload(w)).tMo };

@@ -6,11 +6,11 @@
 
   // ------------------------------------------------------------------ shared row model
   const CAT = {
-    onprem: 'On-prem',
-    cloud_reserved: 'GPU cloud (reserved)',
-    cloud_ondemand: 'GPU cloud (on-demand)',
-    api_same: 'API (same model)',
-    api_closed: 'API (closed-model reference)',
+    onprem: 'Buy servers (on-prem)',
+    cloud_reserved: 'Rent GPUs — reserved',
+    cloud_ondemand: 'Rent GPUs — on-demand',
+    api_same: 'Pay per token — same model',
+    api_closed: 'Pay per token — other models',
   };
   function catOf(r) {
     if (r.category === 'api') return r.sameModel ? 'api_same' : 'api_closed';
@@ -246,7 +246,7 @@
     };
     const on = sortRows(res.onprem).filter(r => r.feasible);
     const onHidden = res.onprem.length - on.length;
-    paged('On-prem (self-hosted)', `${model ? model.name : ''} · one row per server SKU · sized in model replicas, rounded to whole nodes`,
+    paged('Buy servers (on-prem)', `${model ? model.name : ''} · one row per server SKU · sized in model replicas, rounded to whole nodes`,
       ['Server', 'GPU', 'Layout', 'Throughput', 'Util', 'Monthly', `Total (${w.term_years} yr)`, '$ / 1M', '⚠'],
       [1.95, 2.35, 2.1, 1.4, 0.7, 1.0, 1.2, 1.0, 0.633], on,
       r => [r.name, r.sub, `${r.cost.nodes} node(s) · ${r.cost.gpus} GPUs · ${r.sizing.best.replicas}×TP${r.sizing.best.tp}${r.sizing.best.pp > 1 ? '×PP' + r.sizing.best.pp : ''}`,
@@ -254,7 +254,7 @@
       `Util = average share of installed capacity in use. ⚠ = number of placeholder values (e.g. server price quotes) the row depends on.${onHidden ? ` ${onHidden} SKU(s) cannot fit this model and are omitted.` : ''} Monthly = total ÷ months, straight-line.`);
 
     const cl = sortRows(res.cloud).filter(r => r.feasible);
-    paged('GPU cloud', 'Same replica sizing, priced per GPU-hour · reserved billed 24/7 · on-demand uses active hours',
+    paged('Rent GPUs (GPU cloud)', 'Same replica sizing, priced per GPU-hour · reserved billed 24/7 · on-demand uses active hours',
       ['Provider', 'GPU / instance', 'Pricing', 'GPUs', 'Monthly', `Total (${w.term_years} yr)`, '$ / 1M', '⚠'],
       [1.6, 3.4, 2.6, 0.7, 1.1, 1.3, 1.0, 0.633], cl,
       r => [r.name, r.sub, r.pricing, String(r.cost.gpus), f.usd(r.monthly), f.usd(r.total), { text: f.perM(r.perM), options: { bold: true } }, warnCell(r)],
@@ -262,10 +262,10 @@
 
     const apiRow = r => [r.name, r.sub, `${f.price(v(r.price.input_per_m))} / ${f.price(v(r.price.output_per_m))}`, f.usd(r.monthly), f.usd(r.total), { text: f.perM(r.perM), options: { bold: true } }, warnCell(r)];
     const apiFoot = `Cached-input share ${f.num(w.api_cache_hit_pct)}% · batch share ${f.num(w.api_batch_share_pct)}% · prices held flat over the term.`;
-    paged('Public API — same model', `${model ? model.name : ''} hosted by API providers · directly comparable with self-hosting`,
+    paged('Pay per token (API) — same model', `${model ? model.name : ''} hosted by API providers · directly comparable with self-hosting`,
       ['Provider', 'Model', 'In / out per 1M', 'Monthly', `Total (${w.term_years} yr)`, '$ / 1M', '⚠'], [2.3, 3.4, 2.0, 1.35, 1.55, 1.1, 0.633],
       sortRows(res.api.filter(r => r.sameModel)), apiRow, apiFoot);
-    paged('Public API — closed-model reference', 'Different models, shown for cost context only — not a like-for-like quality comparison',
+    paged('Pay per token (API) — other models', 'Different models, shown for cost context only — not a like-for-like quality comparison',
       ['Provider', 'Model', 'In / out per 1M', 'Monthly', `Total (${w.term_years} yr)`, '$ / 1M', '⚠'], [2.3, 3.4, 2.0, 1.35, 1.55, 1.1, 0.633],
       sortRows(res.api.filter(r => !r.sameModel)), apiRow, apiFoot);
 
@@ -273,10 +273,10 @@
     status('Computing breakeven…');
     const be = TC.breakeven(data, w, { kMax: 100, points: 40 });
     const complete = TC.SERIES.filter(sr => be.points.every(p => p.series[sr.key]));
-    const s6 = titled('Breakeven: monthly cost vs monthly token volume', `Users scaled 0.02× – 100× this profile (peak concurrency ${w.peak_concurrency_mode === 'derived' ? 'recomputed from the traffic pattern' : 'scaled linearly'}); cheapest option per category at each volume`);
+    const s6 = titled('Breakeven: when does buying servers pay off?', `Users scaled 0.02× – 100× this profile (peak concurrency ${w.peak_concurrency_mode === 'derived' ? 'recomputed from the traffic pattern' : 'scaled linearly'}); cheapest option per category at each volume`);
     if (complete.length) {
       s6.addChart(pptx.ChartType.line, complete.map(sr => ({
-        name: sr.label.replace(' (cheapest)', ''),
+        name: sr.label,
         labels: be.points.map(p => f.tokens(p.tokensMonth)),
         values: be.points.map(p => Math.round(p.series[sr.key].monthly)),
       })), {
@@ -286,8 +286,8 @@
         valGridLine: { color: P.line, size: 0.5 }, catGridLine: { style: 'none' }, showLegend: true, legendPos: 'b', legendFontSize: 10, legendFontFace: FONT,
       });
     }
-    s6.addText([{ text: 'Crossover points', options: { bold: true, fontSize: 13, color: P.ink, breakLine: true } }].concat(
-      be.crossovers.map(c => ({ text: `On-prem vs ${c.label.replace(' (cheapest)', '')}: ${c.text}.`, options: { bullet: true, fontSize: 11, color: P.ink2, breakLine: true, paraSpaceAfter: 6 } }))),
+    s6.addText([{ text: 'Breakeven points', options: { bold: true, fontSize: 13, color: P.ink, breakLine: true } }].concat(
+      be.crossovers.map(c => ({ text: !c.hasData ? `No data for ${c.vs}.` : c.index === 0 ? `Owning servers is cheaper than ${c.vs} at every usage level shown.` : c.index > 0 ? `Owning servers becomes cheaper than ${c.vs} above ${f.tokens(c.tokensMonth)} tokens/month.` : `${c.vs.charAt(0).toUpperCase() + c.vs.slice(1)} stays cheaper up to ${f.tokens(be.points[be.points.length - 1].tokensMonth)} tokens/month.`, options: { bullet: true, fontSize: 11, color: P.ink2, breakLine: true, paraSpaceAfter: 6 } }))),
       { x: 9.1, y: 1.45, w: 3.73, h: 3.6, fontFace: FONT, valign: 'top' });
     const ratio = w.peak_concurrent_requests / Math.max(wl.avgConc24h, 1e-9);
     const bestOn = res.onprem.filter(r => r.feasible).sort((x, y) => x.perM - y.perM)[0];

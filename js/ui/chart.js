@@ -6,6 +6,8 @@
   const hidden = new Set();
   let showTable = false;
   let kMax = 100;
+  let showHelp = true;
+  try { showHelp = localStorage.getItem('tc.beHelp') !== '0'; } catch (e) { /* ignore */ }
 
   const W = 920, H = 440, M = { l: 72, r: 24, t: 20, b: 48 };
 
@@ -58,7 +60,7 @@
 
     const cx = X(be.currentTokens);
     if (be.currentTokens >= xMin && be.currentTokens <= xMax) {
-      svg += `<line class="current" x1="${cx}" x2="${cx}" y1="${M.t}" y2="${H - M.b}"/><text class="current-label" x="${cx + 4}" y="${M.t + 12}">your profile</text>`;
+      svg += `<line class="current" x1="${cx}" x2="${cx}" y1="${M.t}" y2="${H - M.b}"/><text class="current-label" x="${cx + 5}" y="${M.t + 12}">You are here (${f.tokens(be.currentTokens)} tokens/mo)</text>`;
     }
 
     active.forEach(s => {
@@ -72,6 +74,21 @@
       svg += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round"/>`;
     });
 
+    // Breakeven markers: where owning servers becomes cheaper than each alternative.
+    let mk = 0;
+    be.crossovers.forEach(c => {
+      if (!(c.index > 0) || hidden.has(c.key) || hidden.has('onprem')) return;
+      const p = pts[c.index];
+      const x = X(p.tokensMonth), y = Y(p.series.onprem.monthly);
+      const col = series.find(s2 => s2.key === c.key).color;
+      const ly = Math.max(M.t + 26, y - 16 - mk * 18);
+      const anchor = x > W - 220 ? 'end' : 'start';
+      const lx = anchor === 'end' ? x - 10 : x + 10;
+      svg += `<circle class="be-mark" cx="${x}" cy="${y}" r="7" fill="none" stroke="${col}" stroke-width="2.5"/><circle cx="${x}" cy="${y}" r="3" fill="var(--text)"/>`;
+      svg += `<text class="be-mark-label" x="${lx}" y="${ly}" text-anchor="${anchor}">Breakeven vs ${esc(c.label.replace(/ —.*/, '').toLowerCase())}${c.key === 'api_closed' ? ' (other models)' : ''}: ${f.tokens(p.tokensMonth)}</text>`;
+      mk++;
+    });
+
     svg += `<g class="hover" visibility="hidden"><line class="xhair" y1="${M.t}" y2="${H - M.b}"/>${active.map(s => `<circle r="4.5" fill="${s.color}" stroke="var(--surface)" stroke-width="2" data-k="${s.key}"/>`).join('')}</g>`;
     svg += `<rect class="hit" x="${M.l}" y="${M.t}" width="${W - M.l - M.r}" height="${H - M.t - M.b}" fill="transparent"/>`;
     svg += '</svg>';
@@ -81,7 +98,49 @@
       return `<label class="legend-item ${has ? '' : 'disabled'}"><input type="checkbox" data-series="${s.key}" ${hidden.has(s.key) ? '' : 'checked'} ${has ? '' : 'disabled'}><span class="swatch" style="background:${s.color}"></span>${esc(s.label)}${has ? '' : ' <span class="muted">(no data)</span>'}</label>`;
     }).join('');
 
-    const cross = be.crossovers.map(c => `<li><span class="swatch" style="background:${series.find(s => s.key === c.key).color}"></span>On-prem vs <strong>${esc(c.label.replace(' (cheapest)', ''))}</strong>: ${esc(c.text)}</li>`).join('');
+    const times = t => {
+      const r = t / be.currentTokens;
+      return r >= 1.5 ? ` — about ${f.num(r, r < 10 ? 1 : 0)}× your usage today` : r <= 0.67 ? ' — below your usage today' : ' — about your usage today';
+    };
+    const cross = be.crossovers.map(c => {
+      const col = series.find(s2 => s2.key === c.key).color;
+      let txt;
+      if (!c.hasData) txt = `No data to compare owning servers with ${c.vs}.`;
+      else if (c.index === 0) txt = `Owning servers is cheaper than ${c.vs} at every usage level shown.`;
+      else if (c.index > 0) txt = `Owning servers becomes cheaper than ${c.vs} above <strong>${f.tokens(c.tokensMonth)} tokens/month</strong>${times(c.tokensMonth)}.`;
+      else txt = `${c.vs.charAt(0).toUpperCase() + c.vs.slice(1)} stays cheaper than owning servers across the whole range shown (up to ${f.tokens(pts[pts.length - 1].tokensMonth)} tokens/month).`;
+      return `<li><span class="swatch" style="background:${col}"></span><span>${txt}</span></li>`;
+    }).join('');
+
+    // Headline: cheapest option at today's usage, and the key breakeven.
+    const today = TC.computeAll(data, w);
+    let best = null, bestSeries = null;
+    TC.SERIES.filter(sr => sr.key !== 'api_closed').forEach(sr => sr.pick(today).forEach(r => { if (r.feasible && (!best || r.monthly < best.monthly)) { best = r; bestSeries = sr; } }));
+    const apiCross = be.crossovers.find(c => c.key === 'api_same');
+    let headline = best ? `At your usage today (<strong>${f.tokens(be.currentTokens)} tokens/month</strong>), the cheapest way to run this model is <strong>${esc(bestSeries.label.toLowerCase())}</strong> (${esc(best.name)}) at about <strong>${f.usd(best.monthly)}/month</strong>. ` : '';
+    if (apiCross && apiCross.index > 0) headline += `Owning servers becomes cheaper than paying per token for the same model once usage passes <strong>${f.tokens(apiCross.tokensMonth)} tokens/month</strong>${times(apiCross.tokensMonth)}.`;
+    else if (apiCross && apiCross.index === 0) headline += 'Owning servers is already cheaper than paying per token for the same model.';
+    else if (apiCross && apiCross.hasData) headline += `Paying per token stays cheaper than owning servers up to ${f.tokens(pts[pts.length - 1].tokensMonth)} tokens/month — try a larger range or a flatter (24/7) traffic pattern.`;
+
+    const help = `<details class="be-help" ${showHelp ? 'open' : ''}>
+      <summary>How to read this chart</summary>
+      <div class="be-help-grid">
+        <div><h4>Three ways to run an AI model</h4>
+          <ul>
+            <li><strong>Buy servers (on-prem)</strong> — purchase GPU servers for your own data center or colo. Big upfront cost, then mostly fixed monthly costs (power, support).</li>
+            <li><strong>Rent GPUs (GPU cloud)</strong> — rent the same kind of GPU servers from a cloud (Lambda, CoreWeave, AWS…) and run the model yourself. <em>Reserved</em> = committed rental billed 24/7 at a lower rate; <em>on-demand</em> = pay by the hour only while running.</li>
+            <li><strong>Pay per token (API)</strong> — send requests to a provider that runs the model for you (Together, Fireworks, OpenAI…). No hardware; you pay only for what you use. This is also "cloud", but you rent answers, not GPUs.</li>
+          </ul></div>
+        <div><h4>Reading the lines</h4>
+          <ul>
+            <li>Left to right = more usage (tokens per month). Lower = cheaper per month.</li>
+            <li>Each line is the cheapest choice of that type at each usage level.</li>
+            <li><strong>Flat, stepped lines</strong> (buy / rent GPUs): you pay for the hardware whether you use it or not; each step is another server added.</li>
+            <li><strong>Straight rising lines</strong> (pay per token): cost grows with usage.</li>
+            <li><strong>Dashed line</strong> = your usage today. <strong>Circled dot</strong> = a breakeven point: to the right of it, owning servers is cheaper.</li>
+          </ul></div>
+      </div>
+    </details>`;
 
     let table = '';
     if (showTable) {
@@ -93,17 +152,26 @@
     }
 
     el.innerHTML = `
-      <div class="block-head"><div><h2>Breakeven</h2>
-        <p class="muted">Users scaled from 0.02× to ${kMax}× your profile (peak concurrency ${w.peak_concurrency_mode === 'derived' ? 'recomputed from the traffic pattern at each volume' : 'scaled linearly'}). Each line is the cheapest option in that category at each volume. On-prem is amortized straight-line over ${w.term_years} years.</p></div>
-        <label class="small">Range up to <select data-act="range">${[20, 100, 500, 2000].map(k => `<option value="${k}" ${k === kMax ? 'selected' : ''}>${k}× profile</option>`).join('')}</select></label></div>
+      <div class="block-head"><div><h2>Breakeven: when does buying servers pay off?</h2>
+        <p class="muted">Monthly cost of each way to run ${esc((data.models.models.find(m => m.id === w.model_id) || {}).name || 'the model')} as usage grows.</p></div>
+        <label class="small">Show usage up to <select data-act="range">${[20, 100, 500, 2000].map(k => `<option value="${k}" ${k === kMax ? 'selected' : ''}>${k}× today</option>`).join('')}</select></label></div>
+      ${help}
+      ${headline ? `<p class="be-headline">${headline}</p>` : ''}
       <div class="legend">${legend}</div>
       <div class="chart-wrap">${svg}<div class="tooltip" hidden></div></div>
-      <h3>Crossover points</h3>
+      <h3>Breakeven points</h3>
       <ul class="crossovers">${cross}</ul>
-      <p class="callout">${peakNote(w, be)}</p>
-      <p class="muted small">Your profile: ${f.tokens(be.currentTokens)} tokens/month. On-prem and reserved-cloud lines step up as nodes are added; placeholder server prices strongly affect where the lines cross — check the ⚠ values on the Compare tab.</p>
-      <button class="btn ghost small" data-act="table">${showTable ? 'Hide' : 'Show'} data table</button>
-      ${table}`;
+      <details class="be-more">
+        <summary>Why the lines look like this (technical detail)</summary>
+        <p>${peakNote(w, be)}</p>
+        <p class="muted small">Usage is scaled from 0.02× to ${kMax}× today by changing the number of users (peak concurrency ${w.peak_concurrency_mode === 'derived' ? 'recomputed from the traffic pattern at each level' : 'scaled linearly'}). Owned servers are spread evenly over ${w.term_years} years. Server prices are placeholders until replaced with quotes, and they strongly affect where lines cross — check the ⚠ values on the Compare tab.</p>
+        <button class="btn ghost small" data-act="table">${showTable ? 'Hide' : 'Show'} data table</button>
+        ${table}
+      </details>`;
+
+    const det = el.querySelector('.be-help');
+    det.addEventListener('toggle', () => { showHelp = det.open; try { localStorage.setItem('tc.beHelp', det.open ? '1' : '0'); } catch (e) { /* ignore */ } });
+    if (showTable) el.querySelector('.be-more').open = true;
 
     el.querySelectorAll('[data-series]').forEach(cb => cb.onchange = () => {
       if (cb.checked) hidden.delete(cb.dataset.series); else hidden.add(cb.dataset.series);
@@ -136,7 +204,7 @@
       tip.hidden = false;
       tip.innerHTML = `<div class="tip-head">${f.tokens(p.tokensMonth)} tokens / month</div>` + active.map(s => {
         const v = p.series[s.key];
-        return `<div class="tip-row"><span class="swatch" style="background:${s.color}"></span><span class="tip-label">${esc(s.label.replace(' (cheapest)', ''))}</span><span class="tip-val">${v ? f.usd(v.monthly) : '—'}</span></div>${v ? `<div class="tip-sub">${esc(v.name)} · ${esc(v.sub)}</div>` : ''}`;
+        return `<div class="tip-row"><span class="swatch" style="background:${s.color}"></span><span class="tip-label">${esc(s.label)}</span><span class="tip-val">${v ? f.usd(v.monthly) : '—'}</span></div>${v ? `<div class="tip-sub">${esc(v.name)} · ${esc(v.sub)}</div>` : ''}`;
       }).join('');
       const wr = wrap.getBoundingClientRect();
       const left = evt.clientX - wr.left;

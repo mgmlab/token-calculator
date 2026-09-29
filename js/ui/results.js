@@ -95,14 +95,14 @@
       <span class="export-status muted small" aria-live="polite"></span>
     </div>`;
 
-    h += table('On-prem (self-hosted)', 'One row per server SKU and GPU. Sized in model replicas; rounded to whole nodes.',
+    h += table('Buy servers (on-prem)', 'Purchase GPU servers and run the model yourself. One row per server model; sized in model copies (replicas), rounded to whole servers.',
       [{ label: 'Server' }, { label: 'GPU' }, { label: 'Layout' }, { label: 'Throughput basis' }, { label: 'Avg util', num: true }, ...moneyCols, { label: '' }],
       res.onprem,
       r => `<td><strong>${esc(r.name)}</strong></td><td>${esc(r.sub)}</td>
         <td>${r.feasible ? `${r.cost.nodes} node${r.cost.nodes > 1 ? 's' : ''} · ${r.cost.gpus} GPUs<br><span class="muted small">${r.sizing.best.replicas} × TP${r.sizing.best.tp}${r.sizing.best.pp > 1 ? '×PP' + r.sizing.best.pp : ''}</span>` : '—'}</td>
         <td>${r.feasible ? TC.basisLabel(r.basis) : ''}</td>${utilCell(r)}${money(r)}<td class="badges">${warnBadge(r)}${flagBadge(r)}</td>`, wl, 'onprem');
 
-    h += table('GPU cloud', 'Same replica sizing, priced per GPU-hour. Reserved is billed 24/7; on-demand uses your active hours.',
+    h += table('Rent GPUs (GPU cloud)', 'Rent the same GPUs from a cloud provider and run the model yourself. Reserved = committed, billed 24/7; on-demand = pay by the hour while running.',
       [{ label: 'Provider' }, { label: 'GPU / instance' }, { label: 'Pricing' }, { label: 'GPUs' }, { label: 'Avg util', num: true }, ...moneyCols, { label: '' }],
       res.cloud,
       r => `<td><strong>${esc(r.name)}</strong></td><td>${esc(r.sub)}</td><td>${esc(r.pricing)}</td>
@@ -110,11 +110,11 @@
 
     const same = res.api.filter(r => r.sameModel);
     const closed = res.api.filter(r => !r.sameModel);
-    h += table('Public API — same model', `Hosted ${esc(model ? model.name : '')} from API providers. Directly comparable with self-hosting.`,
+    h += table('Pay per token (API) — same model', `A provider runs ${esc(model ? model.name : '')} for you; you pay per token used. Directly comparable with buying or renting GPUs.`,
       [{ label: 'Provider' }, { label: 'Model' }, { label: 'In / out per 1M' }, ...moneyCols, { label: '' }],
       same, apiCells, wl, 'api_same');
     if (w.include_closed_models) {
-      h += table('Public API — closed-model reference', 'Different models; shown for cost context only, not a like-for-like quality comparison.',
+      h += table('Pay per token (API) — other models', 'Different models (GPT, Claude, Gemini…), shown for cost context only — not a like-for-like quality comparison.',
         [{ label: 'Provider' }, { label: 'Model' }, { label: 'In / out per 1M' }, ...moneyCols, { label: '' }],
         closed, apiCells, wl, 'api_closed');
     }
