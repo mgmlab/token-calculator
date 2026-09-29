@@ -1,5 +1,5 @@
 {
-  "_readme": "GPU catalog. memory_gb/bandwidth/TFLOPS drive sizing and the theoretical throughput estimate. cloud[] holds per-GPU-hour rates by provider. Measured throughput lives in benchmarks.json. reserved_terms_per_gpu_hr (optional) holds commitment rates by term in years (\"1\", \"3\", \"5\"); the calculator uses the longest term that does not exceed the chosen comparison term.",
+  "_readme": "GPU catalog. memory_gb/bandwidth/TFLOPS drive sizing and the theoretical throughput estimate. cloud[] holds per-GPU-hour rates by provider. Measured throughput lives in benchmarks.json. reserved_terms_per_gpu_hr (optional) holds commitment rates by term in years (\"1\", \"3\", \"5\"); the calculator uses the longest term that does not exceed the chosen comparison term. Rental rows with a \"feed\" block are refreshed daily by scripts/update_prices.py.",
   "gpus": [
     {
       "id": "a100-80gb-sxm",
@@ -43,8 +43,8 @@
           "instance": "ND96amsr_A100_v4",
           "gpus_per_instance": 8,
           "on_demand_per_gpu_hr": {
-            "value": 4.0963,
-            "source": "Azure Retail Prices API (prices.azure.com), Standard_ND96amsr_A100_v4, East US 2, Linux pay-as-you-go ÷ 8 GPUs",
+            "value": 4.09625,
+            "source": "https://prices.azure.com/api/retail/prices (sku: Standard_ND96amsr_A100_v4, region: eastus2) ÷ GPUs where priced per instance",
             "as_of": "2026-09-29",
             "status": "estimate"
           },
@@ -58,11 +58,16 @@
               "status": "estimate"
             },
             "3": {
-              "value": 1.8024,
-              "source": "Azure Retail Prices API, Standard_ND96amsr_A100_v4, East US 2, 3-year reservation total ÷ 26,280 h ÷ 8 GPUs",
+              "value": 1.80235,
+              "source": "https://prices.azure.com/api/retail/prices (sku: Standard_ND96amsr_A100_v4, region: eastus2) ÷ GPUs where priced per instance",
               "as_of": "2026-09-29",
               "status": "estimate"
             }
+          },
+          "feed": {
+            "source": "azure",
+            "sku": "Standard_ND96amsr_A100_v4",
+            "region": "eastus2"
           }
         },
         {
@@ -76,7 +81,11 @@
             "status": "estimate"
           },
           "reserved_per_gpu_hr": null,
-          "reserved_term": null
+          "reserved_term": null,
+          "feed": {
+            "source": "coreweave",
+            "name": "NVIDIA A100"
+          }
         },
         {
           "provider": "Google Cloud",
@@ -89,7 +98,12 @@
             "status": "estimate"
           },
           "reserved_per_gpu_hr": null,
-          "reserved_term": null
+          "reserved_term": null,
+          "feed": {
+            "source": "google",
+            "machine": "a2-ultragpu-8g",
+            "on_demand": "price"
+          }
         },
         {
           "provider": "Lambda",
@@ -102,7 +116,12 @@
             "status": "estimate"
           },
           "reserved_per_gpu_hr": null,
-          "reserved_term": null
+          "reserved_term": null,
+          "feed": {
+            "source": "lambda",
+            "name": "NVIDIA A100 SXM",
+            "vram": "80 GB"
+          }
         }
       ]
     },
@@ -159,7 +178,12 @@
             "as_of": "2026-09-28",
             "status": "estimate"
           },
-          "reserved_term": "Capacity Block"
+          "reserved_term": "Capacity Block",
+          "feed": {
+            "source": "aws-capacity-blocks",
+            "instance": "p5.48xlarge",
+            "region": "US East (N. Virginia)"
+          }
         },
         {
           "provider": "Azure",
@@ -181,8 +205,8 @@
               "status": "estimate"
             },
             "3": {
-              "value": 5.3953,
-              "source": "Azure Retail Prices API, Standard_ND96isr_H100_v5, East US 2, 3-year reservation total ÷ 26,280 h ÷ 8 GPUs",
+              "value": 5.39531,
+              "source": "https://prices.azure.com/api/retail/prices (sku: Standard_ND96isr_H100_v5, region: eastus2) ÷ GPUs where priced per instance",
               "as_of": "2026-09-29",
               "status": "estimate"
             },
@@ -192,6 +216,11 @@
               "as_of": "2026-09-29",
               "status": "estimate"
             }
+          },
+          "feed": {
+            "source": "azure",
+            "sku": "Standard_ND96isr_H100_v5",
+            "region": "eastus2"
           }
         },
         {
@@ -199,13 +228,17 @@
           "instance": "HGX H100 8x",
           "gpus_per_instance": 8,
           "on_demand_per_gpu_hr": {
-            "value": 6.16,
-            "source": "coreweave.com/pricing (8-GPU instance price / 8)",
-            "as_of": "2026-09-28",
+            "value": 6.155,
+            "source": "https://www.coreweave.com/pricing (name: NVIDIA HGX H100) ÷ GPUs where priced per instance",
+            "as_of": "2026-09-29",
             "status": "estimate"
           },
           "reserved_per_gpu_hr": null,
-          "reserved_term": null
+          "reserved_term": null,
+          "feed": {
+            "source": "coreweave",
+            "name": "NVIDIA HGX H100"
+          }
         },
         {
           "provider": "Google Cloud",
@@ -221,17 +254,22 @@
           "reserved_term": "Committed use discount (1/3-yr)",
           "reserved_terms_per_gpu_hr": {
             "1": {
-              "value": 7.673,
-              "source": "cloud.google.com/products/compute/pricing/accelerator-optimized, a3-highgpu-8g, Iowa (us-central1), 1-year resource CUD ÷ 8 GPUs (VM price incl. CPU, memory, local SSD)",
+              "value": 7.67296,
+              "source": "https://cloud.google.com/products/compute/pricing/accelerator-optimized (machine: a3-highgpu-8g, on_demand: price) ÷ GPUs where priced per instance",
               "as_of": "2026-09-29",
               "status": "estimate"
             },
             "3": {
-              "value": 4.858,
-              "source": "cloud.google.com/products/compute/pricing/accelerator-optimized, a3-highgpu-8g, Iowa (us-central1), 3-year resource CUD ÷ 8 GPUs (VM price incl. CPU, memory, local SSD)",
+              "value": 4.85805,
+              "source": "https://cloud.google.com/products/compute/pricing/accelerator-optimized (machine: a3-highgpu-8g, on_demand: price) ÷ GPUs where priced per instance",
               "as_of": "2026-09-29",
               "status": "estimate"
             }
+          },
+          "feed": {
+            "source": "google",
+            "machine": "a3-highgpu-8g",
+            "on_demand": "price"
           }
         },
         {
@@ -250,7 +288,12 @@
             "as_of": "2026-09-28",
             "status": "estimate"
           },
-          "reserved_term": "1-Click Cluster, up to 1 yr"
+          "reserved_term": "1-Click Cluster, up to 1 yr",
+          "feed": {
+            "source": "lambda",
+            "name": "NVIDIA H100 SXM",
+            "vram": "80 GB"
+          }
         },
         {
           "provider": "Nebius",
@@ -263,7 +306,11 @@
             "status": "estimate"
           },
           "reserved_per_gpu_hr": null,
-          "reserved_term": null
+          "reserved_term": null,
+          "feed": {
+            "source": "nebius",
+            "name": "NVIDIA HGX H100"
+          }
         },
         {
           "provider": "Together AI",
@@ -276,7 +323,11 @@
             "status": "estimate"
           },
           "reserved_per_gpu_hr": null,
-          "reserved_term": null
+          "reserved_term": "181+ day reservation",
+          "feed": {
+            "source": "together-gpu",
+            "name": "HGX H100"
+          }
         }
       ]
     },
@@ -333,7 +384,12 @@
             "as_of": "2026-09-28",
             "status": "estimate"
           },
-          "reserved_term": "Capacity Block"
+          "reserved_term": "Capacity Block",
+          "feed": {
+            "source": "aws-capacity-blocks",
+            "instance": "p5en.48xlarge",
+            "region": "US East (N. Virginia)"
+          }
         },
         {
           "provider": "Azure",
@@ -349,17 +405,22 @@
           "reserved_term": "Azure reservation (1/3/5-yr)",
           "reserved_terms_per_gpu_hr": {
             "1": {
-              "value": 5.8151,
-              "source": "Azure Retail Prices API, Standard_ND96isr_H200_v5, East US 2, 1-year reservation total ÷ 8,760 h ÷ 8 GPUs",
+              "value": 5.81515,
+              "source": "https://prices.azure.com/api/retail/prices (sku: Standard_ND96isr_H200_v5, region: eastus2) ÷ GPUs where priced per instance",
               "as_of": "2026-09-29",
               "status": "estimate"
             },
             "3": {
-              "value": 5.2778,
-              "source": "Azure Retail Prices API, Standard_ND96isr_H200_v5, East US 2, 3-year reservation total ÷ 26,280 h ÷ 8 GPUs",
+              "value": 5.27774,
+              "source": "https://prices.azure.com/api/retail/prices (sku: Standard_ND96isr_H200_v5, region: eastus2) ÷ GPUs where priced per instance",
               "as_of": "2026-09-29",
               "status": "estimate"
             }
+          },
+          "feed": {
+            "source": "azure",
+            "sku": "Standard_ND96isr_H200_v5",
+            "region": "eastus2"
           }
         },
         {
@@ -367,13 +428,17 @@
           "instance": "HGX H200 8x",
           "gpus_per_instance": 8,
           "on_demand_per_gpu_hr": {
-            "value": 6.31,
-            "source": "coreweave.com/pricing (8-GPU instance price / 8)",
-            "as_of": "2026-09-28",
+            "value": 6.305,
+            "source": "https://www.coreweave.com/pricing (name: NVIDIA HGX H200) ÷ GPUs where priced per instance",
+            "as_of": "2026-09-29",
             "status": "estimate"
           },
           "reserved_per_gpu_hr": null,
-          "reserved_term": null
+          "reserved_term": null,
+          "feed": {
+            "source": "coreweave",
+            "name": "NVIDIA HGX H200"
+          }
         },
         {
           "provider": "Google Cloud",
@@ -389,17 +454,22 @@
           "reserved_term": "Committed use discount (1/3-yr)",
           "reserved_terms_per_gpu_hr": {
             "1": {
-              "value": 7.309,
-              "source": "cloud.google.com/products/compute/pricing/accelerator-optimized, a3-ultragpu-8g, Iowa (us-central1), 1-year resource CUD ÷ 8 GPUs (VM price incl. CPU, memory, local SSD)",
+              "value": 7.30899,
+              "source": "https://cloud.google.com/products/compute/pricing/accelerator-optimized (machine: a3-ultragpu-8g, on_demand: price) ÷ GPUs where priced per instance",
               "as_of": "2026-09-29",
               "status": "estimate"
             },
             "3": {
-              "value": 4.6511,
-              "source": "cloud.google.com/products/compute/pricing/accelerator-optimized, a3-ultragpu-8g, Iowa (us-central1), 3-year resource CUD ÷ 8 GPUs (VM price incl. CPU, memory, local SSD)",
+              "value": 4.65105,
+              "source": "https://cloud.google.com/products/compute/pricing/accelerator-optimized (machine: a3-ultragpu-8g, on_demand: price) ÷ GPUs where priced per instance",
               "as_of": "2026-09-29",
               "status": "estimate"
             }
+          },
+          "feed": {
+            "source": "google",
+            "machine": "a3-ultragpu-8g",
+            "on_demand": "price"
           }
         },
         {
@@ -413,7 +483,11 @@
             "status": "estimate"
           },
           "reserved_per_gpu_hr": null,
-          "reserved_term": null
+          "reserved_term": null,
+          "feed": {
+            "source": "nebius",
+            "name": "NVIDIA HGX H200"
+          }
         },
         {
           "provider": "Together AI",
@@ -426,7 +500,11 @@
             "status": "estimate"
           },
           "reserved_per_gpu_hr": null,
-          "reserved_term": null
+          "reserved_term": "181+ day reservation",
+          "feed": {
+            "source": "together-gpu",
+            "name": "HGX H200"
+          }
         }
       ]
     },
@@ -488,7 +566,12 @@
             "as_of": "2026-09-28",
             "status": "estimate"
           },
-          "reserved_term": "Capacity Block"
+          "reserved_term": "Capacity Block",
+          "feed": {
+            "source": "aws-capacity-blocks",
+            "instance": "p6-b200.48xlarge",
+            "region": "US East (N. Virginia)"
+          }
         },
         {
           "provider": "CoreWeave",
@@ -501,7 +584,11 @@
             "status": "estimate"
           },
           "reserved_per_gpu_hr": null,
-          "reserved_term": null
+          "reserved_term": null,
+          "feed": {
+            "source": "coreweave",
+            "name": "NVIDIA HGX B200"
+          }
         },
         {
           "provider": "Google Cloud",
@@ -529,7 +616,12 @@
               "status": "estimate"
             }
           },
-          "on_demand_label": "Flex-start (≤7 days)"
+          "on_demand_label": "Flex-start (≤7 days)",
+          "feed": {
+            "source": "google",
+            "machine": "a4-highgpu-8g",
+            "on_demand": "flex"
+          }
         },
         {
           "provider": "Lambda",
@@ -547,7 +639,12 @@
             "as_of": "2026-09-28",
             "status": "estimate"
           },
-          "reserved_term": "1-Click Cluster, up to 1 yr"
+          "reserved_term": "1-Click Cluster, up to 1 yr",
+          "feed": {
+            "source": "lambda",
+            "name": "NVIDIA B200 SXM6",
+            "vram": "180 GB"
+          }
         },
         {
           "provider": "Nebius",
@@ -560,7 +657,11 @@
             "status": "estimate"
           },
           "reserved_per_gpu_hr": null,
-          "reserved_term": null
+          "reserved_term": null,
+          "feed": {
+            "source": "nebius",
+            "name": "NVIDIA HGX B200"
+          }
         },
         {
           "provider": "Together AI",
@@ -573,7 +674,11 @@
             "status": "estimate"
           },
           "reserved_per_gpu_hr": null,
-          "reserved_term": null
+          "reserved_term": "181+ day reservation",
+          "feed": {
+            "source": "together-gpu",
+            "name": "HGX B200"
+          }
         }
       ]
     },
@@ -635,7 +740,12 @@
             "as_of": "2026-09-28",
             "status": "estimate"
           },
-          "reserved_term": "Capacity Block"
+          "reserved_term": "Capacity Block",
+          "feed": {
+            "source": "aws-capacity-blocks",
+            "instance": "p6-b300.48xlarge",
+            "region": "US East (N. Virginia)"
+          }
         },
         {
           "provider": "Nebius",
@@ -648,7 +758,11 @@
             "status": "estimate"
           },
           "reserved_per_gpu_hr": null,
-          "reserved_term": null
+          "reserved_term": null,
+          "feed": {
+            "source": "nebius",
+            "name": "NVIDIA HGX B300"
+          }
         }
       ]
     },
@@ -705,7 +819,11 @@
             "status": "estimate"
           },
           "reserved_per_gpu_hr": null,
-          "reserved_term": null
+          "reserved_term": null,
+          "feed": {
+            "source": "coreweave",
+            "name": "NVIDIA L40S"
+          }
         },
         {
           "provider": "Nebius",
@@ -718,7 +836,11 @@
             "status": "estimate"
           },
           "reserved_per_gpu_hr": null,
-          "reserved_term": null
+          "reserved_term": null,
+          "feed": {
+            "source": "nebius",
+            "name": "NVIDIA L40S with Intel CPU"
+          }
         }
       ]
     },
@@ -780,7 +902,11 @@
             "status": "estimate"
           },
           "reserved_per_gpu_hr": null,
-          "reserved_term": null
+          "reserved_term": null,
+          "feed": {
+            "source": "nebius",
+            "name": "NVIDIA RTX PRO 6000"
+          }
         }
       ]
     },
@@ -851,6 +977,11 @@
               "as_of": "2026-09-29",
               "status": "estimate"
             }
+          },
+          "feed": {
+            "source": "azure",
+            "sku": "Standard_ND96isr_MI300X_v5",
+            "region": "eastus2"
           }
         }
       ]

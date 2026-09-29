@@ -107,23 +107,40 @@ Plain values without a wrapper (ids, names, `gpus_per_node`, enum settings) are 
 1. **In the app (no git needed).** Open **Data editor**, change values, and they are saved **in your browser only** as overrides. The files on disk never change. To share a change: click **Export \<file\>.json**, replace the file in `data/`, and commit. **Export all** saves a single bundle file that anyone can import.
 2. **Edit the JSON directly.** Change `data/*.json` in any editor, update `source` and `as_of`, set `status`, then commit. Reload the app. If you had browser overrides for that file, click **Reset to file defaults** to see the file's values.
 
-### Automatic API price updates
+### Automatic daily price updates (API and GPU rental)
 
-Every Monday, the **Update API prices** GitHub Action (`.github/workflows/update-api-prices.yml`) runs `scripts/update_api_prices.py`. The script:
+Every day at 11:17 UTC, the **Update prices (daily)** GitHub Action runs `scripts/update_prices.py`. It refreshes every price row that has a `feed` block from that provider's own public price list:
 
-- **Reads** OpenRouter's public price list; no API key is needed.
-- **Updates** every price row in `data/models.json` that has a `feed` block:
-  - `mode: mirror`: first-party rows (OpenAI, Anthropic, Google) whose OpenRouter price was verified to match the provider's own list price
-  - `mode: own`: the **OpenRouter** provider row on each open model (its lowest routed price)
-- **Commits** the change and republishes the site. The header shows **API prices checked \<date\>**, and hovering over it gives details.
-- **Holds back big jumps:** a price that moves more than **50%** is not applied. It's listed as "to review" in the header and in the run summary. To accept it, run the workflow manually from GitHub → Actions → Update API prices → **Run workflow**, with **force** checked.
-- **Leaves models missing from the feed unchanged** and reports them.
+| Source | What it updates |
+|---|---|
+| OpenRouter model list | Closed-model API prices (OpenAI, Anthropic, Google, verified equal to first-party list prices) and the OpenRouter row on each open model |
+| OpenRouter per-provider listings | Together AI and Amazon Bedrock API prices |
+| docs.fireworks.ai (Markdown) | Fireworks per-model and size-tier API prices, batch discount |
+| api-docs.deepseek.com | DeepSeek API peak prices |
+| lambda.ai, coreweave.com, nebius.com, together.ai | GPU rental on-demand prices (plus Together's 181+ day reserved rate) |
+| AWS Capacity Blocks page | AWS reserved (Capacity Block) rates |
+| Azure Retail Prices API | Azure on-demand and 1-, 3- and 5-year reservation rates |
+| Google Cloud accelerator pricing page | Google on-demand/Flex-start and 1- and 3-year committed-use rates (us-central1) |
 
-**Manual runs:** run it any time from the Actions tab, or locally with `python scripts/update_api_prices.py` (add `--dry-run` to preview without saving).
+**Safety:**
+- If a source is down or its page layout changes, that source's prices are left unchanged and the problem is reported.
+- A value that moves more than **50%** is held for review. To accept it, go to GitHub → Actions → *Update prices (daily)* → **Run workflow**, with **force** ticked.
+- Rows with no automatic source are listed as manual:
+  - Lambda's reserved-cluster rates, which are not in the page HTML
+  - the Together Llama 3.1 8B row
+  - server and GPU purchase prices
 
-**Not automated:** Together AI, Fireworks, Bedrock and DeepSeek rows, GPU rental rates, and server and GPU purchase prices. Use the checklist below for those.
+**Status:** each run writes `data/price-status.json`. Hover over **Prices checked …** in the app header to see:
+- every source's status
+- what changed
+- what's held for review
+- what's manual
 
-**To put another row on automatic updates:** add a `feed` block with the OpenRouter model id, e.g. `"feed": {"source": "openrouter", "id": "anthropic/claude-sonnet-5.5", "mode": "mirror"}`. Only use `mirror` after checking that OpenRouter's price equals the provider's own list price. Some differ; DeepSeek's does.
+`data/models.json` and `data/gpus.json` only change when a price actually changes.
+
+**Manual runs:** run it from the Actions tab, or locally with `python scripts/update_prices.py` (add `--dry-run` to preview without saving).
+
+**To automate another row:** add a `feed` block. The supported formats are documented at the top of `scripts/update_prices.py`.
 
 ### Refreshing models and pricing (checklist)
 

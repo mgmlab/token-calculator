@@ -1,0 +1,102 @@
+{
+  "checked_at": "2026-09-29T14:00Z",
+  "date": "2026-09-29",
+  "values_changed": 12,
+  "changed": [
+    "gpt-oss-20b (MoE) / Amazon Bedrock / output per m: 0.2 → 0.15",
+    "NVIDIA A100 80GB SXM / Azure ND96amsr_A100_v4 / on demand per gpu hr: 4.0963 → 4.09625",
+    "NVIDIA A100 80GB SXM / Azure ND96amsr_A100_v4 / reserved terms per gpu hr.3: 1.8024 → 1.80235",
+    "NVIDIA H100 SXM 80GB / Azure ND96isr_H100_v5 / reserved terms per gpu hr.3: 5.3953 → 5.39531",
+    "NVIDIA H100 SXM 80GB / CoreWeave HGX H100 8x / on demand per gpu hr: 6.16 → 6.155",
+    "NVIDIA H100 SXM 80GB / Google Cloud a3-highgpu-8g / reserved terms per gpu hr.1: 7.673 → 7.67296",
+    "NVIDIA H100 SXM 80GB / Google Cloud a3-highgpu-8g / reserved terms per gpu hr.3: 4.858 → 4.85805",
+    "NVIDIA H200 SXM 141GB / Azure ND96isr_H200_v5 / reserved terms per gpu hr.1: 5.8151 → 5.81515",
+    "NVIDIA H200 SXM 141GB / Azure ND96isr_H200_v5 / reserved terms per gpu hr.3: 5.2778 → 5.27774",
+    "NVIDIA H200 SXM 141GB / CoreWeave HGX H200 8x / on demand per gpu hr: 6.31 → 6.305",
+    "NVIDIA H200 SXM 141GB / Google Cloud a3-ultragpu-8g / reserved terms per gpu hr.1: 7.309 → 7.30899",
+    "NVIDIA H200 SXM 141GB / Google Cloud a3-ultragpu-8g / reserved terms per gpu hr.3: 4.6511 → 4.65105"
+  ],
+  "needs_review": [
+    "gpt-oss-120b (MoE) / OpenRouter / input per m: 0.15 → 0.037 (not applied; over 50% change)",
+    "gpt-oss-120b (MoE) / OpenRouter / output per m: 0.6 → 0.17 (not applied; over 50% change)"
+  ],
+  "problems": [],
+  "sources_failed": [],
+  "manual_rows": [
+    "API: Llama 3.1 8B Instruct / Together AI",
+    "GPU rental: NVIDIA H100 SXM 80GB / Lambda 8x H100 SXM (reserved rate only)",
+    "GPU rental: NVIDIA B200 180GB / Lambda 8x B200 SXM6 (reserved rate only)"
+  ],
+  "sources": {
+    "Fireworks": {
+      "ok": true,
+      "url": "https://docs.fireworks.ai/serverless/pricing.md",
+      "rows": 5,
+      "changed": 0,
+      "error": ""
+    },
+    "OpenRouter": {
+      "ok": true,
+      "url": "https://openrouter.ai/api/v1/models",
+      "rows": 20,
+      "changed": 1,
+      "error": ""
+    },
+    "DeepSeek": {
+      "ok": true,
+      "url": "https://api-docs.deepseek.com/quick_start/pricing",
+      "rows": 2,
+      "changed": 0,
+      "error": ""
+    },
+    "Azure": {
+      "ok": true,
+      "url": "https://prices.azure.com/api/retail/prices",
+      "rows": 4,
+      "changed": 5,
+      "error": ""
+    },
+    "CoreWeave": {
+      "ok": true,
+      "url": "https://www.coreweave.com/pricing",
+      "rows": 5,
+      "changed": 2,
+      "error": ""
+    },
+    "Google Cloud": {
+      "ok": true,
+      "url": "https://cloud.google.com/products/compute/pricing/accelerator-optimized",
+      "rows": 4,
+      "changed": 4,
+      "error": ""
+    },
+    "Lambda": {
+      "ok": true,
+      "url": "https://lambda.ai/pricing",
+      "rows": 3,
+      "changed": 0,
+      "error": ""
+    },
+    "AWS Capacity Blocks": {
+      "ok": true,
+      "url": "https://aws.amazon.com/ec2/capacityblocks/pricing/",
+      "rows": 4,
+      "changed": 0,
+      "error": ""
+    },
+    "Nebius": {
+      "ok": true,
+      "url": "https://nebius.com/prices",
+      "rows": 6,
+      "changed": 0,
+      "error": ""
+    },
+    "Together AI (GPU clusters)": {
+      "ok": true,
+      "url": "https://www.together.ai/pricing",
+      "rows": 3,
+      "changed": 0,
+      "error": ""
+    }
+  }
+}

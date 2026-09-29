@@ -1,5 +1,5 @@
 {
-  "_readme": "Model catalog. Architecture fields drive KV-cache sizing; api_prices are USD per 1M tokens. self_hostable=false models appear only in the API comparison. Rows with a \"feed\" block are updated automatically every week from OpenRouter's public price list (scripts/update_api_prices.py via GitHub Actions); rows without one are updated by hand.",
+  "_readme": "Model catalog. Architecture fields drive KV-cache sizing; api_prices are USD per 1M tokens. self_hostable=false models appear only in the API comparison. Rows with a \"feed\" block are refreshed daily by scripts/update_prices.py (GitHub Actions); see data/price-status.json for the latest check.",
   "models": [
     {
       "id": "llama-3.1-8b",
@@ -59,16 +59,17 @@
             "value": 0.14,
             "source": "together.ai/pricing (serverless)",
             "as_of": "2026-09-28",
-            "status": "estimate"
+            "status": "placeholder"
           },
           "output_per_m": {
             "value": 0.14,
             "source": "together.ai/pricing (serverless)",
             "as_of": "2026-09-28",
-            "status": "estimate"
+            "status": "placeholder"
           },
           "cached_input_per_m": null,
-          "batch_discount_pct": null
+          "batch_discount_pct": null,
+          "note": "Together's pricing page lists 'Llama 3 8B Instruct Lite' at this price; Llama 3.1 8B itself is not listed. Manual row — verify or remove."
         },
         {
           "provider": "Fireworks AI",
@@ -89,6 +90,11 @@
             "value": 50,
             "source": "docs.fireworks.ai/serverless/pricing (generic size-tier price; serverless availability of this model not verified)",
             "as_of": "2026-09-28",
+            "status": "placeholder"
+          },
+          "feed": {
+            "source": "fireworks",
+            "tier": "4B – 16B parameters",
             "status": "placeholder"
           }
         },
@@ -189,7 +195,12 @@
             "status": "estimate"
           },
           "cached_input_per_m": null,
-          "batch_discount_pct": null
+          "batch_discount_pct": null,
+          "feed": {
+            "source": "openrouter-endpoint",
+            "id": "meta-llama/llama-3.3-70b-instruct",
+            "provider": "Together"
+          }
         },
         {
           "provider": "Fireworks AI",
@@ -210,6 +221,11 @@
             "value": 50,
             "source": "docs.fireworks.ai/serverless/pricing (generic size-tier price; serverless availability of this model not verified)",
             "as_of": "2026-09-28",
+            "status": "placeholder"
+          },
+          "feed": {
+            "source": "fireworks",
+            "tier": "More than 16B parameters",
             "status": "placeholder"
           }
         },
@@ -363,6 +379,11 @@
             "value": 50,
             "source": "docs.fireworks.ai/serverless/pricing (generic size-tier price; serverless availability of this model not verified)",
             "as_of": "2026-09-28",
+            "status": "placeholder"
+          },
+          "feed": {
+            "source": "fireworks",
+            "tier": "More than 16B parameters",
             "status": "placeholder"
           }
         },
@@ -542,6 +563,11 @@
             "source": "docs.fireworks.ai/serverless/pricing (generic size-tier price; serverless availability of this model not verified)",
             "as_of": "2026-09-28",
             "status": "placeholder"
+          },
+          "feed": {
+            "source": "fireworks",
+            "tier": "More than 16B parameters",
+            "status": "placeholder"
           }
         },
         {
@@ -637,9 +663,9 @@
             "status": "estimate"
           },
           "output_per_m": {
-            "value": 0.2,
-            "source": "aws.amazon.com/bedrock/pricing (on-demand, US East)",
-            "as_of": "2026-09-28",
+            "value": 0.15,
+            "source": "Amazon Bedrock price listed on OpenRouter (openai/gpt-oss-20b endpoints)",
+            "as_of": "2026-09-29",
             "status": "estimate"
           },
           "cached_input_per_m": null,
@@ -648,6 +674,11 @@
             "source": "aws.amazon.com/bedrock/pricing (on-demand, US East)",
             "as_of": "2026-09-28",
             "status": "estimate"
+          },
+          "feed": {
+            "source": "openrouter-endpoint",
+            "id": "openai/gpt-oss-20b",
+            "provider": "Amazon Bedrock"
           }
         },
         {
@@ -754,7 +785,12 @@
             "status": "estimate"
           },
           "cached_input_per_m": null,
-          "batch_discount_pct": null
+          "batch_discount_pct": null,
+          "feed": {
+            "source": "openrouter-endpoint",
+            "id": "openai/gpt-oss-120b",
+            "provider": "Together"
+          }
         },
         {
           "provider": "Fireworks AI",
@@ -781,6 +817,10 @@
             "source": "docs.fireworks.ai/serverless/pricing",
             "as_of": "2026-09-28",
             "status": "estimate"
+          },
+          "feed": {
+            "source": "fireworks",
+            "model": "OpenAI GPT OSS 120B"
           }
         },
         {
@@ -803,6 +843,11 @@
             "source": "aws.amazon.com/bedrock/pricing (on-demand, US East)",
             "as_of": "2026-09-28",
             "status": "estimate"
+          },
+          "feed": {
+            "source": "openrouter-endpoint",
+            "id": "openai/gpt-oss-120b",
+            "provider": "Amazon Bedrock"
           }
         },
         {
@@ -1285,7 +1330,11 @@
             "as_of": "2026-09-28",
             "status": "estimate"
           },
-          "batch_discount_pct": null
+          "batch_discount_pct": null,
+          "feed": {
+            "source": "deepseek",
+            "column": 1
+          }
         }
       ],
       "note": "API-only reference model (weights not available for self-hosting). Not an apples-to-apples quality comparison with open-weight models."
@@ -1317,18 +1366,14 @@
             "as_of": "2026-09-28",
             "status": "estimate"
           },
-          "batch_discount_pct": null
+          "batch_discount_pct": null,
+          "feed": {
+            "source": "deepseek",
+            "column": 0
+          }
         }
       ],
       "note": "API-only reference model (weights not available for self-hosting). Not an apples-to-apples quality comparison with open-weight models."
     }
-  ],
-  "prices_checked": {
-    "date": "2026-09-29",
-    "source": "OpenRouter public price list (https://openrouter.ai/api/v1/models), weekly GitHub Actions job",
-    "rows_checked": 16,
-    "values_changed": 0,
-    "needs_review": [],
-    "missing_from_feed": []
-  }
+  ]
 }

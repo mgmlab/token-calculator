@@ -38,26 +38,65 @@
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && ovrClose) ovrClose(); });
   document.addEventListener('click', e => { if (ovrClose && ovrWrap && !ovrWrap.contains(e.target)) ovrClose(); });
 
+  function pricePopover() {
+    const esc = TC.esc, ps = TC.priceStatus;
+    const list = (title, items, cls) => items && items.length
+      ? `<section class="ovr-ds"><strong>${title}</strong><ul class="ovr-list ${cls || ''}">${items.slice(0, 12).map(x => `<li>${esc(x)}</li>`).join('')}${items.length > 12 ? `<li class="muted">and ${items.length - 12} more</li>` : ''}</ul></section>` : '';
+    const src = Object.entries(ps.sources || {}).map(([n, v]) =>
+      `<li><span class="ovr-kind ${v.ok ? 'add' : 'del'}">${v.ok ? 'ok' : 'failed'}</span> ${esc(n)} <span class="muted">· ${v.rows} row${v.rows === 1 ? '' : 's'}${v.changed ? ` · ${v.changed} changed` : ''}</span></li>`).join('');
+    return `<div class="ovr-head"><strong>Automatic price updates</strong>
+        <span class="muted small">API and GPU rental prices are refreshed every day from each provider's public price list. Last check: ${esc(new Date(ps.checked_at.replace('Z', ':00Z')).toLocaleString())}. Server and GPU purchase prices are updated by hand.</span></div>
+      <section class="ovr-ds"><strong>Sources</strong><ul class="ovr-list">${src}</ul></section>
+      ${list('Changed in the last check', ps.changed)}
+      ${list('Held for review (moved more than 50%)', ps.needs_review)}
+      ${list('Could not be read (left unchanged)', [...(ps.sources_failed || []), ...(ps.problems || [])])}
+      ${list('Manual rows (no automatic source)', ps.manual_rows)}
+      ${ps.needs_review && ps.needs_review.length ? '<p class="muted small">To accept held changes: GitHub → Actions → Update prices (daily) → Run workflow, with "force" ticked.</p>' : ''}`;
+  }
+
+  function wirePopover(wrap, render) {
+    const btn = wrap.querySelector('button');
+    const pop = wrap.querySelector('.ovr-pop');
+    let pinned = false, t = null;
+    const open = () => {
+      clearTimeout(t); pop.innerHTML = render(); pop.hidden = false; btn.setAttribute('aria-expanded', 'true');
+      pop.style.left = pop.style.right = '';
+      const r = wrap.getBoundingClientRect();
+      if (r.right - pop.offsetWidth < 8) { pop.style.left = (8 - r.left) + 'px'; pop.style.right = 'auto'; }
+    };
+    const close = () => { pinned = false; pop.hidden = true; btn.setAttribute('aria-expanded', 'false'); };
+    wrap.addEventListener('mouseenter', () => { if (pop.hidden) open(); clearTimeout(t); });
+    wrap.addEventListener('mouseleave', () => { if (!pinned) t = setTimeout(close, 300); });
+    btn.addEventListener('click', () => { if (pinned) close(); else { open(); pinned = true; } });
+    popClosers.push({ wrap, close: () => { if (pinned) close(); } });
+  }
+  const popClosers = [];
+  document.addEventListener('click', e => popClosers.forEach(p => { if (document.body.contains(p.wrap) && !p.wrap.contains(e.target)) p.close(); }));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') popClosers.forEach(p => p.close()); });
+
   function statusPill() {
+    popClosers.length = 0;
     const s = TC.store.source;
     const names = TC.store.NAMES;
     const fromFile = names.every(n => s[n] === 'file');
     const ovr = names.filter(n => TC.store.isOverridden(n));
     let txt = fromFile ? 'Data: /data files' : names.some(n => s[n] === 'cache') ? 'Data: cached copy' : names.some(n => s[n] === 'missing') ? 'Data: missing' : 'Data: imported';
-    const pc = (TC.store.get('models') || {}).prices_checked;
+    const ps = TC.priceStatus;
     let priceTag = '';
-    if (pc && pc.date) {
-      const days = Math.round((Date.now() - new Date(pc.date + 'T12:00:00')) / 864e5);
-      const stale = days > 14;
-      const review = (pc.needs_review || []).length;
-      const tip = `API prices for ${pc.rows_checked} provider rows are checked automatically every Monday against OpenRouter's public price list; last check ${pc.date} (${pc.values_changed} value(s) changed).`
-        + (review ? ` ${review} change(s) over 50% are waiting for review.` : '')
-        + ' GPU rental and server prices are updated by hand.';
-      priceTag = `<span class="pill ${stale || review ? 'warn' : ''}" title="${TC.esc(tip)}">API prices checked ${new Date(pc.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}${review ? ' · ' + review + ' to review' : ''}</span>`;
+    if (ps && ps.date) {
+      const days = Math.round((Date.now() - new Date(ps.date + 'T12:00:00')) / 864e5);
+      const failed = (ps.sources_failed || []).length + (ps.problems || []).length;
+      const review = (ps.needs_review || []).length;
+      const warn = days > 2 || failed || review;
+      const when = days <= 0 ? 'today' : days === 1 ? 'yesterday' : new Date(ps.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      priceTag = `<span class="ovr-wrap" data-pop="prices"><button type="button" class="pill ${warn ? 'warn' : ''}" aria-expanded="false">Prices checked ${when}${review ? ' · ' + review + ' to review' : ''}${failed ? ' · ' + failed + ' issue' + (failed > 1 ? 's' : '') : ''} ▾</button>
+        <div class="ovr-pop" role="dialog" aria-label="Price update status" hidden></div></span>`;
     }
     $('#data-status').innerHTML = `<span class="pill ${fromFile ? '' : 'warn'}">${txt}</span>` + priceTag +
       (ovr.length ? `<span class="ovr-wrap"><button type="button" class="pill override" aria-expanded="false" aria-controls="ovr-pop">${ovr.length} dataset${ovr.length > 1 ? 's' : ''} overridden ▾</button>
         <div class="ovr-pop" id="ovr-pop" role="dialog" aria-label="Overridden data" hidden></div></span>` : '');
+    const pw = $('#data-status [data-pop="prices"]');
+    if (pw) wirePopover(pw, pricePopover);
     const btn = $('#data-status .pill.override');
     if (!btn) return;
     const pop = $('#ovr-pop');
@@ -153,6 +192,10 @@
   document.addEventListener('DOMContentLoaded', async () => {
     document.querySelectorAll('.tabs [data-tab]').forEach(b => b.onclick = () => showTab(b.dataset.tab));
     await TC.store.load();
+    try {
+      const r = await fetch('data/price-status.json', { cache: 'no-cache' });
+      if (r.ok) TC.priceStatus = await r.json();
+    } catch (e) { /* file:// or offline: no status pill */ }
     statusPill();
     banner();
     TC.editor.init($('#editor'));
