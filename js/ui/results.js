@@ -172,7 +172,7 @@
       const el = document.getElementById('exec-card');
       if (el) el.outerHTML = execCardHtml(data, w, res);
     }, 30);
-    return `<section class="card exec" id="exec-card"><div class="exec-head"><h2>The answer</h2></div><p class="muted">Working out the best option…</p></section>`;
+    return `<section class="card exec" id="exec-card"><div class="exec-head"><h2>Analysis summary</h2></div><p class="muted">Working out the best option…</p></section>`;
   }
 
   function execCardHtml(data, w, res) {
@@ -189,7 +189,7 @@
     else be = `${x.altLabel.charAt(0).toUpperCase() + x.altLabel.slice(1)} stays cheaper than owning servers up to <strong>2,000×</strong> today's usage.`;
     const name = w.scenario_name ? `<span class="exec-scn">${esc(w.scenario_name)}</span>` : '';
     return `<section class="card exec" id="exec-card">
-      <div class="exec-head"><div><h2>The answer ${name}</h2><p class="muted small">Lowest-cost option in each category over ${w.term_years} years, shown per year. Ranges reflect the uncertain inputs below.</p></div>
+      <div class="exec-head"><div><h2>Analysis summary ${name}</h2><p class="muted small">Lowest-cost option in each category over ${w.term_years} years, shown per year. Ranges reflect the uncertain inputs below.</p></div>
         <span class="verdict v-${x.verdict.tone}">${esc(x.verdict.label)}</span></div>
       <div class="exec-tiles">
         ${tile('Buy servers (on-prem)', x.on, x.onRange, x.on ? f.num(x.on.util * 100, x.on.util < 0.01 ? 1 : 0) + '% utilized' : '')}
