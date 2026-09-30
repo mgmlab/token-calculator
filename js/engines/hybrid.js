@@ -7,6 +7,7 @@
  *   Within an hour, in-flight requests vary randomly (Poisson with mean c_i). Owned capacity K
  *   serves E[min(X, K)]; the rest overflows to the API.
  * For each candidate K (0–100% of peak, 5% steps) the cheapest server configuration sized for K
+ * (its capacity is the smaller of its throughput and the requests its GPU memory can hold at once)
  * (no extra headroom — overflow absorbs spikes) is costed, plus API cost for the overflow tokens.
  */
 (function () {
@@ -84,7 +85,13 @@
       const onRows = TC.runOnPrem(data, wk, wl);
       const row = cheapest(onRows);
       if (!row) continue;
-      const cap = TC.utilization(row.sizing.best, row.server.gpus_per_node, wl).capacity / Math.max(w.target_output_tps_per_request, 1e-9);
+      // Requests the owned setup can carry at once: limited by throughput (at the target speed) AND by GPU memory
+      // for each request's KV cache (model copies × max concurrent per copy) — the same memory limit on-prem sizing uses.
+      const c = row.sizing.best;
+      const slots = c.pp === 1 ? Math.floor(row.server.gpus_per_node / c.tp) * c.nodes : c.replicas;
+      const capTput = TC.utilization(c, row.server.gpus_per_node, wl).capacity / Math.max(w.target_output_tps_per_request, 1e-9);
+      const capMem = c.Crep > 0 ? slots * c.Crep : Infinity;
+      const cap = Math.min(capTput, capMem);
       const served = hourly.reduce((a, c) => a + c * TC.servedFraction(c, cap), 0);
       const share = demand > 0 ? served / demand : 1;
       const apiMonthly = api.monthly * (1 - share);
