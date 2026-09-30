@@ -15,6 +15,7 @@
     precision: ['FP16', 'FP8', 'INT4'],
     architecture: ['dense', 'moe'],
     type: ['standard', 'hybrid_sliding', 'mla'],
+    tier: ['budget', 'mid', 'frontier'],
   };
   const LOOKUPS = {
     gpu_id: () => ((TC.store.get('gpus') || {}).gpus || []).map(g => [g.id, g.name]),

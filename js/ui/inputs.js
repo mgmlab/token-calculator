@@ -22,7 +22,7 @@
   // Shown under "Advanced settings" (collapsed by default) — the essentials stay visible.
   const ADVANCED = new Set(['peak_concurrency_mode', 'busy_hour_share_pct', 'burst_percentile', 'peak_concurrent_requests', 'target_output_tps_per_request',
     'max_context', 'precision', 'kv_precision', 'kv_sizing_basis', 'throughput_source', 'headroom_pct', 'n_plus_one',
-    'cloud_active_hours_per_month', 'api_cache_hit_pct', 'api_batch_share_pct', 'api_excluded', 'include_closed_models']);
+    'cloud_active_hours_per_month', 'api_cache_hit_pct', 'api_batch_share_pct', 'api_excluded', 'include_closed_models', 'closed_tier']);
   const ADV_KEY = 'tc.advancedOpen';
 
   const GROUPS = [
@@ -93,6 +93,9 @@
         tip: 'Untick providers your customer would not realistically buy from — for example the lowest-cost routed hosts when the customer needs an enterprise agreement. Unticked providers are left out of the tables, the Analysis summary, breakeven and hybrid.' },
       { k: 'include_closed_models', label: 'Show closed-model API reference', type: 'checkbox',
         tip: 'Also list closed models (GPT, Claude, Gemini, DeepSeek API) for cost context. They are different models, so this is not a like-for-like quality comparison.' },
+      { k: 'closed_tier', label: 'Closed-model tier', type: 'select', options: [['all', 'All tiers (cheapest wins)'], ['budget', 'Budget (mini / Flash / Haiku)'], ['mid', 'Mid (Sonnet-class)'], ['frontier', 'Frontier (flagship)']],
+        hint: 'Which closed models the reference line uses',
+        tip: 'Closed models range from small budget models to flagship frontier models, and prices differ several-fold. "All tiers" shows the cheapest closed model, which is usually a budget model. Pick Frontier when the customer is really comparing against a flagship model such as GPT, Claude Opus or Gemini Pro. Tiers follow each vendor’s own positioning and can be changed in the Data editor.' },
     ]},
   ];
 

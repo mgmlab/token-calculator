@@ -202,7 +202,7 @@
       [{ label: 'Provider' }, { label: 'Model' }, { label: 'In / out per 1M' }, ...moneyCols, { label: '' }],
       same, apiCells, wl, 'api_same', keepApi);
     if (w.include_closed_models) {
-      h += table('Pay per token (API) — other models', 'Different models (GPT, Claude, Gemini…), shown for cost context only — not a like-for-like quality comparison.',
+      h += table('Pay per token (API) — other models', 'Different models (GPT, Claude, Gemini…), shown for cost context only — not a like-for-like quality comparison.' + (w.closed_tier && w.closed_tier !== 'all' ? ` Showing the <strong>${esc(w.closed_tier)}</strong> tier only (Advanced settings).` : ' All tiers shown; the cheapest is usually a budget model.'),
         [{ label: 'Provider' }, { label: 'Model' }, { label: 'In / out per 1M' }, ...moneyCols, { label: '' }],
         closed, apiCells, wl, 'api_closed', keepApi);
     }
@@ -320,8 +320,9 @@
         <p class="muted small">Assumes requests can be routed to either owned GPUs or the API (e.g. through a gateway), and that the same model runs on both. Filters don't apply to this section.</p></details>`;
   }
 
+  const TIER = { budget: 'budget tier', mid: 'mid tier', frontier: 'frontier tier' };
   function apiCells(r) {
-    return `<td><strong>${esc(r.name)}</strong></td><td>${esc(r.sub)}</td>
+    return `<td><strong>${esc(r.name)}</strong></td><td>${esc(r.sub)}${!r.sameModel && r.model.tier ? ` <span class="muted small">· ${TIER[r.model.tier] || esc(r.model.tier)}</span>` : ''}</td>
       <td class="nowrap">${f.price(TC.v(r.price.input_per_m))} / ${f.price(TC.v(r.price.output_per_m))}</td>${money(r)}<td class="badges">${warnBadge(r)}${flagBadge(r)}${acts(r)}</td>`;
   }
 

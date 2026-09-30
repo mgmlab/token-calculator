@@ -65,7 +65,7 @@
     const sel = data.models.models.find(m => m.id === w.model_id);
     if (sel) (sel.api_prices || []).filter(priced).forEach(p => rows.push(TC.apiRow(sel, p, w, wl)));
     if (w.include_closed_models) {
-      data.models.models.filter(m => !m.self_hostable).forEach(m => (m.api_prices || []).filter(priced).forEach(p => rows.push(TC.apiRow(m, p, w, wl))));
+      data.models.models.filter(m => !m.self_hostable && (!w.closed_tier || w.closed_tier === 'all' || m.tier === w.closed_tier)).forEach(m => (m.api_prices || []).filter(priced).forEach(p => rows.push(TC.apiRow(m, p, w, wl))));
     }
     return rows;
   };

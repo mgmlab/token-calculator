@@ -122,9 +122,14 @@
     svg += `<rect class="hit" x="${M.l}" y="${M.t}" width="${W - M.l - M.r}" height="${H - M.t - M.b}" fill="transparent"/>`;
     svg += '</svg>';
 
+    // Name the model behind the "other models" line at today's volume, and the tier filter if one is set.
+    const nearNow = pts.reduce((a, p) => (Math.abs(Math.log(p.tokensMonth / be.currentTokens)) < Math.abs(Math.log(a.tokensMonth / be.currentTokens)) ? p : a), pts[0]);
+    const closedNow = nearNow && nearNow.series.api_closed;
+    const tierTxt = w.closed_tier && w.closed_tier !== 'all' ? w.closed_tier + ' tier' : 'all tiers';
+    const legendLabel = s => s.key === 'api_closed' && closedNow ? `${s.label} (${tierTxt}; cheapest now: ${closedNow.sub})` : s.label;
     const legend = series.map(s => {
       const has = pts.some(p => p.series[s.key]);
-      return `<label class="legend-item ${has ? '' : 'disabled'}"><input type="checkbox" data-series="${s.key}" ${hidden.has(s.key) ? '' : 'checked'} ${has ? '' : 'disabled'}><span class="swatch" style="background:${s.color}"></span>${esc(s.label)}${has ? '' : ' <span class="muted">(no data)</span>'}</label>`;
+      return `<label class="legend-item ${has ? '' : 'disabled'}"><input type="checkbox" data-series="${s.key}" ${hidden.has(s.key) ? '' : 'checked'} ${has ? '' : 'disabled'}><span class="swatch" style="background:${s.color}"></span>${esc(legendLabel(s))}${has ? '' : ' <span class="muted">(no data)</span>'}</label>`;
     }).join('');
 
     const times = t => {

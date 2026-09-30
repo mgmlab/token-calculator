@@ -1,5 +1,5 @@
 {
-  "_readme": "Model catalog. Architecture fields drive KV-cache sizing; api_prices are USD per 1M tokens. self_hostable=false models appear only in the API comparison. Rows with a \"feed\" block are refreshed daily by scripts/update_prices.py (GitHub Actions); see data/price-status.json for the latest check.",
+  "_readme": "Model catalog. Architecture fields drive KV-cache sizing; api_prices are USD per 1M tokens. self_hostable=false models appear only in the API comparison. Rows with a \"feed\" block are refreshed daily by scripts/update_prices.py (GitHub Actions); see data/price-status.json for the latest check. Closed models carry a tier (budget / mid / frontier) from each vendor's own product positioning (small/fast, mid-size, flagship); it only filters the closed-model reference line.",
   "models": [
     {
       "id": "llama-3.1-8b",
@@ -971,6 +971,7 @@
       "id": "gpt-6-sol",
       "name": "GPT-6 Sol",
       "family": "OpenAI",
+      "tier": "frontier",
       "self_hostable": false,
       "architecture": null,
       "api_prices": [
@@ -1013,6 +1014,7 @@
       "id": "gpt-5.6-terra",
       "name": "GPT-5.6 Terra",
       "family": "OpenAI",
+      "tier": "mid",
       "self_hostable": false,
       "architecture": null,
       "api_prices": [
@@ -1055,6 +1057,7 @@
       "id": "gpt-5.4-mini",
       "name": "GPT-5.4 mini",
       "family": "OpenAI",
+      "tier": "budget",
       "self_hostable": false,
       "architecture": null,
       "api_prices": [
@@ -1097,6 +1100,7 @@
       "id": "claude-opus-5.5",
       "name": "Claude Opus 5.5",
       "family": "Anthropic",
+      "tier": "frontier",
       "self_hostable": false,
       "architecture": null,
       "api_prices": [
@@ -1139,6 +1143,7 @@
       "id": "claude-sonnet-5.5",
       "name": "Claude Sonnet 5.5",
       "family": "Anthropic",
+      "tier": "mid",
       "self_hostable": false,
       "architecture": null,
       "api_prices": [
@@ -1181,6 +1186,7 @@
       "id": "claude-haiku-4.5",
       "name": "Claude Haiku 4.5",
       "family": "Anthropic",
+      "tier": "budget",
       "self_hostable": false,
       "architecture": null,
       "api_prices": [
@@ -1223,6 +1229,7 @@
       "id": "gemini-3.1-pro",
       "name": "Gemini 3.1 Pro (Preview)",
       "family": "Google",
+      "tier": "frontier",
       "self_hostable": false,
       "architecture": null,
       "api_prices": [
@@ -1265,6 +1272,7 @@
       "id": "gemini-3.8-flash",
       "name": "Gemini 3.8 Flash",
       "family": "Google",
+      "tier": "budget",
       "self_hostable": false,
       "architecture": null,
       "api_prices": [
@@ -1307,6 +1315,7 @@
       "id": "deepseek-v4-pro",
       "name": "DeepSeek V4 Pro",
       "family": "DeepSeek",
+      "tier": "mid",
       "self_hostable": false,
       "architecture": null,
       "api_prices": [
@@ -1343,6 +1352,7 @@
       "id": "deepseek-flash",
       "name": "DeepSeek Flash",
       "family": "DeepSeek",
+      "tier": "budget",
       "self_hostable": false,
       "architecture": null,
       "api_prices": [
