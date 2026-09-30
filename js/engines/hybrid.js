@@ -8,7 +8,8 @@
  *   serves E[min(X, K)]; the rest overflows to the API.
  * For each candidate K (0–100% of peak, 5% steps) the cheapest server configuration sized for K
  * (its capacity is the smaller of its throughput and the requests its GPU memory can hold at once)
- * (no extra headroom — overflow absorbs spikes) is costed, plus API cost for the overflow tokens.
+ * (with the same headroom and N+1 settings as on-prem, so 100% owned equals the on-prem option) is costed,
+ * plus API cost for the overflow tokens.
  */
 (function () {
   const TC = window.TC;
@@ -81,7 +82,7 @@
       const K = Math.max(1, Math.round(peak * step / 20));
       if (seen.has(K)) continue;
       seen.add(K);
-      const wk = TC.effectiveWorkload(Object.assign({}, w, { peak_concurrency_mode: 'manual', peak_concurrent_requests: K, headroom_pct: 0 }));
+      const wk = TC.effectiveWorkload(Object.assign({}, w, { peak_concurrency_mode: 'manual', peak_concurrent_requests: K }));
       const onRows = TC.runOnPrem(data, wk, wl);
       const row = cheapest(onRows);
       if (!row) continue;
@@ -100,12 +101,13 @@
     const best = points.reduce((a, p) => (p.total < a.total ? p : a), points[0]);
     // A mix only "wins" if it beats every single-architecture option, GPU cloud included.
     const pureBest = Math.min(api.monthly, onOnly.monthly, cloud ? cloud.monthly : Infinity);
-    const mixed = best.share > 0.05 && best.share < 0.95;
+    // A real hybrid owns some capacity but less than the full peak (the API takes the rest, even if that is only rare bursts).
+    const mixed = !!best.row && best.pct > 0 && best.pct < 100;
     const wins = mixed && best.total < 0.95 * pureBest;
 
     const steps = [
       S('Traffic curve', `busiest hour carries ${f.num(busy * 100, 1)}% of daily requests; the other hours follow a bell curve around midday${busy <= 1 / 24 + 1e-9 ? ' (flat, 24/7)' : ''}`, Math.max(...hourly), 'requests', 'Peak-hour mean concurrency; bursts within each hour are modelled as random (Poisson) arrivals.'),
-      S('Owned capacity tried', '0% to 100% of peak concurrency in 5% steps, cheapest server layout for each (no extra headroom — overflow absorbs spikes)', points.length - 1, 'options'),
+      S('Owned capacity tried', '0% to 100% of peak concurrency in 5% steps, cheapest server layout for each (same headroom and N+1 settings as on-prem)', points.length - 1, 'options'),
       S('Tokens served on owned GPUs', 'Σ hours: mean concurrency × E[min(demand, capacity)] ÷ total demand', best.share * 100, '%'),
       S('Overflow API cost', `${f.usd(api.monthly)} all-API monthly × (1 − ${f.num(best.share * 100, 1)}%) via ${api.name}`, best.apiMonthly, 'USD/mo'),
       S('Owned baseline cost', best.row ? `${best.setup} · ${best.row.cost.nodes} node(s)` : 'none', best.ownedMonthly, 'USD/mo'),

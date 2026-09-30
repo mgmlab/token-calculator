@@ -70,7 +70,9 @@
     else if (cross && cross.index > 0) multiple = cross.tokensMonth / wl.tMo;
     let hy = null;
     try { hy = TC.hybrid(data, w, res); } catch (e) { console.error(e); }
-    const verdict = TC.fitVerdict({ onMonthly: on && on.monthly, apiMonthly: api && api.monthly, cloudMonthly: cl && cl.monthly, multiple, onHigh: onRange && onRange.max, hybridWins: !!(hy && hy.wins) });
+    let verdict = TC.fitVerdict({ onMonthly: on && on.monthly, apiMonthly: api && api.monthly, cloudMonthly: cl && cl.monthly, multiple, onHigh: onRange && onRange.max, hybridWins: !!(hy && hy.wins) });
+    // When the winning mix keeps ~all tokens on owned GPUs, it is really "own it, right-sized, with an API for rare bursts".
+    if (verdict.key === 'hybrid' && hy.best.share >= 0.97) verdict = { key: 'onprem-burst', label: 'On-prem + API for bursts', tone: 'good' };
 
     // Why
     const util = on ? on.util * 100 : null;
@@ -80,6 +82,9 @@
     if (verdict.key === 'onprem' || verdict.key === 'onprem-likely') {
       why = `The workload keeps dedicated GPUs busy enough (about ${f.num(util, 0)}% average utilization) that owning them costs less than ${altName} at today's volume.`;
       if (verdict.key === 'onprem-likely') why += ` The pessimistic end of the on-prem range is above the ${cheapAlt === cl ? 'GPU cloud' : 'API'} cost, so confirm server pricing and measured throughput before relying on it.`;
+    } else if (verdict.key === 'onprem-burst') {
+      const b = hy.best;
+      why = `Owning servers sized for about ${b.pct}% of the calculated peak (${b.setup}) carries ${f.num(b.share * 100, b.share > 0.995 ? 1 : 0)}% of tokens; the rare bursts above that go to ${hy.api.name}. That costs about ${f.usdCompact(hy.savingsVsOnPrem * 12)}/yr less than buying servers for the full peak and ${f.usdCompact(hy.savingsVsApi * 12)}/yr less than paying per token for everything.`;
     } else if (verdict.key === 'hybrid') {
       const b = hy.best;
       why = `Owning a baseline sized for about ${b.pct}% of peak demand would handle ${f.num(b.share * 100, 0)}% of tokens, with the busy-hour overflow sent to ${hy.api.name}. That mix saves about ${f.usdCompact(hy.savingsVsApi * 12)}/yr versus paying per token for everything`

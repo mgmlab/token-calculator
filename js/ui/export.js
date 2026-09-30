@@ -253,7 +253,7 @@
       const b = HY.best;
       const msg = HY.wins
         ? `Lowest cost: own a baseline for ${b.pct}% of peak (${b.row ? b.setup : ''}) and send the rest to ${HY.api.name}. ${f.num(b.share * 100, 0)}% of tokens run on owned GPUs.`
-        : b.share <= 0.05 ? 'At this volume the lowest-cost mix is all API.' : b.share >= 0.95 ? 'At this volume the lowest-cost mix is all owned.' : `A ${b.pct}% baseline is cheapest, but saves under 5% versus the best single option.`;
+        : !b.row ? 'At this volume the lowest-cost mix is all API.' : b.pct >= 100 ? 'At this volume the lowest-cost mix is all owned.' : `A ${b.pct}% baseline is cheapest, but saves under 5% versus the best single option.`;
       sh.addText([
         { text: msg, options: { breakLine: true, paraSpaceAfter: 12, color: P.ink } },
         { text: `Hybrid: ${f.usdCompact(b.total * 12)}/yr`, options: { bold: true, color: P.purple, breakLine: true } },

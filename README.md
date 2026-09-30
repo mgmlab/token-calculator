@@ -86,7 +86,7 @@ A scenario is the workload inputs **plus** any options removed from the analysis
 
 ### The verdict
 
-The Analysis summary names the lowest-cost architecture among owning servers, renting GPUs, paying per token for the same model and the hybrid mix: *Strong / Likely on-prem candidate*, *GPU cloud candidate*, *Hybrid candidate*, *Near breakeven* (paying per token is cheapest, but owning catches up within 3× today's usage) or *API candidate*. The breakeven sentence separately reports where owning crosses the same-model API. Confidence drops one level for each of: theoretical throughput, a placeholder server price, and default operating assumptions.
+The Analysis summary names the lowest-cost architecture among owning servers, renting GPUs, paying per token for the same model and the hybrid mix: *Strong / Likely on-prem candidate*, *On-prem + API for bursts* (owned servers sized below the full peak carry 97%+ of tokens; an API absorbs rare spikes), *GPU cloud candidate*, *Hybrid candidate*, *Near breakeven* (paying per token is cheapest, but owning catches up within 3× today's usage) or *API candidate*. The breakeven sentence separately reports where owning crosses the same-model API. Confidence drops one level for each of: theoretical throughput, a placeholder server price, and default operating assumptions.
 
 ---
 

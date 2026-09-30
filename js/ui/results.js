@@ -260,7 +260,7 @@
   function hybridTile(hy) {
     if (!hy) return `<div class="exec-tile"><span class="label">Hybrid (owned baseline + API)</span><span class="value muted">—</span><span class="muted small">Needs a same-model API price</span></div>`;
     const b = hy.best;
-    const note = b.share <= 0.05 ? 'best mix is all API' : b.share >= 0.95 ? 'best mix is all owned' : `${f.num(b.share * 100, 0)}% of tokens on owned GPUs`;
+    const note = !b.row ? 'best mix is all API' : b.pct >= 100 ? 'best mix is all owned' : b.share >= 0.95 ? `${f.num(b.share * 100, 0)}% of tokens on owned GPUs; API takes rare bursts` : `${f.num(b.share * 100, 0)}% of tokens on owned GPUs`;
     return `<div class="exec-tile ${hy.wins ? 'hy-win' : ''}"><span class="label">Hybrid (owned baseline + API)</span><span class="value">${f.usdCompact(b.total * 12)}<small>/yr</small></span>
       <span class="muted small">${b.row ? esc(b.setup) + ' + ' + esc(hy.api.name) : esc(hy.api.name) + ' only'}</span><span class="muted small">${note}</span></div>`;
   }
@@ -298,7 +298,7 @@
     const lx = X(b.pct) > (W - M.r) * 0.6 ? X(b.pct) - 12 : X(b.pct) + 12;
     svg += `<text class="hy-best" x="${lx}" y="${Y(Y12(b.total)) - 12}" text-anchor="${X(b.pct) > (W - M.r) * 0.6 ? 'end' : 'start'}">Lowest total: ${f.usdCompact(Y12(b.total))}/yr at ${b.pct}%</text>`;
     svg += '</svg>';
-    const legend = `<div class="hy-legend"><span><i style="border-color:var(--accent)"></i>Total = owned + API overflow</span><span><i style="border-color:var(--muted)"></i>Owned GPUs</span><span><i style="border-color:var(--muted);border-top-style:dashed"></i>API overflow</span><span><i style="border-color:var(--muted);border-top-style:dotted"></i>All owned, sized for peak + headroom (no API)</span></div>
+    const legend = `<div class="hy-legend"><span><i style="border-color:var(--accent)"></i>Total = owned + API overflow</span><span><i style="border-color:var(--muted)"></i>Owned GPUs</span><span><i style="border-color:var(--muted);border-top-style:dashed"></i>API overflow</span><span><i style="border-color:var(--muted);border-top-style:dotted"></i>All owned, sized for the full peak (no API)</span></div>
       <p class="muted small">Read left to right: owning more GPUs moves tokens off the API. Owned cost rises in steps because hardware comes in whole servers; where it stays flat, one server already covers that share. Hover a point for the numbers.</p>`;
     const rows = pts.filter(p => p.pct % 25 === 0 || p === b);
     const tbl = `<div class="table-wrap"><table class="results-table compact"><thead><tr><th>Owned capacity</th><th>Owned setup</th><th class="num">Tokens on owned GPUs</th><th class="num">Owned / yr</th><th class="num">API overflow / yr</th><th class="num">Total / yr</th><th class="num">vs all-API</th></tr></thead><tbody>` +
@@ -307,13 +307,13 @@
         <td class="num">${p.pct === 0 ? '—' : p.total <= hy.apiOnly ? '−' + f.usd((hy.apiOnly - p.total) * 12) : '+' + f.usd((p.total - hy.apiOnly) * 12)}</td></tr>`).join('') + '</tbody></table></div>';
     const verdict = hy.wins
       ? `Owning a baseline sized for <strong>${b.pct}%</strong> of peak and sending the overflow to <strong>${esc(hy.api.name)}</strong> is the lowest-cost mix — about <strong>${f.usdCompact(hy.savingsVsApi * 12)}/yr</strong> less than all-API${hy.savingsVsOnPrem > 0 ? ` and ${f.usdCompact(hy.savingsVsOnPrem * 12)}/yr less than owning for the full peak` : ''}.`
-      : b.share <= 0.05 ? (() => {
+      : !b.row ? (() => {
         const o = pts.filter(p => p.row).sort((p, q) => p.ownedMonthly - q.ownedMonthly)[0];
         return 'At this volume the lowest-cost mix is <strong>all API</strong>: owned capacity costs more than the tokens it would serve.' + (o
           ? ` Even the smallest owned setup (${esc(o.setup)}) costs <strong>${f.usdCompact(o.ownedMonthly * 12)}/yr</strong> and already serves ${f.num(o.share * 100, 0)}% of demand at ${o.pct}% of peak, versus <strong>${f.usdCompact(hy.apiOnly * 12)}/yr</strong> for all API — which is why the line jumps and then stays flat.`
           : '');
       })()
-      : b.share >= 0.95 ? 'At this volume the lowest-cost mix is <strong>all owned</strong>: overflow to the API costs more than owning for the peak.'
+      : b.pct >= 100 ? 'At this volume the lowest-cost mix is <strong>all owned</strong>: overflow to the API costs more than owning for the peak.'
       : `A mix at ${b.pct}% of peak is cheapest, but saves less than 5% versus the best single option.`;
     return `<p class="hy-verdict">${verdict}</p>${svg}${legend}${tbl}
       <details class="hy-how"><summary>How this is calculated</summary>${TC.renderSteps('Hybrid', hy.steps)}
