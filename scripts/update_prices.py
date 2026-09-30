@@ -7,6 +7,8 @@ Every price row that carries a "feed" block is refreshed from its public source:
     {"source": "openrouter-endpoint", "id": "...", "provider": "Together"}  one hosting provider's price via OpenRouter
     {"source": "fireworks", "model": "OpenAI GPT OSS 120B"} | {"source": "fireworks", "tier": "More than 16B parameters"}
     {"source": "deepseek", "column": 0|1}                              DeepSeek API docs, peak rates (0 = flash, 1 = pro)
+    {"source": "azure-foundry", "input": "<meter>", "output": "<meter>", "region": "eastus2"}  Azure Retail Prices API (Foundry Models)
+    {"source": "vertex", "model": "Llama 3.3 70B"}                     Vertex AI generative-AI pricing page (managed partner/open models)
 
   data/gpus.json  cloud[].feed
     {"source": "lambda", "name": "NVIDIA H100 SXM", "vram": "80 GB"}   on-demand, 8x instance table
@@ -191,6 +193,57 @@ class DeepSeek:
         return {'input_per_m': self.miss[c], 'cached_input_per_m': self.hit[c], 'output_per_m': self.out[c]}
 
 
+class AzureFoundry:
+    """Azure AI Foundry serverless (pay-per-token) model prices from the public Azure Retail Prices API."""
+    name = 'Azure AI Foundry'
+    url = 'https://prices.azure.com/api/retail/prices'
+
+    def __init__(self):
+        self.cache = {}
+
+    def meter(self, name, region):
+        key = (name, region)
+        if key not in self.cache:
+            flt = f"serviceName eq 'Foundry Models' and armRegionName eq '{region}' and meterName eq '{name}'"
+            items = json.loads(get(self.url + '?' + urllib.parse.urlencode({'$filter': flt})))['Items']
+            items = [i for i in items if i.get('type') == 'Consumption']
+            if not items:
+                raise SourceError(f"Azure meter '{name}' in {region} not found")
+            i = items[0]
+            unit = {'1K': 1000, '1M': 1, '1': 1e6}.get(i['unitOfMeasure'])
+            if unit is None:
+                raise SourceError(f"Azure meter '{name}' has unexpected unit {i['unitOfMeasure']}")
+            self.cache[key] = r4(i['retailPrice'] * unit)
+        return self.cache[key]
+
+    def lookup(self, feed):
+        region = feed.get('region', 'eastus2')
+        return {'input_per_m': self.meter(feed['input'], region), 'output_per_m': self.meter(feed['output'], region)}
+
+
+class Vertex:
+    """Google Vertex AI managed (Model-as-a-Service) prices for open/partner models."""
+    name = 'Google Vertex AI'
+    url = 'https://cloud.google.com/vertex-ai/generative-ai/pricing'
+
+    def __init__(self):
+        self.t = page_text(get(self.url))
+
+    def lookup(self, feed):
+        # Rows read: <model> | Input | $x | Output | $y [| Cache Hit | $c] [| Batch Input | $b | Batch Output | $bo]
+        m = re.search(r'\| ' + re.escape(feed['model']) + r' \| Input \| \$([\d.]+) \| Output \| \$([\d.]+)'
+                      r'(?: \| Cache Hit \| \$([\d.]+))?(?: \| Batch Input \| \$([\d.]+))?', self.t)
+        if not m:
+            raise SourceError(f"Vertex AI model '{feed['model']}' not found")
+        inp, out = money(m.group(1)), money(m.group(2))
+        vals = {'input_per_m': inp, 'output_per_m': out}
+        if m.group(3):
+            vals['cached_input_per_m'] = money(m.group(3))
+        if m.group(4) and inp > 0:
+            vals['batch_discount_pct'] = round(100 * (1 - money(m.group(4)) / inp))
+        return vals
+
+
 class Lambda:
     name = 'Lambda'
     url = 'https://lambda.ai/pricing'
@@ -338,6 +391,7 @@ SOURCES = {
     'openrouter': OpenRouter, 'openrouter-endpoint': OpenRouter, 'fireworks': Fireworks, 'deepseek': DeepSeek,
     'lambda': Lambda, 'coreweave': CoreWeave, 'nebius': Nebius, 'together-gpu': TogetherGPU,
     'aws-capacity-blocks': AWSCapacityBlocks, 'azure': Azure, 'google': Google,
+    'azure-foundry': AzureFoundry, 'vertex': Vertex,
 }
 
 
@@ -409,6 +463,12 @@ def main():
                 elif fd['source'] == 'fireworks':
                     vals = src.lookup(fd)
                     txt = f"docs.fireworks.ai/serverless/pricing ({fd.get('model') or 'size tier: ' + fd['tier']})"
+                elif fd['source'] == 'azure-foundry':
+                    vals = src.lookup(fd)
+                    txt = f"Azure Retail Prices API, Foundry Models ({fd['input']} / {fd['output']}, {fd.get('region', 'eastus2')})"
+                elif fd['source'] == 'vertex':
+                    vals = src.lookup(fd)
+                    txt = f"cloud.google.com/vertex-ai/generative-ai/pricing ({fd['model']})"
                 else:
                     vals = src.lookup(fd)
                     txt = 'api-docs.deepseek.com/quick_start/pricing (peak rate; off-peak is 50% lower)'

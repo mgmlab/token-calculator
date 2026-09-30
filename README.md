@@ -131,7 +131,8 @@ Every day at 11:17 UTC, the **Update prices (daily)** GitHub Action runs `script
 | api-docs.deepseek.com | DeepSeek API peak prices |
 | lambda.ai, coreweave.com, nebius.com, together.ai | GPU rental on-demand prices (plus Together's 181+ day reserved rate) |
 | AWS Capacity Blocks page | AWS reserved (Capacity Block) rates |
-| Azure Retail Prices API | Azure on-demand and 1-, 3- and 5-year reservation rates |
+| Azure Retail Prices API | Azure on-demand and 1-, 3- and 5-year reservation rates (GPU rental), and Azure AI Foundry per-token prices for hosted open models (global standard deployment, eastus2) |
+| cloud.google.com/vertex-ai/generative-ai/pricing | Google Vertex AI per-token prices for hosted open models (Llama, gpt-oss, Qwen), batch discount and cache-hit price |
 | Google Cloud accelerator pricing page | Google on-demand/Flex-start and 1- and 3-year committed-use rates (us-central1) |
 
 **Safety:**

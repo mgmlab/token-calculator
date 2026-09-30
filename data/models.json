@@ -251,6 +251,55 @@
             "id": "meta-llama/llama-3.3-70b-instruct",
             "mode": "own"
           }
+        },
+        {
+          "provider": "Azure AI Foundry",
+          "input_per_m": {
+            "value": 0.71,
+            "source": "Azure Retail Prices API, Foundry Models (Llama 3.3 70B Inp glbl Tokens / Llama 3.3 70B Outp glbl Tokens, eastus2); global standard deployment, data-zone/regional deployments cost about 10% more",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 0.71,
+            "source": "Azure Retail Prices API, Foundry Models (Llama 3.3 70B Inp glbl Tokens / Llama 3.3 70B Outp glbl Tokens, eastus2); global standard deployment, data-zone/regional deployments cost about 10% more",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "cached_input_per_m": null,
+          "batch_discount_pct": null,
+          "feed": {
+            "source": "azure-foundry",
+            "input": "Llama 3.3 70B Inp glbl Tokens",
+            "output": "Llama 3.3 70B Outp glbl Tokens",
+            "region": "eastus2"
+          }
+        },
+        {
+          "provider": "Google Vertex AI",
+          "input_per_m": {
+            "value": 0.72,
+            "source": "cloud.google.com/vertex-ai/generative-ai/pricing (Llama 3.3 70B)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 0.72,
+            "source": "cloud.google.com/vertex-ai/generative-ai/pricing (Llama 3.3 70B)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "cached_input_per_m": null,
+          "batch_discount_pct": {
+            "value": 50,
+            "source": "cloud.google.com/vertex-ai/generative-ai/pricing (Llama 3.3 70B)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "feed": {
+            "source": "vertex",
+            "model": "Llama 3.3 70B"
+          }
         }
       ]
     },
@@ -487,6 +536,32 @@
             "id": "qwen/qwen3-235b-a22b",
             "mode": "own"
           }
+        },
+        {
+          "provider": "Google Vertex AI",
+          "input_per_m": {
+            "value": 0.22,
+            "source": "cloud.google.com/vertex-ai/generative-ai/pricing (Qwen3-235B-A22B-Instruct-2507); the 2507 instruct update of Qwen3 235B-A22B, same architecture",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 0.88,
+            "source": "cloud.google.com/vertex-ai/generative-ai/pricing (Qwen3-235B-A22B-Instruct-2507); the 2507 instruct update of Qwen3 235B-A22B, same architecture",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "cached_input_per_m": null,
+          "batch_discount_pct": {
+            "value": 50,
+            "source": "cloud.google.com/vertex-ai/generative-ai/pricing (Qwen3-235B-A22B-Instruct-2507); the 2507 instruct update of Qwen3 235B-A22B, same architecture",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "feed": {
+            "source": "vertex",
+            "model": "Qwen3-235B-A22B-Instruct-2507"
+          }
         }
       ],
       "note": "Native context 32,768; up to 131,072 with YaRN. No verified public serverless price found on 2026-09-28."
@@ -708,6 +783,37 @@
             "id": "openai/gpt-oss-20b",
             "mode": "own"
           }
+        },
+        {
+          "provider": "Google Vertex AI",
+          "input_per_m": {
+            "value": 0.07,
+            "source": "cloud.google.com/vertex-ai/generative-ai/pricing (gpt-oss-20b)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 0.25,
+            "source": "cloud.google.com/vertex-ai/generative-ai/pricing (gpt-oss-20b)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.007,
+            "source": "cloud.google.com/vertex-ai/generative-ai/pricing (gpt-oss-20b)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "batch_discount_pct": {
+            "value": 50,
+            "source": "cloud.google.com/vertex-ai/generative-ai/pricing (gpt-oss-20b)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "feed": {
+            "source": "vertex",
+            "model": "gpt-oss-20b"
+          }
         }
       ]
     },
@@ -876,6 +982,55 @@
             "source": "openrouter",
             "id": "openai/gpt-oss-120b",
             "mode": "own"
+          }
+        },
+        {
+          "provider": "Azure AI Foundry",
+          "input_per_m": {
+            "value": 0.15,
+            "source": "Azure Retail Prices API, Foundry Models (gpt-oss-120B Inp glbl Tokens / gpt-oss-120B Outp glbl Tokens, eastus2); global standard deployment",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 0.6,
+            "source": "Azure Retail Prices API, Foundry Models (gpt-oss-120B Inp glbl Tokens / gpt-oss-120B Outp glbl Tokens, eastus2); global standard deployment",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "cached_input_per_m": null,
+          "batch_discount_pct": null,
+          "feed": {
+            "source": "azure-foundry",
+            "input": "gpt-oss-120B Inp glbl Tokens",
+            "output": "gpt-oss-120B Outp glbl Tokens",
+            "region": "eastus2"
+          }
+        },
+        {
+          "provider": "Google Vertex AI",
+          "input_per_m": {
+            "value": 0.09,
+            "source": "cloud.google.com/vertex-ai/generative-ai/pricing (gpt-oss-120b)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 0.36,
+            "source": "cloud.google.com/vertex-ai/generative-ai/pricing (gpt-oss-120b)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "cached_input_per_m": null,
+          "batch_discount_pct": {
+            "value": 50,
+            "source": "cloud.google.com/vertex-ai/generative-ai/pricing (gpt-oss-120b)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "feed": {
+            "source": "vertex",
+            "model": "gpt-oss-120b"
           }
         }
       ]
