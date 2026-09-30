@@ -43,8 +43,8 @@
         "as_of": "2026-09-28",
         "status": "placeholder"
       },
-      "rack_units": 2,
-      "note": "Small (2-GPU) configuration added so every vendor has a comparable entry for small deployments. Confirm this SKU supports 2× RTX PRO 6000 Server Edition in your region, and replace the placeholder price with current pricing."
+      "rack_units": 4,
+      "note": "Valid: Cisco lists 2, 4, 6 or 8 PCIe GPUs including RTX PRO 6000 Blackwell Server Edition (600W). 4RU chassis. Source: Cisco UCS C845A M8 data sheet (checked 2026-09-29)."
     },
     {
       "id": "cisco-ucs-c885a-m8-b200",
@@ -156,7 +156,7 @@
         "status": "placeholder"
       },
       "rack_units": 2,
-      "note": "Confirm this SKU supports 2× RTX PRO 6000 Server Edition in your region, and replace the placeholder price with current pricing."
+      "note": "Valid: R7725 (2U) takes up to two double-width GPUs; Dell ships it with 2x RTX PRO 6000 Server Edition. Note: the R7725 caps each RTX PRO 6000 at 450W (vs 600W), which can lower compute-bound throughput slightly. Source: Dell PowerEdge/NVIDIA RTX PRO announcements and Dell community (checked 2026-09-29)."
     },
     {
       "id": "dell-poweredge-xe9680-h100",
@@ -378,8 +378,8 @@
         "as_of": "2026-09-28",
         "status": "placeholder"
       },
-      "rack_units": 2,
-      "note": "Small (2-GPU) configuration added so every vendor has a comparable entry for small deployments. Confirm this SKU supports 2× RTX PRO 6000 Server Edition in your region, and replace the placeholder price with current pricing."
+      "rack_units": 4,
+      "note": "Valid: DL380a Gen12 is a 4U server supporting up to eight RTX PRO 6000 Blackwell Server Edition; a partially populated 2-GPU build is a supported option. Source: HPE / StorageReview DL380a Gen12 (checked 2026-09-29)."
     },
     {
       "id": "lenovo-sr650a-v4-rtxpro6000-2",
@@ -402,7 +402,7 @@
         "status": "placeholder"
       },
       "rack_units": 2,
-      "note": "Small (2-GPU) configuration added so every vendor has a comparable entry for small deployments. Confirm this SKU supports 2× RTX PRO 6000 Server Edition in your region, and replace the placeholder price with current pricing."
+      "note": "Valid: SR650a V4 (2U) supports RTX PRO 6000 Server Edition, max 2 at 600W (feature CBK8) or 4 power-capped to 450W. Requires specific CTO models (7DGCCTO2WW/7DGCCTO4WW/7DGDCTO2WW/7DGDCTO4WW) and the C9R5 cable riser. Source: Lenovo Press LP2263 (checked 2026-09-29)."
     },
     {
       "id": "lenovo-sr675-v3-l40s",
@@ -558,7 +558,7 @@
         "status": "placeholder"
       },
       "rack_units": 2,
-      "note": "Small (2-GPU) configuration added so every vendor has a comparable entry for small deployments. Confirm this SKU supports 2× RTX PRO 6000 Server Edition in your region, and replace the placeholder price with current pricing."
+      "note": "Valid: SYS-221GE-NR (2U, 4th/5th Gen Xeon) supports up to 4 double-width GPUs including RTX PRO 6000 Server Edition, limited to 450W per GPU by firmware. Source: Supermicro SYS-221GE-NR spec page (checked 2026-09-29)."
     },
     {
       "id": "supermicro-sys-522ga-nrt-rtxpro6000",
