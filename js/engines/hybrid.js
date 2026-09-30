@@ -63,6 +63,7 @@
     const wl = res.wl;
     const api = cheapest(res.api.filter(r => r.sameModel));
     const onOnly = cheapest(res.onprem);
+    const cloud = cheapest(res.cloud);
     if (!api || !onOnly) return null;
 
     const reqDay = w.users * w.requests_per_user_per_day;
@@ -90,7 +91,8 @@
       points.push({ pct: step * 5, K, capacity: cap, share, ownedMonthly: row.monthly, apiMonthly, total: row.monthly + apiMonthly, row, setup: TC.describeOnPrem(onRows, row).label });
     }
     const best = points.reduce((a, p) => (p.total < a.total ? p : a), points[0]);
-    const pureBest = Math.min(api.monthly, onOnly.monthly);
+    // A mix only "wins" if it beats every single-architecture option, GPU cloud included.
+    const pureBest = Math.min(api.monthly, onOnly.monthly, cloud ? cloud.monthly : Infinity);
     const mixed = best.share > 0.05 && best.share < 0.95;
     const wins = mixed && best.total < 0.95 * pureBest;
 
@@ -104,9 +106,10 @@
     ];
 
     return {
-      points, best, api, onOnly, wins, mixed, peak,
+      points, best, api, onOnly, cloud, wins, mixed, peak,
       apiOnly: api.monthly, onPremOnly: onOnly.monthly,
       savingsVsApi: api.monthly - best.total, savingsVsOnPrem: onOnly.monthly - best.total,
+      savingsVsCloud: cloud ? cloud.monthly - best.total : null,
       steps,
     };
   };

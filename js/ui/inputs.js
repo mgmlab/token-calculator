@@ -30,7 +30,8 @@
       { k: 'scenario_name', label: 'Scenario name (optional)', type: 'text', hint: 'Shown on exports — e.g. "Support assistant, 3-year view"',
         tip: 'A label for this analysis. It appears on the PowerPoint and CSV exports and in shared links. It is never saved to the shared data.' },
       { k: 'preset', label: 'What are you building?', type: 'select', options: [...Object.entries(PRESETS).map(([k, p]) => [k, p.label]), ['custom', 'Custom']],
-        tip: 'Picks typical starting values (requests, text in and out, busy hour, speed, caching) for common AI workloads. Adjust anything afterwards; open Advanced settings for the technical inputs.' },
+        hint: 'Illustrative starting point only. Confirm the workload with the customer before relying on the results.',
+        tip: 'Fills in illustrative starting values (requests, text in and out, busy hour, speed, caching) for common AI workloads. They are not Pellera benchmarks; adjust them to what the customer tells you. Open Advanced settings for the technical inputs.' },
       { k: 'term_years', label: 'Comparison term', type: 'select', options: [[3, '3 years'], [5, '5 years']],
         tip: 'Comparison horizon. On-prem hardware is amortized over this term; cloud and API costs are summed over it. 3 years is common given how fast GPUs age.' },
     ]},
@@ -158,7 +159,10 @@
 
   // Share links carry the inputs in the #hash, which browsers never send to the server or analytics.
   TC.shareUrl = w => {
-    const json = JSON.stringify(Object.fromEntries(Object.entries(w).filter(([k]) => !k.startsWith('_'))));
+    // Workload inputs plus options removed from the analysis, so the link reproduces the same answer.
+    const payload = Object.fromEntries(Object.entries(w).filter(([k]) => !k.startsWith('_') && k !== 'excluded'));
+    if (TC.excl.count()) payload.excluded = TC.excl.get();
+    const json = JSON.stringify(payload);
     const b64 = btoa(unescape(encodeURIComponent(json))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     return location.origin + location.pathname + '#s=' + b64;
   };
@@ -283,19 +287,23 @@
       el.querySelector('[data-act="share"]').onclick = async () => {
         const url = TC.shareUrl(w);
         const m = form.querySelector('.share-msg');
-        try { await navigator.clipboard.writeText(url); m.textContent = 'Link copied — anyone who opens it sees these exact inputs.'; }
+        const nx = TC.excl.count();
+        try { await navigator.clipboard.writeText(url); m.textContent = 'Link copied — anyone who opens it sees these exact inputs' + (nx ? ` and the ${nx} removed option${nx > 1 ? 's' : ''}.` : '.'); }
         catch (e) { m.textContent = 'Copy this link: ' + url; }
         m.hidden = false;
         TC.track('share-link', 'Copied share link');
       };
-      el.querySelector('[data-act="export"]').onclick = () => TC.download('scenario-' + TC.today() + '.json', { tc_scenario: 1, workload: w });
+      el.querySelector('[data-act="export"]').onclick = () => TC.download('scenario-' + TC.today() + '.json', { tc_scenario: 1, workload: w, excluded: TC.excl.get() });
       el.querySelector('[data-act="import"]').onclick = () => fileIn.click();
       fileIn.onchange = async () => {
         const file = fileIn.files[0];
         if (!file) return;
         try {
           const obj = JSON.parse(await file.text());
-          Object.assign(w, obj.workload || obj);
+          const wk = Object.assign({}, obj.workload || obj);
+          delete wk.excluded;
+          Object.assign(w, wk);
+          if (obj.tc_scenario) TC.excl.replace(obj.excluded || null); // a scenario file sets exactly what is removed
           this.save(w);
           this.render(el, w, onChange);
           onChange();

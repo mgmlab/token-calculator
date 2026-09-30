@@ -45,7 +45,7 @@
     const src = Object.entries(ps.sources || {}).map(([n, v]) =>
       `<li><span class="ovr-kind ${v.ok ? 'add' : 'del'}">${v.ok ? 'ok' : 'failed'}</span> ${esc(n)} <span class="muted">· ${v.rows} row${v.rows === 1 ? '' : 's'}${v.changed ? ` · ${v.changed} changed` : ''}</span></li>`).join('');
     return `<div class="ovr-head"><strong>Automatic price updates</strong>
-        <span class="muted small">API and GPU rental prices are refreshed every day from each provider's public price list. Last check: ${esc(new Date(ps.checked_at.replace('Z', ':00Z')).toLocaleString())}. Server and GPU purchase prices are updated by hand.</span></div>
+        <span class="muted small">API and GPU rental prices are refreshed every day from supported public pricing sources. Last check: ${esc(new Date(ps.checked_at.replace('Z', ':00Z')).toLocaleString())}. Server and GPU purchase prices are updated by hand.</span></div>
       <section class="ovr-ds"><strong>Sources</strong><ul class="ovr-list">${src}</ul></section>
       ${list('Changed in the last check', ps.changed)}
       ${list('Held for review (moved more than 50%)', ps.needs_review)}
@@ -239,13 +239,17 @@
     w = TC.inputs.load();
     const shared = TC.readShareHash();
     if (shared) {
+      // A shared scenario replaces both the inputs and the removed options, so nothing from this browser leaks in.
+      const sharedExcl = shared.excluded || null;
+      delete shared.excluded;
+      TC.excl.replace(sharedExcl);
       Object.keys(w).forEach(k => delete w[k]);
       Object.assign(w, TC.inputs.defaults(), shared);
       TC.inputs.save(w);
       history.replaceState(null, '', location.pathname + location.search);
       const b = $('#banner');
       b.hidden = false; b.className = 'banner';
-      b.innerHTML = `<div>Loaded a shared scenario${w.scenario_name ? ': <strong>' + TC.esc(w.scenario_name) + '</strong>' : ''}. Your previous inputs were replaced.</div>`;
+      b.innerHTML = `<div>Loaded a shared scenario${w.scenario_name ? ': <strong>' + TC.esc(w.scenario_name) + '</strong>' : ''}. Your previous inputs${sharedExcl && TC.excl.count() ? ` were replaced, and ${TC.excl.count()} option${TC.excl.count() > 1 ? 's are' : ' is'} removed as in the shared analysis` : ' and removed options were replaced'}.</div>`;
       TC.track('share-link-opened', 'Opened a shared scenario');
     } else resumeBar();
     TC.inputs.render($('#inputs'), w, schedule);

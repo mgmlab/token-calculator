@@ -188,14 +188,17 @@
   });
 
   test('economic-fit verdict thresholds', () => {
-    eq(TC.fitVerdict({ onMonthly: 90, altMonthly: 100, multiple: 0 }).key, 'onprem', 'cheaper now');
-    eq(TC.fitVerdict({ onMonthly: 90, altMonthly: 100, multiple: 0, onHigh: 95 }).key, 'onprem', 'cheaper even in the pessimistic case');
-    eq(TC.fitVerdict({ onMonthly: 90, altMonthly: 100, multiple: 0, onHigh: 130 }).key, 'onprem-likely', 'range overlaps the alternative');
-    eq(TC.fitVerdict({ onMonthly: 150, altMonthly: 100, multiple: 2.5 }).key, 'near', 'within 3x');
-    eq(TC.fitVerdict({ onMonthly: 150, altMonthly: 100, multiple: 9, hybridWins: true }).key, 'hybrid', 'hybrid mix wins');
-    eq(TC.fitVerdict({ onMonthly: 900, altMonthly: 100, multiple: 40 }).key, 'api', 'far from breakeven');
-    eq(TC.fitVerdict({ onMonthly: 900, altMonthly: 100, multiple: Infinity }).key, 'api', 'never in range');
-    eq(TC.fitVerdict({ onMonthly: null, altMonthly: 100, multiple: 1 }).key, 'unknown', 'no data');
+    const V = o => TC.fitVerdict(Object.assign({ multiple: Infinity }, o)).key;
+    eq(V({ onMonthly: 90, apiMonthly: 100, cloudMonthly: 120 }), 'onprem', 'cheapest of all');
+    eq(V({ onMonthly: 90, apiMonthly: 100, cloudMonthly: 120, onHigh: 95 }), 'onprem', 'cheaper even in the pessimistic case');
+    eq(V({ onMonthly: 90, apiMonthly: 100, cloudMonthly: 120, onHigh: 130 }), 'onprem-likely', 'range overlaps the next option');
+    eq(V({ onMonthly: 100, apiMonthly: 120, cloudMonthly: 80 }), 'cloud', 'on-prem beats the API but GPU cloud is cheaper');
+    eq(V({ onMonthly: 100, apiMonthly: null, cloudMonthly: 80 }), 'cloud', 'no API price; cloud cheapest');
+    eq(V({ onMonthly: 150, apiMonthly: 100, cloudMonthly: 200, multiple: 2.5 }), 'near', 'API cheapest, within 3x');
+    eq(V({ onMonthly: 150, apiMonthly: 100, cloudMonthly: 200, multiple: 9, hybridWins: true }), 'hybrid', 'hybrid mix wins');
+    eq(V({ onMonthly: 900, apiMonthly: 100, cloudMonthly: 300, multiple: 40 }), 'api', 'far from breakeven');
+    eq(V({ onMonthly: 900, apiMonthly: 100, cloudMonthly: 300 }), 'api', 'never in range');
+    eq(V({ onMonthly: null, apiMonthly: 100, cloudMonthly: 80 }), 'unknown', 'no data');
   });
 
   test('hybrid traffic profile and served fraction', () => {

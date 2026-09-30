@@ -35,6 +35,12 @@
       x[kind] = [...s];
       write(x);
     },
+    /** Replace everything with a saved set (from a share link or scenario file); null clears. */
+    replace(o) {
+      const x = { labels: (o && o.labels) || {} };
+      KINDS.forEach(k => { x[k] = o && Array.isArray(o[k]) ? o[k].map(String) : []; });
+      write(x);
+    },
     clear() { TC.storage.remove(KEY); listeners.forEach(fn => fn()); },
     onChange(fn) { listeners.push(fn); },
     /** Everything excluded, as [{kind, id, label}] for display. */

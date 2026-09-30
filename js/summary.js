@@ -7,17 +7,24 @@
 
   const cheapest = rows => rows.filter(r => r.feasible && isFinite(r.monthly)).sort((a, b) => a.monthly - b.monthly)[0] || null;
 
-  /** Pure verdict rule (unit-tested). multiple = breakeven volume ÷ today's volume (0 = already cheaper, Infinity = not in range). */
-  TC.fitVerdict = function ({ onMonthly, altMonthly, multiple, onHigh, hybridWins }) {
-    if (onMonthly == null || altMonthly == null) return { key: 'unknown', label: 'Not enough data', tone: 'neutral' };
+  /**
+   * Pure verdict rule (unit-tested). Picks the lowest-cost architecture among owning servers, renting GPUs,
+   * paying per token (same model) and the hybrid mix. multiple = volume at which owning crosses the same-model API
+   * ÷ today's volume (Infinity = not in range); it only decides "Near breakeven" when paying per token is cheapest.
+   */
+  TC.fitVerdict = function ({ onMonthly, apiMonthly, cloudMonthly, multiple, onHigh, hybridWins }) {
+    const alts = [apiMonthly, cloudMonthly].filter(x => x != null && isFinite(x));
+    if (onMonthly == null || !alts.length) return { key: 'unknown', label: 'Not enough data', tone: 'neutral' };
     if (hybridWins) return { key: 'hybrid', label: 'Hybrid candidate', tone: 'mid' };
-    if (onMonthly <= altMonthly || multiple === 0) {
+    const alt = Math.min(...alts);
+    if (onMonthly <= alt) {
       // Cheaper at the central estimate, but the pessimistic case isn't: not a clear win yet.
-      if (onHigh != null && onHigh > altMonthly) return { key: 'onprem-likely', label: 'Likely on-prem candidate', tone: 'mid' };
+      if (onHigh != null && onHigh > alt) return { key: 'onprem-likely', label: 'Likely on-prem candidate', tone: 'mid' };
       return { key: 'onprem', label: 'Strong on-prem candidate', tone: 'good' };
     }
+    if (cloudMonthly != null && (apiMonthly == null || cloudMonthly < apiMonthly)) return { key: 'cloud', label: 'GPU cloud candidate', tone: 'cool' };
     if (multiple <= 3) return { key: 'near', label: 'Near breakeven', tone: 'mid' };
-    return { key: 'api', label: 'API / cloud candidate', tone: 'cool' };
+    return { key: 'api', label: 'API candidate', tone: 'cool' };
   };
 
   /** Low/high cases: optimistic vs pessimistic values for the uncertain inputs (throughput efficiency, placeholder prices, load). */
@@ -50,9 +57,11 @@
     const onRange = range(r => r.onprem, on);
     const clRange = range(r => r.cloud, cl);
 
-    // Breakeven vs the same-model API (or GPU cloud if no same-model API exists).
+    // Breakeven: owning vs the same-model API (or GPU cloud if no same-model API exists). The verdict itself
+    // compares every architecture; this multiple only feeds the breakeven sentence and "Near breakeven".
     const altKey = api ? 'api_same' : 'cloud_reserved';
     const alt = api || cl;
+    const cheapAlt = [api, cl].filter(Boolean).sort((a, b) => a.monthly - b.monthly)[0] || null;
     const be = TC.breakeven(data, w, { kMax: 2000, points: 32 });
     const cross = be.crossovers.find(c => c.key === altKey);
     let multiple = Infinity;
@@ -61,26 +70,30 @@
     else if (cross && cross.index > 0) multiple = cross.tokensMonth / wl.tMo;
     let hy = null;
     try { hy = TC.hybrid(data, w, res); } catch (e) { console.error(e); }
-    const verdict = TC.fitVerdict({ onMonthly: on && on.monthly, altMonthly: alt && alt.monthly, multiple, onHigh: onRange && onRange.max, hybridWins: !!(hy && hy.wins) });
+    const verdict = TC.fitVerdict({ onMonthly: on && on.monthly, apiMonthly: api && api.monthly, cloudMonthly: cl && cl.monthly, multiple, onHigh: onRange && onRange.max, hybridWins: !!(hy && hy.wins) });
 
     // Why
     const util = on ? on.util * 100 : null;
     const bursty = wl.avgConc24h > 0 ? w.peak_concurrent_requests / wl.avgConc24h : null;
-    const altName = api ? 'paying per token' : 'renting GPUs';
+    const altName = cheapAlt === cl ? 'renting GPUs' : 'paying per token';
     let why = '';
     if (verdict.key === 'onprem' || verdict.key === 'onprem-likely') {
       why = `The workload keeps dedicated GPUs busy enough (about ${f.num(util, 0)}% average utilization) that owning them costs less than ${altName} at today's volume.`;
-      if (verdict.key === 'onprem-likely') why += ` The pessimistic end of the on-prem range is above the ${api ? 'API' : 'cloud'} cost, so confirm server pricing and measured throughput before relying on it.`;
+      if (verdict.key === 'onprem-likely') why += ` The pessimistic end of the on-prem range is above the ${cheapAlt === cl ? 'GPU cloud' : 'API'} cost, so confirm server pricing and measured throughput before relying on it.`;
     } else if (verdict.key === 'hybrid') {
       const b = hy.best;
       why = `Owning a baseline sized for about ${b.pct}% of peak demand would handle ${f.num(b.share * 100, 0)}% of tokens, with the busy-hour overflow sent to ${hy.api.name}. That mix saves about ${f.usdCompact(hy.savingsVsApi * 12)}/yr versus paying per token for everything`
         + (hy.savingsVsOnPrem > 0 ? ` and ${f.usdCompact(hy.savingsVsOnPrem * 12)}/yr versus owning capacity for the full peak.` : '.');
+    } else if (verdict.key === 'cloud') {
+      why = `Renting GPUs (${cl.name}, ${cl.pricing.toLowerCase()}) is the lowest-cost option: about ${f.usdCompact((on.monthly - cl.monthly) * 12)}/yr less than owning servers`
+        + (api ? ` and ${f.usdCompact((api.monthly - cl.monthly) * 12)}/yr less than paying per token for the same model.` : '.')
+        + ' Rented capacity avoids the upfront purchase while still running the model on dedicated GPUs.';
     } else if (verdict.key === 'near') {
       why = `Owned GPUs would be about ${f.num(util, 0)}% busy today, and costs cross over at roughly ${f.num(multiple, 1)}× current usage — worth revisiting as usage grows.`;
     } else if (verdict.key === 'api') {
       why = `Dedicated GPUs would sit mostly idle (about ${f.num(util, util < 1 ? 1 : 0)}% average utilization)`
         + (bursty && bursty > 4 ? ' because capacity has to cover the busy hour but is paid for around the clock' : '')
-        + `, so ${altName} costs less ` + (isFinite(multiple) ? `until usage grows about ${f.num(multiple, multiple < 10 ? 1 : 0)}×.` : 'across the whole range modeled (up to 2,000× today).');
+        + `, so paying per token costs less ` + (isFinite(multiple) ? `until usage grows about ${f.num(multiple, multiple < 10 ? 1 : 0)}×.` : 'across the whole range modeled (up to 2,000× today).');
     }
 
     // Confidence
@@ -93,8 +106,8 @@
       if (b.basis === 'benchmark') ok('Throughput', b.lab ? 'Pellera lab benchmark' : 'measured benchmark');
       else { warn('Throughput', 'theoretical estimate (optimistic)'); uncertain++; }
       const sp = on.server.price_usd || {};
-      if (sp.status === 'placeholder') { warn('Server pricing', 'placeholder — use current real-world pricing'); uncertain++; }
-      else ok('Server pricing', sp.status === 'override' ? 'real-world pricing (your edit)' : 'current pricing');
+      if (sp.status === 'placeholder') { warn('Server pricing', 'placeholder — replace with current list pricing'); uncertain++; }
+      else ok('Server pricing', sp.status === 'override' ? 'your entered pricing' : 'current pricing');
     }
     const ps = TC.priceStatus;
     ok('API & GPU rental prices', ps && ps.date ? `public list prices, checked ${ps.date}` : 'public list prices');
@@ -102,7 +115,7 @@
     const a = data.assumptions;
     const phAssump = ['power.load_factor_pct', 'onprem.support_pct_per_year', 'onprem.net_storage_pct_of_servers']
       .filter(p => { const [x, y] = p.split('.'); return a[x][y] && a[x][y].status === 'placeholder'; }).length;
-    if (phAssump) warn('Operating assumptions', 'default power load, support and networking percentages');
+    if (phAssump) { warn('Operating assumptions', 'default power load, support and networking percentages'); uncertain++; }
     else ok('Operating assumptions', 'reviewed values');
     const level = uncertain === 0 ? 'High' : uncertain === 1 ? 'Medium' : 'Low';
 

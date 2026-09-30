@@ -76,9 +76,17 @@ On the **Compare** tab:
 
 ### Change requests
 
-**Request a change** (header or footer) opens a short form: request type, summary, details, source link, and optionally the current workload inputs. **Open email** starts an email to the maintainers with everything filled in, so they're notified. **Copy text** is there for Teams or other channels.
+**Request a change** (header) and **Submit a request** (footer) open a Microsoft Form in a new tab. No email app is needed and no maintainer email addresses are published. Responses and notifications are managed in Microsoft Forms.
 
-Recipients are set in [`js/config.js`](js/config.js) (`contacts`). The credit and copyright text shown in the footer, the PowerPoint and the guide also lives there.
+The form link is `requestFormUrl` in [`js/config.js`](js/config.js); the header, footer and the last slide of exported decks all use it. The credit and copyright text also lives there.
+
+### Scenarios, share links and removed options
+
+A scenario is the workload inputs **plus** any options removed from the analysis (✕ on the Compare tab, or Exclude in the Data editor). **Copy share link** and **Export scenario** carry both, and opening a share link or importing a scenario file replaces both, so nothing left over in the viewer's browser changes the answer. **New analysis** resets the inputs and, by default, brings removed options back.
+
+### The verdict
+
+The Analysis summary names the lowest-cost architecture among owning servers, renting GPUs, paying per token for the same model and the hybrid mix: *Strong / Likely on-prem candidate*, *GPU cloud candidate*, *Hybrid candidate*, *Near breakeven* (paying per token is cheapest, but owning catches up within 3× today's usage) or *API candidate*. The breakeven sentence separately reports where owning crosses the same-model API. Confidence drops one level for each of: theoretical throughput, a placeholder server price, and default operating assumptions.
 
 ---
 
@@ -113,7 +121,7 @@ Plain values without a wrapper (ids, names, `gpus_per_node`, enum settings) are 
 
 ### Automatic daily price updates (API and GPU rental)
 
-Every day at 11:17 UTC, the **Update prices (daily)** GitHub Action runs `scripts/update_prices.py`. It refreshes every price row that has a `feed` block from that provider's own public price list:
+Every day at 11:17 UTC, the **Update prices (daily)** GitHub Action runs `scripts/update_prices.py`. It refreshes every price row that has a `feed` block from supported public pricing sources (the provider's own price list, or a public listing such as OpenRouter's provider pages):
 
 | Source | What it updates |
 |---|---|
@@ -244,8 +252,9 @@ js/engines/cloud.js     GPU cloud reserved / on-demand
 js/engines/api.js       API pricing
 js/breakeven.js         scale sweep and crossover detection
 js/ui/*.js              inputs (+ tooltips), results tables, show-the-math, chart, data editor,
-                        export (CSV / PowerPoint), request (change-request dialog)
-js/config.js            credits, copyright, change-request recipients
+                        export (CSV / PowerPoint), request (change-request form links)
+js/config.js            credits, copyright, change-request form link
+js/exclusions.js        options removed from the current analysis
 docs/workload-guide.html  how to gather workload inputs from a client
 assets/                 Pellera logo and favicon
 data/*.json             tunable data (edit these)

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>AI Inference Economics Calculator</title>
   <link rel="icon" href="assets/favicon.png">
-  <link rel="stylesheet" href="css/styles.css?v=202609291758">
+  <link rel="stylesheet" href="css/styles.css?v=202609292018">
   <script data-goatcounter="https://pellera-token-calc.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>
 <body>
@@ -127,7 +127,8 @@ served on owned GPUs in hour i = E[min(X, K)], X ~ Poisson(c_i)      (normal app
 owned share of tokens = Σ served ÷ Σ c_i
 hybrid monthly = owned servers (sized for K, no extra headroom) + all-API monthly × (1 − owned share)
 K is tried from 0% to 100% of peak in 5% steps; the cheapest mix is reported</pre>
-        <p>The verdict reads "Hybrid candidate" only when the best mix is at least 5% cheaper than both all-API and all-owned and puts between 5% and 95% of tokens on owned GPUs. It assumes requests can be routed to either owned GPUs or the API (e.g. through a gateway) and that the same model runs on both.</p>
+        <p>The Analysis summary verdict names the lowest-cost architecture: <strong>Strong on-prem</strong> or <strong>Likely on-prem candidate</strong> (owning is cheapest; "likely" when the pessimistic end of its range is not), <strong>GPU cloud candidate</strong>, <strong>Hybrid candidate</strong>, <strong>Near breakeven</strong> (paying per token is cheapest but owning catches up within 3× today’s usage) or <strong>API candidate</strong>. The breakeven sentence separately says when owning crosses the same-model API. Confidence drops one level for each of: a theoretical throughput estimate, a placeholder server price, and default operating assumptions (power load, support, networking).</p>
+        <p>The verdict reads "Hybrid candidate" only when the best mix is at least 5% cheaper than all-API, all-owned and the cheapest GPU cloud option and puts between 5% and 95% of tokens on owned GPUs. It assumes requests can be routed to either owned GPUs or the API (e.g. through a gateway) and that the same model runs on both.</p>
 
         <h3>Breakeven</h3>
         <p>Users are scaled from 0.02× up to 2,000× your profile, keeping per-request shape fixed. With derived peak concurrency, the peak is recomputed at each volume, so bursts shrink relative to the average as usage grows; a manually entered peak scales linearly instead. For each volume the cheapest option in each category is plotted. On-prem and reserved cloud are step functions; API is linear. The crossover is the lowest volume above which on-prem stays cheaper for the rest of the range.</p>
@@ -155,25 +156,25 @@ K is tried from 0% to 100% of peak in 5% steps; the cheapest mix is reported</pr
 
   <input type="file" id="file-import" accept=".json,application/json" multiple hidden>
 
-  <script src="js/config.js?v=202609291758"></script>
-  <script src="js/util.js?v=202609291758"></script>
-  <script src="js/data-store.js?v=202609291758"></script>
-  <script src="js/exclusions.js?v=202609291758"></script>
-  <script src="js/workload.js?v=202609291758"></script>
-  <script src="js/engines/onprem.js?v=202609291758"></script>
-  <script src="js/engines/cloud.js?v=202609291758"></script>
-  <script src="js/engines/api.js?v=202609291758"></script>
-  <script src="js/engines/hybrid.js?v=202609291758"></script>
-  <script src="js/summary.js?v=202609291758"></script>
-  <script src="js/breakeven.js?v=202609291758"></script>
-  <script src="js/ui/math.js?v=202609291758"></script>
-  <script src="js/ui/inputs.js?v=202609291758"></script>
-  <script src="js/ui/results.js?v=202609291758"></script>
-  <script src="js/ui/chart.js?v=202609291758"></script>
-  <script src="js/ui/field-help.js?v=202609291758"></script>
-  <script src="js/ui/editor.js?v=202609291758"></script>
-  <script src="js/ui/export.js?v=202609291758"></script>
-  <script src="js/ui/request.js?v=202609291758"></script>
-  <script src="js/main.js?v=202609291758"></script>
+  <script src="js/config.js?v=202609292018"></script>
+  <script src="js/util.js?v=202609292018"></script>
+  <script src="js/data-store.js?v=202609292018"></script>
+  <script src="js/exclusions.js?v=202609292018"></script>
+  <script src="js/workload.js?v=202609292018"></script>
+  <script src="js/engines/onprem.js?v=202609292018"></script>
+  <script src="js/engines/cloud.js?v=202609292018"></script>
+  <script src="js/engines/api.js?v=202609292018"></script>
+  <script src="js/engines/hybrid.js?v=202609292018"></script>
+  <script src="js/summary.js?v=202609292018"></script>
+  <script src="js/breakeven.js?v=202609292018"></script>
+  <script src="js/ui/math.js?v=202609292018"></script>
+  <script src="js/ui/inputs.js?v=202609292018"></script>
+  <script src="js/ui/results.js?v=202609292018"></script>
+  <script src="js/ui/chart.js?v=202609292018"></script>
+  <script src="js/ui/field-help.js?v=202609292018"></script>
+  <script src="js/ui/editor.js?v=202609292018"></script>
+  <script src="js/ui/export.js?v=202609292018"></script>
+  <script src="js/ui/request.js?v=202609292018"></script>
+  <script src="js/main.js?v=202609292018"></script>
 </body>
 </html>
