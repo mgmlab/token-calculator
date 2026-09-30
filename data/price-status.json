@@ -1,11 +1,8 @@
 {
-  "checked_at": "2026-09-29T14:27Z",
-  "date": "2026-09-29",
-  "values_changed": 2,
-  "changed": [
-    "gpt-oss-120b (MoE) / OpenRouter / input $/1M: 0.15 → 0.037",
-    "gpt-oss-120b (MoE) / OpenRouter / output $/1M: 0.6 → 0.17"
-  ],
+  "checked_at": "2026-09-30T16:50Z",
+  "date": "2026-09-30",
+  "values_changed": 0,
+  "changed": [],
   "needs_review": [],
   "problems": [],
   "sources_failed": [],
@@ -26,7 +23,21 @@
       "ok": true,
       "url": "https://openrouter.ai/api/v1/models",
       "rows": 20,
-      "changed": 2,
+      "changed": 0,
+      "error": ""
+    },
+    "Azure AI Foundry": {
+      "ok": true,
+      "url": "https://prices.azure.com/api/retail/prices",
+      "rows": 2,
+      "changed": 0,
+      "error": ""
+    },
+    "Google Vertex AI": {
+      "ok": true,
+      "url": "https://cloud.google.com/vertex-ai/generative-ai/pricing",
+      "rows": 4,
+      "changed": 0,
       "error": ""
     },
     "DeepSeek": {
