@@ -80,7 +80,7 @@
     const names = TC.store.NAMES;
     const fromFile = names.every(n => s[n] === 'file');
     const ovr = names.filter(n => TC.store.isOverridden(n));
-    let txt = fromFile ? 'Data: /data files' : names.some(n => s[n] === 'cache') ? 'Data: cached copy' : names.some(n => s[n] === 'missing') ? 'Data: missing' : 'Data: imported';
+    let txt = fromFile ? 'Shared data' : names.some(n => s[n] === 'missing') ? 'Data missing' : names.some(n => s[n] === 'cache') ? 'Offline copy' : 'Imported data';
     const ps = TC.priceStatus;
     let priceTag = '';
     if (ps && ps.date) {
@@ -92,7 +92,8 @@
       priceTag = `<span class="ovr-wrap" data-pop="prices"><button type="button" class="pill ${warn ? 'warn' : ''}" aria-expanded="false">Prices checked ${when}${review ? ' · ' + review + ' to review' : ''}${failed ? ' · ' + failed + ' issue' + (failed > 1 ? 's' : '') : ''} ▾</button>
         <div class="ovr-pop" role="dialog" aria-label="Price update status" hidden></div></span>`;
     }
-    $('#data-status').innerHTML = `<span class="pill ${fromFile ? '' : 'warn'}">${txt}</span>` + priceTag +
+    const tip = fromFile ? 'Numbers loaded from the shared data files everyone uses' : txt === 'Offline copy' ? 'The shared data files could not be reached; using the last copy saved in this browser, which may be out of date' : txt === 'Imported data' ? 'Using data files imported in this browser through the Data editor' : 'Some data files failed to load';
+    $('#data-status').innerHTML = `<span class="pill ${fromFile ? '' : 'warn'}" title="${tip}">${txt}</span>` + priceTag +
       (ovr.length ? `<span class="ovr-wrap"><button type="button" class="pill override" aria-expanded="false" aria-controls="ovr-pop">${ovr.length} dataset${ovr.length > 1 ? 's' : ''} overridden ▾</button>
         <div class="ovr-pop" id="ovr-pop" role="dialog" aria-label="Overridden data" hidden></div></span>` : '');
     const pw = $('#data-status [data-pop="prices"]');
