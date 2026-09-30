@@ -257,6 +257,7 @@ js/ui/*.js              inputs (+ tooltips), results tables, show-the-math, char
 js/config.js            credits, copyright, change-request form link
 js/exclusions.js        options removed from the current analysis
 docs/workload-guide.html  how to gather workload inputs from a client
+docs/demo-playbook.html   demo scenarios and talk track (https://mgmlab.github.io/token-calculator/docs/demo-playbook.html)
 assets/                 Pellera logo and favicon
 data/*.json             tunable data (edit these)
 tests/                  browser-run engine tests
