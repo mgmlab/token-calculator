@@ -494,6 +494,98 @@
       "rack_units": 6
     },
     {
+      "id": "nvidia-dgx-b200",
+      "vendor": "NVIDIA",
+      "sku": "DGX B200",
+      "gpu_id": "b200",
+      "gpus_per_node": 8,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 500000,
+        "source": "Placeholder. DGX pricing is quote-only and usually bundles NVIDIA AI Enterprise and support; replace with a current quote.",
+        "as_of": "2026-10-01",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 14.3,
+        "source": "NVIDIA DGX B200 datasheet (max system power)",
+        "as_of": "2026-10-01",
+        "status": "estimate"
+      },
+      "rack_units": 10,
+      "note": "NVIDIA DGX B200: 8 GPUs per system, NVLink. Datasheet power and rack size; price is a placeholder pending a quote."
+    },
+    {
+      "id": "nvidia-dgx-b300",
+      "vendor": "NVIDIA",
+      "sku": "DGX B300",
+      "gpu_id": "b300",
+      "gpus_per_node": 8,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 600000,
+        "source": "Placeholder. DGX pricing is quote-only and usually bundles NVIDIA AI Enterprise and support; replace with a current quote.",
+        "as_of": "2026-10-01",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 14.0,
+        "source": "NVIDIA DGX B300 datasheet (max system power)",
+        "as_of": "2026-10-01",
+        "status": "estimate"
+      },
+      "rack_units": 10,
+      "note": "NVIDIA DGX B300: 8 GPUs per system, NVLink. Datasheet power and rack size; price is a placeholder pending a quote."
+    },
+    {
+      "id": "nvidia-dgx-h100",
+      "vendor": "NVIDIA",
+      "sku": "DGX H100",
+      "gpu_id": "h100-sxm",
+      "gpus_per_node": 8,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 330000,
+        "source": "Placeholder. DGX pricing is quote-only and usually bundles NVIDIA AI Enterprise and support; replace with a current quote.",
+        "as_of": "2026-10-01",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 10.2,
+        "source": "NVIDIA DGX H100 datasheet (max system power)",
+        "as_of": "2026-10-01",
+        "status": "estimate"
+      },
+      "rack_units": 8,
+      "note": "NVIDIA DGX H100: 8 GPUs per system, NVLink. Datasheet power and rack size; price is a placeholder pending a quote."
+    },
+    {
+      "id": "nvidia-dgx-h200",
+      "vendor": "NVIDIA",
+      "sku": "DGX H200",
+      "gpu_id": "h200-sxm",
+      "gpus_per_node": 8,
+      "price_mode": "all_in",
+      "price_usd": {
+        "value": 375000,
+        "source": "Placeholder. DGX pricing is quote-only and usually bundles NVIDIA AI Enterprise and support; replace with a current quote.",
+        "as_of": "2026-10-01",
+        "status": "placeholder"
+      },
+      "base_price_usd": null,
+      "power_kw": {
+        "value": 10.2,
+        "source": "NVIDIA DGX H200 datasheet (max system power)",
+        "as_of": "2026-10-01",
+        "status": "estimate"
+      },
+      "rack_units": 8,
+      "note": "NVIDIA DGX H200: 8 GPUs per system, NVLink. Datasheet power and rack size; price is a placeholder pending a quote."
+    },
+    {
       "id": "supermicro-as-8125gs-tnmr2-mi300x",
       "vendor": "Supermicro",
       "sku": "AS-8125GS-TNMR2",

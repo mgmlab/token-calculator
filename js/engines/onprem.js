@@ -10,7 +10,7 @@
    * KV-cache bytes for ONE sequence of length seqLen.
    *   standard:       2 × layers × kv_heads × head_dim × bytes × seqLen
    *   hybrid_sliding: 2 × kv_heads × head_dim × bytes × (full_layers × seqLen + sliding_layers × min(seqLen, window))
-   *   mla:            layers × latent_elems × bytes × seqLen          (no factor 2: one shared latent)
+   *   mla:            layers × latent_elems × bytes × seqLen          (no factor 2: one shared latent; kv_layers if only some layers cache)
    */
   TC.kvBytes = function (model, kvPrecision, seqLen) {
     const b = TC.BYTES_PER_PARAM[kvPrecision];
@@ -18,10 +18,13 @@
     const lay = model.kv_layout || { type: 'standard' };
     if (lay.type === 'mla') {
       const e = v(lay.elems_per_token_per_layer);
+      // Hybrid models (e.g. Kimi K3) keep a growing MLA cache only on their full-attention layers;
+      // linear-attention layers hold a small fixed state that is not modeled.
+      const Lk = lay.kv_layers ? v(lay.kv_layers) : L;
       return {
-        bytes: L * e * b * seqLen,
-        perToken: L * e * b,
-        formula: `${L} layers × ${e} latent elems × ${b} B × ${f.int(seqLen)} tokens (MLA)`,
+        bytes: Lk * e * b * seqLen,
+        perToken: Lk * e * b,
+        formula: `${Lk}${lay.kv_layers ? ` full-attention layers (of ${L})` : ' layers'} × ${e} latent elems × ${b} B × ${f.int(seqLen)} tokens (MLA)`,
       };
     }
     if (lay.type === 'hybrid_sliding') {
