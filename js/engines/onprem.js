@@ -216,7 +216,6 @@
       const h = w.headroom_pct / 100;
       let replicas = Math.ceil(base * (1 + h));
       let rFormula = `ceil(${base} × (1 + ${f.num(w.headroom_pct)}% headroom))`;
-      if (w.n_plus_one) { replicas += 1; rFormula += ' + 1 (N+1)'; }
       cand.replicas = replicas;
       cand.steps.push(S('Replicas incl. headroom', rFormula, replicas, 'replicas'));
 
@@ -230,6 +229,15 @@
         cand.steps.push(S('Nodes', `${replicas} replicas × ${pp} nodes each (pipeline parallel across nodes)`, nodes, 'nodes',
           'Pipeline parallelism across nodes needs a high-speed inter-node fabric; throughput estimate does not credit pipelining.'));
         cand.flags.push(`Model does not fit in one ${gpn}-GPU node; uses ${pp}-way pipeline parallelism across nodes.`);
+      }
+      // N+1: one whole spare server (or one spare pipeline group when a copy spans several servers), so a server failure
+      // or maintenance never drops capacity below the sized need. The spare is installed and costed but not counted as
+      // serving capacity in the hybrid model.
+      cand.spareNodes = 0;
+      if (w.n_plus_one) {
+        cand.spareNodes = pp === 1 ? 1 : pp;
+        nodes += cand.spareNodes;
+        cand.steps.push(S('Spare server (N+1)', pp === 1 ? '+ 1 server so a failure or maintenance never drops capacity below the need' : `+ ${pp} servers (one spare pipeline group)`, nodes, 'nodes'));
       }
       cand.nodes = nodes;
       cand.gpus = nodes * gpn;

@@ -209,7 +209,7 @@ The full formulas are in the **Method & assumptions** tab.
 3. **Layouts.** Every valid TP size (1/2/4/8, must divide the attention heads and fit in one node) is evaluated. If nothing fits in one node, 2- or 4-way pipeline parallelism across nodes is tried.
 4. **Replicas.**
    - The minimum is the largest of three counts: enough for memory, enough for throughput (benchmark or theoretical estimate), and enough to hold the per-request speed target.
-   - Headroom % is then added, plus one spare replica if N+1 is on.
+   - Headroom % is then added; if N+1 is on, one whole spare server is added on top (costed, but not counted as serving capacity in the hybrid).
 5. **Nodes.** Replicas never span nodes, so nodes = ceil(replicas ÷ replicas per node).
 6. **Cost.**
    - On-prem = servers + network/storage + support + power (+ optional colo, software, ops, financing, minus residual value).

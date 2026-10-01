@@ -109,10 +109,14 @@
     eq(tp2.nodes, 2, 'nodes'); eq(tp2.gpus, 16, 'gpus');
     eq(s.best, tp2, 'benchmarked layout preferred over theoretical ones');
   });
-  test('N+1 adds one replica', () => {
+  test('N+1 adds one spare server', () => {
     const bench = [{ gpu_id: 'g80', model_id: 'm70', precision: 'FP8', tp: 2, pp: 1, aggregate_output_tps: E(1000) }];
-    const s = TC.sizeOnGpu({ model: llama70, gpu: gpu80, gpn: 8, w: Object.assign({}, baseW, { n_plus_one: true }), a: assumptions, benchmarks: bench });
-    eq(s.best.replicas, 2, 'replicas');
+    const off = TC.sizeOnGpu({ model: llama70, gpu: gpu80, gpn: 8, w: baseW, a: assumptions, benchmarks: bench });
+    const on = TC.sizeOnGpu({ model: llama70, gpu: gpu80, gpn: 8, w: Object.assign({}, baseW, { n_plus_one: true }), a: assumptions, benchmarks: bench });
+    eq(on.best.replicas, off.best.replicas, 'replicas unchanged');
+    eq(on.best.nodes, off.best.nodes + 1, 'one more server');
+    eq(on.best.gpus, off.best.gpus + 8, 'a full server of GPUs');
+    eq(on.best.spareNodes, 1, 'spare recorded');
   });
   test('TP8 not valid on 4-GPU node; pipeline parallel when nothing fits', () => {
     const w = Object.assign({}, baseW, { precision: 'FP16' });

@@ -85,7 +85,7 @@
       ['Active days per month', w.active_days_per_month],
       ['Peak concurrent requests', w.peak_concurrent_requests + (w.peak_concurrency_mode === 'derived' ? ` (derived: ${w.busy_hour_share_pct}% busy-hour share, ${w.burst_percentile}th-percentile burst)` : ' (manual)')],
       ['Target output tok/s per request', w.target_output_tps_per_request], ['Max context', w.max_context],
-      ['Headroom %', w.headroom_pct], ['N+1', w.n_plus_one ? 'yes' : 'no'], ['Term (years)', w.term_years],
+      ['Headroom %', w.headroom_pct], ['N+1 spare server', w.n_plus_one ? 'yes' : 'no'], ['Term (years)', w.term_years],
       ['Tokens per month', Math.round(wl.tMo)], ['Tokens over term', Math.round(wl.tTerm)],
       ['Filters', TC.filtersActive && TC.filtersActive() ? TC.filterSummary() : 'none (all options)'],
       ['Exported', new Date().toLocaleString()], ['Note', 'Estimates, not quotes. See the app for sources and placeholder values.'],
@@ -199,7 +199,7 @@
     ];
     const R = [
       ['Model', model ? model.name : w.model_id], ['Weight / KV-cache precision', `${w.precision} / ${w.kv_precision}`],
-      ['Headroom', `${f.num(w.headroom_pct)}%${w.n_plus_one ? ' + N+1 spare' : ''}`], ['Term', `${w.term_years} years`],
+      ['Headroom', `${f.num(w.headroom_pct)}%${w.n_plus_one ? ' + one spare server (N+1)' : ''}`], ['Term', `${w.term_years} years`],
       ['Tokens per month', `${f.tokens(wl.tMo)} (${f.tokens(wl.tInMo)} in · ${f.tokens(wl.tOutMo)} out)`],
       ['Tokens over term', f.tokens(wl.tTerm)],
       ['Required output throughput', `${f.int(w.peak_concurrent_requests * w.target_output_tps_per_request)} tok/s at peak`],
@@ -395,7 +395,7 @@
       'Weights = parameters × bytes per parameter (FP16 = 2, FP8 = 1, INT4 = 0.5)',
       'KV cache per request = 2 × layers × KV heads × head dim × bytes × sequence length',
       'Max concurrent per replica = (TP × GPU memory ÷ (1 + overhead) − weights) ÷ KV per request',
-      'Replicas = ceil(max(memory, throughput, speed) × (1 + headroom)) [+1 if N+1]; nodes = ceil(replicas ÷ replicas per node)',
+      'Replicas = ceil(max(memory, throughput, speed) × (1 + headroom)); nodes = ceil(replicas ÷ replicas per node) [+1 spare server if N+1]',
       'On-prem = servers + network/storage + support + power (kW × load × PUE × 8,760 h × $/kWh) + optional items',
       'GPU cloud = GPUs × $/GPU-hour × 730 h (reserved) or active hours (on-demand)',
       'API = input tokens × input price + output tokens × output price, with optional cache and batch discounts',

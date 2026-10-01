@@ -89,7 +89,8 @@
       // Requests the owned setup can carry at once: limited by throughput (at the target speed) AND by GPU memory
       // for each request's KV cache (model copies × max concurrent per copy) — the same memory limit on-prem sizing uses.
       const c = row.sizing.best;
-      const slots = c.pp === 1 ? Math.floor(row.server.gpus_per_node / c.tp) * c.nodes : c.replicas;
+      const activeNodes = c.nodes - (c.spareNodes || 0); // the N+1 spare server is standby, not serving capacity
+      const slots = c.pp === 1 ? Math.floor(row.server.gpus_per_node / c.tp) * activeNodes : c.replicas;
       const capTput = TC.utilization(c, row.server.gpus_per_node, wl).capacity / Math.max(w.target_output_tps_per_request, 1e-9);
       const capMem = c.Crep > 0 ? slots * c.Crep : Infinity;
       const cap = Math.min(capTput, capMem);

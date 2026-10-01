@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Workload Input Guide</title>
   <link rel="icon" href="../assets/favicon.png">
-  <link rel="stylesheet" href="../css/styles.css?v=202609292326">
+  <link rel="stylesheet" href="../css/styles.css?v=202609302100">
   <style>
     .guide { max-width: 860px; margin: 0 auto; }
     .guide section { scroll-margin-top: 16px; padding-top: 6px; }
@@ -132,7 +132,7 @@ seconds per request ≈ avg output tokens ÷ target tok/s   (+ ~1 s for the prom
 
       <section id="headroom_pct">
         <h3>Headroom, N+1 and term</h3>
-        <p>Headroom covers growth and bursts: 20–30% is typical, more for fast-growing rollouts. Turn on N+1 when the application is business-critical. Choose a 3-year term unless the client depreciates hardware over 5.</p>
+        <p>Headroom covers growth and bursts: 20–30% is typical, more for fast-growing rollouts. Turn on N+1 (one spare server) when the application is business-critical, so a server failure or maintenance window never drops capacity below the need. Choose a 3-year term unless the client depreciates hardware over 5.</p>
         <span id="n_plus_one"></span><span id="term_years"></span>
       </section>
 
@@ -185,7 +185,7 @@ seconds per request ≈ avg output tokens ÷ target tok/s   (+ ~1 s for the prom
     </article>
   </main>
   <footer class="site-footer" id="footer"></footer>
-  <script src="../js/config.js?v=202609292326"></script>
+  <script src="../js/config.js?v=202609302100"></script>
   <script>
     (function () {
       var c = window.TC.config;

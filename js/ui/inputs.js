@@ -79,8 +79,8 @@
       ], tip: 'Where tokens/sec per replica comes from. Measured benchmarks (Data editor → Benchmarks) are preferred. The theoretical bandwidth-based estimate is an optimistic upper bound — fine for early sizing, not for quotes.' },
       { k: 'headroom_pct', label: 'Headroom % (growth / redundancy)', type: 'number', min: 0, step: 'any',
         tip: 'Extra capacity on top of the calculated need, for user growth, traffic bursts and maintenance windows. 20–30% is typical.' },
-      { k: 'n_plus_one', label: 'Add one spare replica (N+1)', type: 'checkbox',
-        tip: 'Adds one extra model replica so a GPU or node failure (or a rolling upgrade) never drops capacity below peak.' },
+      { k: 'n_plus_one', label: 'Add one spare server (N+1)', type: 'checkbox',
+        tip: 'Adds one whole spare server to every on-prem and hybrid configuration, so a server failure or maintenance window never drops capacity below the need. Typical for business-critical services. The spare is costed but not counted as serving capacity.' },
     ]},
     { title: 'Cloud & API', fields: [
       { k: 'cloud_active_hours_per_month', label: 'On-demand active hours / month', type: 'number', min: 1, max: 744, hint: '730 = 24/7 · 12 h × 21.7 days ≈ 260',
