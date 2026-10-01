@@ -37,7 +37,10 @@
   let ovrClose = null, ovrWrap = null;
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && ovrClose) ovrClose(); });
   // Close the "Load an example" menu on outside click or Escape.
-  const closeExMenu = () => document.querySelectorAll('.ex-menu').forEach(m => { m.hidden = true; });
+  const closeExMenu = () => {
+    document.querySelectorAll('.ex-menu').forEach(m => { m.hidden = true; });
+    document.querySelectorAll('[data-act="examples"]').forEach(b => b.setAttribute('aria-expanded', 'false'));
+  };
   document.addEventListener('click', e => { if (!e.target.closest('.ex-wrap')) closeExMenu(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeExMenu(); });
   document.addEventListener('click', e => { if (ovrClose && ovrWrap && !ovrWrap.contains(e.target)) ovrClose(); });

@@ -5,18 +5,53 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Workload Input Guide</title>
   <link rel="icon" href="../assets/favicon.png">
-  <link rel="stylesheet" href="../css/styles.css?v=202610010045">
+  <link rel="stylesheet" href="../css/styles.css?v=202610010052">
   <style>
-    .guide { max-width: 860px; margin: 0 auto; }
-    .guide section { scroll-margin-top: 16px; padding-top: 6px; }
-    .guide section:target { background: var(--accent-soft); border-radius: 8px; padding: 6px 12px; margin: 0 -12px; }
-    .guide h3 { margin-top: 26px; }
-    .guide .ask { border-left: 3px solid var(--accent); padding: 4px 12px; margin: 8px 0; background: var(--surface-2); border-radius: 0 6px 6px 0; }
-    .guide table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; margin: 8px 0; }
-    .guide th, .guide td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
-    .guide th { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
-    .toc { columns: 2; column-gap: 24px; padding-left: 18px; }
-    @media (max-width: 600px) { .toc { columns: 1; } }
+    /* Layout: sticky topic nav on the left, reference content on the right; one card per input. */
+    .g-wrap { max-width: 1180px; margin: 0 auto; padding: 20px 24px 48px; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 28px; align-items: start; }
+    .g-nav { position: sticky; top: 16px; display: flex; flex-direction: column; gap: 14px; font-size: 13px; }
+    .g-nav h4 { margin: 0 0 4px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+    .g-nav a { display: block; padding: 3px 8px; border-radius: 6px; color: var(--text-2); text-decoration: none; }
+    .g-nav a:hover { background: var(--accent-soft); color: var(--accent); }
+    .g-main { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+    .g-intro { display: flex; flex-direction: column; gap: 12px; }
+    .g-intro p { margin: 0; max-width: 72ch; color: var(--text-2); }
+    .g-thumbs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .g-thumb { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; }
+    .g-thumb b { font-size: 18px; font-variant-numeric: tabular-nums; }
+    .g-thumb span { font-size: 12.5px; color: var(--muted); }
+    .g-h2 { margin: 6px 0 0; font-size: 18px; scroll-margin-top: 16px; }
+    .g-sub { margin: -14px 0 0; color: var(--muted); font-size: 13px; }
+    .g-table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
+    .g-table { border-collapse: collapse; width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+    .g-table th, .g-table td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .g-table tr:last-child td { border-bottom: 0; }
+    .g-table th { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; background: var(--surface-2); }
+    .g-table td:first-child { font-weight: 600; white-space: nowrap; }
+    .g-table a { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--border-strong); }
+    .g-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .g-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; scroll-margin-top: 16px; }
+    .g-card.wide { grid-column: 1 / -1; }
+    .g-card:target { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .g-card h3 { margin: 0; font-size: 15px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .g-where { font: 600 10.5px/1 var(--font, inherit); letter-spacing: .06em; text-transform: uppercase; padding: 4px 6px; border-radius: 4px; background: var(--surface-2); color: var(--muted); }
+    .g-where.main { background: var(--accent-soft); color: var(--accent); }
+    .g-card p { margin: 0; font-size: 13.5px; color: var(--text-2); }
+    .g-ask { font-size: 13.5px; padding: 8px 10px; border-radius: 8px; background: var(--surface-2); }
+    .g-ask::before { content: "Ask  "; font-weight: 700; color: var(--accent); letter-spacing: .02em; }
+    .g-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .g-chip { font-size: 12px; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); white-space: nowrap; }
+    .g-chip b { font-variant-numeric: tabular-nums; }
+    .g-card details { font-size: 13px; color: var(--text-2); }
+    .g-card details summary { cursor: pointer; color: var(--muted); }
+    .g-card pre { font-size: 12px; background: var(--surface-2); padding: 8px 10px; border-radius: 6px; overflow-x: auto; margin: 6px 0 0; }
+    .g-q { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 24px; }
+    .g-q h4 { margin: 0 0 4px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+    .g-q ul { margin: 0; padding-left: 18px; font-size: 13.5px; display: flex; flex-direction: column; gap: 4px; }
+    .g-q-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .g-copy-msg { font-size: 12.5px; color: var(--muted); }
+    @media (max-width: 900px) { .g-wrap { grid-template-columns: 1fr; } .g-nav { position: static; flex-direction: row; flex-wrap: wrap; } .g-nav > div { min-width: 160px; } }
+    @media (max-width: 700px) { .g-cards, .g-q, .g-thumbs { grid-template-columns: 1fr; } }
   </style>
   <script data-goatcounter="https://pellera-token-calc.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>
@@ -26,170 +61,223 @@
       <img class="brand-logo" src="../assets/pellera-logo-small.png" alt="Pellera">
       <div>
         <h1>Workload input guide</h1>
-        <p class="tagline">How to gather AI Inference Economics Calculator inputs from a client</p>
+        <p class="tagline">Turning what a client knows into calculator inputs</p>
       </div>
     </div>
     <a class="btn ghost small" href="../index.html">← Back to calculator</a>
   </header>
 
-  <main>
-    <article class="card prose guide">
-      <p>Most clients don't know their token counts. They do know their <strong>users, use cases and documents</strong>. This guide turns those answers into calculator inputs. When in doubt, estimate a range and run the calculator at the low and high ends. The answer often doesn't change the recommendation.</p>
+  <div class="g-wrap">
+    <nav class="g-nav" aria-label="Guide sections">
+      <div><h4>Start here</h4><a href="#quick">Quick reference</a><a href="#example">Worked example</a><a href="#questions">Discovery questions</a></div>
+      <div><h4>Usage</h4><a href="#users">Users</a><a href="#requests_per_user_per_day">Requests per day</a><a href="#avg_input_tokens">Input tokens</a><a href="#avg_output_tokens">Output tokens</a><a href="#active_days_per_month">Active days</a></div>
+      <div><h4>Performance</h4><a href="#peak_concurrent_requests">Peak demand</a><a href="#target_output_tps_per_request">Response speed</a><a href="#max_context">Max context</a></div>
+      <div><h4>Model &amp; sizing</h4><a href="#model_id">Model &amp; precision</a><a href="#headroom_pct">Headroom, N+1, term</a></div>
+      <div><h4>Cost options</h4><a href="#cloud_active_hours_per_month">Cloud hours</a><a href="#api_cache_hit_pct">Caching &amp; batch</a><a href="#api_excluded">API providers</a></div>
+    </nav>
 
-      <p class="callout"><strong>Rules of thumb:</strong> 1 token ≈ 0.75 English words ≈ 4 characters. One page of text ≈ 500–650 tokens. A 30-minute meeting transcript ≈ 6,000–8,000 tokens.</p>
-
-      <h3>Contents</h3>
-      <ol class="toc">
-        <li><a href="#users">Users</a></li>
-        <li><a href="#requests_per_user_per_day">Requests per user per day</a></li>
-        <li><a href="#avg_input_tokens">Avg input tokens</a></li>
-        <li><a href="#avg_output_tokens">Avg output tokens</a></li>
-        <li><a href="#active_days_per_month">Active days per month</a></li>
-        <li><a href="#peak_concurrent_requests">Peak concurrent requests</a></li>
-        <li><a href="#target_output_tps_per_request">Target tok/s per request</a></li>
-        <li><a href="#max_context">Max context length</a></li>
-        <li><a href="#model_id">Model &amp; precision</a></li>
-        <li><a href="#headroom_pct">Headroom, N+1, term</a></li>
-        <li><a href="#cloud_active_hours_per_month">Cloud active hours</a></li>
-        <li><a href="#api_cache_hit_pct">API caching &amp; batch</a></li>
-        <li><a href="#worked-example">Worked example</a></li>
-        <li><a href="#questionnaire">Discovery questionnaire</a></li>
-      </ol>
-
-      <section id="users">
-        <h3>Users</h3>
-        <p>Count the people who <em>actually use</em> the application in a typical month, not licensed seats.</p>
-        <div class="ask">Ask: "Who will use this, and what share of them will use it weekly?" Typical adoption for internal copilots is 30–60% of eligible staff after 6 months.</div>
-        <p>For customer-facing apps, use monthly active users (MAU) from their analytics.</p>
+    <main class="g-main">
+      <section class="g-intro">
+        <p>Most clients don't know their token counts. They do know their <strong>users, use cases and documents</strong>. Use this page to turn those answers into calculator inputs as you talk. When a number is uncertain, try the low and high ends in the calculator; the recommendation often doesn't change.</p>
+        <div class="g-thumbs">
+          <div class="g-thumb"><b>1 token ≈ 0.75 words</b><span>about 4 characters of English</span></div>
+          <div class="g-thumb"><b>1 page ≈ 500–650</b><span>tokens of plain text</span></div>
+          <div class="g-thumb"><b>30-min meeting ≈ 7,000</b><span>tokens of transcript</span></div>
+        </div>
       </section>
 
-      <section id="requests_per_user_per_day">
-        <h3>Requests per user per day</h3>
-        <p>Count <strong>model calls</strong>, not user clicks.</p>
-        <ul>
-          <li><strong>Simple chat:</strong> one message = one request. Typical users send 5–20 a day; power users 50+.</li>
-          <li><strong>RAG (search over documents):</strong> often 2–3 calls per question (query rewrite, answer, sometimes a check).</li>
-          <li><strong>Agents / tool use:</strong> 3–10+ calls per task, because each step is a call.</li>
-        </ul>
-        <div class="ask">Ask: "How many questions or tasks does a typical user do per day?" Then multiply by calls per task.</div>
-        <p>If they have a pilot, the provider dashboard or gateway logs give this exactly: total requests ÷ active users ÷ active days.</p>
-      </section>
-
-      <section id="avg_input_tokens">
-        <h3>Avg input tokens</h3>
-        <p>Everything sent to the model on each call:</p>
-        <table>
-          <thead><tr><th>Component</th><th>Typical size</th></tr></thead>
+      <h2 class="g-h2" id="quick">Quick reference</h2>
+      <p class="g-sub">The inputs in the order they appear in the Workload profile. “Advanced” inputs are under Advanced settings.</p>
+      <div class="g-table-wrap">
+        <table class="g-table">
+          <thead><tr><th>Input</th><th>Question to ask</th><th>Typical values</th></tr></thead>
           <tbody>
-            <tr><td>System prompt / instructions</td><td>300–2,000</td></tr>
-            <tr><td>User message</td><td>30–300</td></tr>
-            <tr><td>Retrieved documents (RAG)</td><td>chunks × chunk size, e.g. 5 × 500 = 2,500</td></tr>
-            <tr><td>Conversation history</td><td>grows each turn; often capped at 2,000–8,000</td></tr>
-            <tr><td>Tool definitions (agents)</td><td>200–1,000 per tool set</td></tr>
+            <tr><td><a href="#users">Users</a></td><td>Who will use it, and how many each week?</td><td>30–60% of eligible staff for internal copilots</td></tr>
+            <tr><td><a href="#requests_per_user_per_day">Requests / user / day</a></td><td>How many questions or tasks a day, and how many model calls each?</td><td>Chat 5–20 · RAG ×2–3 calls · Agents ×3–10</td></tr>
+            <tr><td><a href="#avg_input_tokens">Avg input tokens</a></td><td>What goes into each request: instructions, documents, history?</td><td>Chat 1–3K · RAG 3–8K · Docs 10K+</td></tr>
+            <tr><td><a href="#avg_output_tokens">Avg output tokens</a></td><td>How long is a typical answer? Reasoning model?</td><td>Answers 150–400 · Drafts 500–1,500</td></tr>
+            <tr><td><a href="#active_days_per_month">Active days / month</a></td><td>Business days only, or every day?</td><td>21.7 business · 30.4 every day</td></tr>
+            <tr><td><a href="#peak_concurrent_requests">Busy-hour share</a> <span class="g-where">Advanced</span></td><td>When is usage heaviest, and how sharp is the peak?</td><td>4% flat 24/7 · 12.5% even 8 h · 15–20% office peak</td></tr>
+            <tr><td><a href="#target_output_tps_per_request">Target tok/s</a> <span class="g-where">Advanced</span></td><td>How fast must answers appear? Streaming?</td><td>Chat 20–50 · Batch 5–10</td></tr>
+            <tr><td><a href="#max_context">Max context</a> <span class="g-where">Advanced</span></td><td>What is the largest document or conversation?</td><td>8K · 32K · 128K</td></tr>
+            <tr><td><a href="#model_id">Model &amp; precision</a></td><td>Which models are approved? Any quality bar?</td><td>FP8 for production</td></tr>
+            <tr><td><a href="#headroom_pct">Headroom, N+1, term</a> <span class="g-where">Advanced</span></td><td>Growth expected? Business-critical? Depreciation period?</td><td>20–30% · N+1 if critical · 3 years</td></tr>
+            <tr><td><a href="#api_cache_hit_pct">Caching &amp; batch</a> <span class="g-where">Advanced</span></td><td>Does a big part of each prompt repeat? Can any work wait hours?</td><td>Cache 30–60% · Batch 0% chat, up to 100% overnight</td></tr>
+            <tr><td><a href="#api_excluded">API providers</a> <span class="g-where">Advanced</span></td><td>Which providers are approved to buy from?</td><td>Untick any that aren’t</td></tr>
           </tbody>
         </table>
-        <p>Add the components. Typical results are 1,000–3,000 for chat, 3,000–8,000 for RAG, and 10,000+ for document analysis.</p>
-      </section>
+      </div>
 
-      <section id="avg_output_tokens">
-        <h3>Avg output tokens</h3>
-        <p>Base it on the length of a typical answer: short answers 150–400, summaries 200–500, drafted emails or reports 500–1,500, generated code 300–2,000.</p>
-        <p><strong>Reasoning models</strong> also produce hidden "thinking" tokens. These can be 2–10× the visible answer, so include them.</p>
-      </section>
+      <h2 class="g-h2" id="usage">Usage</h2>
+      <div class="g-cards">
+        <article class="g-card" id="users">
+          <h3>Users <span class="g-where main">Main</span></h3>
+          <div class="g-ask">Who will use this, and what share will use it weekly?</div>
+          <div class="g-chips"><span class="g-chip">Internal copilot: <b>30–60%</b> of eligible staff</span><span class="g-chip">Customer-facing: monthly active users</span></div>
+          <p>Count people who actually use it in a typical month, not licensed seats. For batch work, think of “users” as sources or feeds.</p>
+          <span id="scenario_name"></span><span id="preset"></span>
+        </article>
 
-      <section id="active_days_per_month">
-        <h3>Active days per month</h3>
-        <p>21.7 for weekday business use, 30.4 for customer-facing or always-on systems.</p>
-      </section>
+        <article class="g-card" id="requests_per_user_per_day">
+          <h3>Requests per user per day <span class="g-where main">Main</span></h3>
+          <div class="g-ask">How many questions or tasks a day? How many model calls does each one make?</div>
+          <div class="g-chips"><span class="g-chip">Chat <b>5–20</b>, power users 50+</span><span class="g-chip">RAG <b>×2–3</b> calls per question</span><span class="g-chip">Agents <b>×3–10</b> calls per task</span></div>
+          <p>Count model calls, not clicks. With a pilot, use the gateway or provider logs: total requests ÷ active users ÷ active days.</p>
+        </article>
 
-      <section id="peak_concurrent_requests">
-        <h3>Peak concurrent requests</h3>
-        <p>This is the most important sizing input: it drives how many GPUs you need. It is the number of requests being generated <em>at the same instant</em> during the busiest period. Estimate it with Little's law:</p>
-        <pre>peak concurrent = peak requests per second × seconds per request
-seconds per request ≈ avg output tokens ÷ target tok/s   (+ ~1 s for the prompt)</pre>
-        <p><strong>Peak requests per second</strong> is roughly the daily requests squeezed into the busy hours. For business use, about 20–25% of a day's requests often land in the busiest hour:</p>
-        <pre>peak req/s ≈ (users × requests per user per day × busy-hour share) ÷ 3,600</pre>
-        <div class="ask">Ask: "When is usage heaviest?" (e.g. Monday 9–10 am, month-end close). "Any events that spike usage?"</div>
-        <p><strong>The calculator does this for you</strong> when Peak concurrency is set to "Derive from traffic pattern" (the default). Enter the busy-hour share: 4% for flat 24/7 traffic, 12.5% for traffic spread evenly across an 8-hour day, 15–20% for a typical office peak. It then adds a burst allowance (99th percentile by default). Switch to manual only when you have a measured peak from a pilot.</p>
-        <p>The calculator warns if your peak is below the 24-hour average implied by the volume. A peak <em>far</em> above the average (10–30×) is normal for business-hours use. It is also the main reason self-hosting can cost more than an API at low volumes.</p>
-      </section>
+        <article class="g-card" id="avg_input_tokens">
+          <h3>Avg input tokens <span class="g-where main">Main</span></h3>
+          <div class="g-ask">What goes into each request: instructions, documents (how many, how long), chat history?</div>
+          <div class="g-chips"><span class="g-chip">Chat <b>1–3K</b></span><span class="g-chip">RAG <b>3–8K</b></span><span class="g-chip">Document analysis <b>10K+</b></span></div>
+          <details><summary>Typical components</summary>
+            <p>System prompt 300–2,000 · user message 30–300 · retrieved passages (e.g. 5 × 500 = 2,500) · conversation history, often capped at 2,000–8,000 · tool definitions 200–1,000.</p>
+          </details>
+        </article>
 
-      <section id="target_output_tps_per_request">
-        <h3>Target output tokens/sec per request</h3>
-        <p>How fast text streams to each user. People read at about 5–10 tok/s. Chat products feel responsive at 20–50 tok/s. Batch and back-office jobs don't need streaming, so a lower target (5–10) cuts hardware.</p>
-      </section>
+        <article class="g-card" id="avg_output_tokens">
+          <h3>Avg output tokens <span class="g-where main">Main</span></h3>
+          <div class="g-ask">How long is a typical answer? Is it a reasoning model?</div>
+          <div class="g-chips"><span class="g-chip">Short answers <b>150–400</b></span><span class="g-chip">Summaries <b>200–500</b></span><span class="g-chip">Drafts and reports <b>500–1,500</b></span><span class="g-chip">Code <b>300–2,000</b></span></div>
+          <p>Reasoning models also generate hidden “thinking” tokens, often 2–10× the visible answer. Include them.</p>
+        </article>
 
-      <section id="max_context">
-        <h3>Max context length</h3>
-        <p>The largest single request to support (input + output). Examples: the biggest contract someone might paste in, or the longest chat before history is trimmed. It must be ≤ the model's limit. Common settings are 8K, 32K and 128K tokens.</p>
-      </section>
+        <article class="g-card wide" id="active_days_per_month">
+          <h3>Active days per month <span class="g-where main">Main</span></h3>
+          <div class="g-chips"><span class="g-chip">Weekday business use <b>21.7</b></span><span class="g-chip">Customer-facing or always on <b>30.4</b></span></div>
+        </article>
+      </div>
 
-      <section id="model_id">
-        <h3>Model and precision</h3>
-        <p>Pick the smallest open-weight model that passes the client's quality bar on real tasks, since model size drives cost more than anything else. FP8 is the usual choice for production on current GPUs. Use INT4 when memory is tight, and only after a quality check. Leave the KV cache at FP16 unless the inference engine supports FP8 KV (vLLM and TensorRT-LLM do).</p>
-        <span id="precision"></span><span id="kv_precision"></span><span id="kv_sizing_basis"></span><span id="throughput_source"></span>
-      </section>
+      <h2 class="g-h2" id="performance">Performance</h2>
+      <div class="g-cards">
+        <article class="g-card wide" id="peak_concurrent_requests">
+          <h3>Peak demand (busy-hour share) <span class="g-where">Advanced</span></h3>
+          <div class="g-ask">When is usage heaviest (for example Monday 9–10 am or month-end close)? Any events that spike it?</div>
+          <div class="g-chips"><span class="g-chip">Flat 24/7 <b>4%</b></span><span class="g-chip">Even over an 8-hour day <b>12.5%</b></span><span class="g-chip">Typical office peak <b>15–20%</b></span></div>
+          <p>Peak demand decides how many GPUs are needed, and it’s the main reason owning costs more than an API at low volume: servers are sized for the busiest minute but paid for around the clock. The calculator works out the peak from the busy-hour share and adds a burst allowance. Switch Peak concurrency to manual only when a pilot gives a measured peak.</p>
+          <details><summary>How the calculator estimates it</summary>
+            <pre>peak requests/sec ≈ users × requests per day × busy-hour share ÷ 3,600
+seconds per request ≈ output tokens ÷ target tok/s + about 1 s
+peak concurrent ≈ peak requests/sec × seconds per request, plus a 99th-percentile burst allowance</pre>
+          </details>
+          <span id="peak_concurrency_mode"></span><span id="busy_hour_share_pct"></span><span id="burst_percentile"></span>
+        </article>
 
-      <section id="headroom_pct">
-        <h3>Headroom, N+1 and term</h3>
-        <p>Headroom covers growth and bursts: 20–30% is typical, more for fast-growing rollouts. Turn on N+1 (one spare server) when the application is business-critical, so a server failure or maintenance window never drops capacity below the need. Choose a 3-year term unless the client depreciates hardware over 5.</p>
-        <span id="n_plus_one"></span><span id="term_years"></span>
-      </section>
+        <article class="g-card" id="target_output_tps_per_request">
+          <h3>Response speed (tok/s) <span class="g-where">Advanced</span></h3>
+          <div class="g-ask">How fast must answers appear? Do they stream?</div>
+          <div class="g-chips"><span class="g-chip">Reading speed <b>5–10</b></span><span class="g-chip">Responsive chat <b>20–50</b></span><span class="g-chip">Batch <b>5–10</b></span></div>
+          <p>Faster targets need more hardware; batch and back-office jobs can accept less.</p>
+        </article>
 
-      <section id="cloud_active_hours_per_month">
-        <h3>Cloud active hours per month</h3>
-        <p>For on-demand GPUs only. Use 730 for always on. If the client will shut capacity down outside business hours, use 12 h × 21.7 days ≈ 260. Reserved capacity is always billed 24/7.</p>
-      </section>
+        <article class="g-card" id="max_context">
+          <h3>Max context length <span class="g-where">Advanced</span></h3>
+          <div class="g-ask">What is the biggest document someone might paste in, or the longest conversation before history is trimmed?</div>
+          <div class="g-chips"><span class="g-chip"><b>8K</b></span><span class="g-chip"><b>32K</b></span><span class="g-chip"><b>128K</b></span></div>
+          <p>Input plus output for the largest single request. It must fit the model’s limit.</p>
+        </article>
+      </div>
 
-      <section id="api_cache_hit_pct">
-        <h3>API caching and batch</h3>
-        <p><strong>Cached-input share:</strong> the part of each prompt that repeats across calls, such as the system prompt, tool definitions, or a shared document. If a 1,500-token system prompt repeats on a 2,500-token input, about 60% of input can be cached.</p>
-        <p id="api_batch_share_pct"><strong>Batch share:</strong> the share of traffic that can wait hours for results, e.g. overnight document processing, classification or bulk summaries. Interactive chat is 0%.</p>
-        <span id="include_closed_models"></span>
-      </section>
+      <h2 class="g-h2" id="sizing">Model &amp; sizing</h2>
+      <div class="g-cards">
+        <article class="g-card" id="model_id">
+          <h3>Model &amp; precision <span class="g-where main">Main</span></h3>
+          <div class="g-ask">Which models are approved or preferred? What quality bar does the use case need?</div>
+          <div class="g-chips"><span class="g-chip">Production <b>FP8</b></span><span class="g-chip">Memory-tight <b>INT4</b> after a quality test</span></div>
+          <p>Model size drives cost more than anything else, so start from the smallest model that meets the bar. Leave the KV cache at FP16 unless the inference engine supports FP8 KV (vLLM and TensorRT-LLM do).</p>
+          <span id="precision"></span><span id="kv_precision"></span><span id="kv_sizing_basis"></span><span id="throughput_source"></span>
+        </article>
 
-      <section id="worked-example">
-        <h3>Worked example: internal knowledge assistant</h3>
-        <table>
+        <article class="g-card" id="headroom_pct">
+          <h3>Headroom, N+1 and term <span class="g-where">Advanced</span></h3>
+          <div class="g-ask">How fast will usage grow? Is it business-critical? Over how many years is hardware depreciated?</div>
+          <div class="g-chips"><span class="g-chip">Headroom <b>20–30%</b></span><span class="g-chip">N+1 = one spare server if critical</span><span class="g-chip">Term <b>3</b> or <b>5</b> years</span></div>
+          <span id="n_plus_one"></span><span id="term_years"></span>
+        </article>
+      </div>
+
+      <h2 class="g-h2" id="costs">Cost options</h2>
+      <div class="g-cards">
+        <article class="g-card" id="cloud_active_hours_per_month">
+          <h3>Cloud active hours <span class="g-where">Advanced</span></h3>
+          <div class="g-ask">Would rented GPUs run around the clock, or be shut down outside business hours?</div>
+          <div class="g-chips"><span class="g-chip">Always on <b>730</b></span><span class="g-chip">12 h × 21.7 days <b>≈ 260</b></span></div>
+          <p>Applies to on-demand GPUs only; reserved capacity is billed 24/7.</p>
+        </article>
+
+        <article class="g-card" id="api_cache_hit_pct">
+          <h3>Caching &amp; batch <span class="g-where">Advanced</span></h3>
+          <div class="g-ask">Does a large part of each prompt repeat (instructions, tools, a shared document)? Can any work wait hours for results?</div>
+          <div class="g-chips"><span class="g-chip">Cached input <b>30–60%</b> typical</span><span class="g-chip">Batch <b>0%</b> chat · up to <b>100%</b> overnight</span></div>
+          <p>Example: a 1,500-token system prompt on a 2,500-token input means about 60% can be cached.</p>
+          <span id="api_batch_share_pct"></span>
+        </article>
+
+        <article class="g-card wide" id="api_excluded">
+          <h3>API providers and closed models <span class="g-where">Advanced</span></h3>
+          <div class="g-ask">Which API providers is the organization approved or willing to buy from? Are GPT, Claude or Gemini on the table?</div>
+          <p>Untick providers that aren’t an option; it often changes the answer (see the “approved API providers” example). The closed-model tier picks whether the reference line shows budget, mid-size or flagship closed models.</p>
+          <span id="include_closed_models"></span><span id="closed_tier"></span>
+        </article>
+      </div>
+
+      <h2 class="g-h2" id="example">Worked example: internal knowledge assistant</h2>
+      <div class="g-table-wrap">
+        <table class="g-table">
+          <thead><tr><th>They say</th><th>You enter</th></tr></thead>
           <tbody>
-            <tr><td>Client says</td><td>1,200 employees; expect about half to use it; ~8 questions a day; answers cite 4–5 policy passages; business hours only; busiest 9–11 am.</td></tr>
-            <tr><td>Users</td><td>1,200 × 50% = <strong>600</strong></td></tr>
-            <tr><td>Requests / user / day</td><td>8 questions × 2 calls (rewrite + answer) = <strong>16</strong></td></tr>
-            <tr><td>Avg input tokens</td><td>800 system + 60 question + 5 × 450 passages + 600 history ≈ <strong>3,700</strong></td></tr>
-            <tr><td>Avg output tokens</td><td><strong>350</strong></td></tr>
-            <tr><td>Active days</td><td><strong>21.7</strong></td></tr>
-            <tr><td>Peak concurrent</td><td>600 × 16 × 25% ÷ 3,600 = 0.67 req/s × (350 ÷ 25 + 1 s) ≈ 10 → round up for bursts: <strong>20</strong></td></tr>
-            <tr><td>Target tok/s</td><td><strong>25</strong></td></tr>
-            <tr><td>Max context</td><td><strong>16,384</strong></td></tr>
+            <tr><td>1,200 employees; about half will use it</td><td>Users <b>600</b></td></tr>
+            <tr><td>About 8 questions a day; each search rewrites the question, then answers</td><td>Requests / user / day <b>16</b> (8 × 2 calls)</td></tr>
+            <tr><td>Answers cite 4–5 policy passages; short chat history</td><td>Avg input tokens <b>≈ 3,700</b> (800 instructions + 60 question + 5 × 450 passages + 600 history)</td></tr>
+            <tr><td>A few paragraphs per answer</td><td>Avg output tokens <b>350</b></td></tr>
+            <tr><td>Business hours only; busiest 9–11 am</td><td>Active days <b>21.7</b> · Busy-hour share <b>15–20%</b></td></tr>
+            <tr><td>Should feel like a chat product</td><td>Target tok/s <b>25</b></td></tr>
+            <tr><td>Longest policy document is about 12 pages</td><td>Max context <b>16,384</b></td></tr>
           </tbody>
         </table>
-      </section>
+      </div>
 
-      <section id="questionnaire">
-        <h3>Discovery questionnaire (copy into your notes)</h3>
-        <ol>
-          <li>What will the application do? (chat, search over documents, drafting, summarization, agents / automation)</li>
-          <li>Who uses it, how many are eligible, and how many do you expect to use it weekly?</li>
-          <li>How many questions or tasks per user per day? How many model calls does each task make?</li>
-          <li>What goes into each request: instructions, documents (how many, how long), chat history?</li>
-          <li>How long is a typical answer? Are you using a reasoning model?</li>
-          <li>Business hours only, or 24/7? When is the busiest hour, and how busy is it?</li>
-          <li>How fast must answers appear? Is streaming required?</li>
-          <li>What is the largest document or conversation it must handle?</li>
+      <section id="questions" class="g-q-head">
+        <h2 class="g-h2" style="margin:0">Discovery questions</h2>
+        <span><button type="button" class="btn ghost small" id="copy-q">Copy questions</button> <span class="g-copy-msg" id="copy-msg" aria-live="polite"></span></span>
+      </section>
+      <div class="g-q" id="q-list">
+        <div><h4>Use case</h4><ul>
+          <li>What will the application do: chat, search over documents, drafting, summarization, agents?</li>
           <li>Which models are approved or preferred? Any data-residency or on-prem requirements?</li>
-          <li>Is there a pilot? If so, export request counts and token usage from the provider dashboard or gateway logs. That replaces most estimates here.</li>
-          <li>Growth expectations over the next 12–36 months?</li>
-          <li>Can any work run as overnight batch jobs?</li>
-        </ol>
-      </section>
-    </article>
-  </main>
+          <li>Which API providers are approved to buy from?</li></ul></div>
+        <div><h4>Users &amp; volume</h4><ul>
+          <li>Who uses it, how many are eligible, and how many weekly?</li>
+          <li>How many questions or tasks per user per day, and how many model calls each?</li>
+          <li>Growth expected over the next 12–36 months?</li></ul></div>
+        <div><h4>Requests</h4><ul>
+          <li>What goes into each request: instructions, documents (how many, how long), chat history?</li>
+          <li>How long is a typical answer? Reasoning model?</li>
+          <li>What is the largest document or conversation it must handle?</li></ul></div>
+        <div><h4>Timing &amp; operations</h4><ul>
+          <li>Business hours only, or 24/7? When is the busiest hour?</li>
+          <li>How fast must answers appear? Streaming?</li>
+          <li>Can any work run as overnight or queued batch jobs?</li>
+          <li>Is there a pilot with request and token logs? (That replaces most estimates.)</li>
+          <li>Existing data center and GPU operations staff?</li></ul></div>
+      </div>
+    </main>
+  </div>
+
   <footer class="site-footer" id="footer"></footer>
-  <script src="../js/config.js?v=202610010045"></script>
+  <script src="../js/config.js?v=202610010052"></script>
   <script>
     (function () {
-      var c = window.TC.config;
-      document.getElementById('footer').textContent = c.copyright + ' · Internal use · Questions or change requests: ' + c.contacts.map(function (p) { return p.name; }).join(' and ');
+      var c = window.TC && window.TC.config;
+      if (c) document.getElementById('footer').innerHTML = c.copyright + ' · Internal use · <a href="' + c.requestFormUrl + '" target="_blank" rel="noopener">Submit a request</a>';
+      var btn = document.getElementById('copy-q'), msg = document.getElementById('copy-msg');
+      btn.addEventListener('click', function () {
+        var text = Array.prototype.map.call(document.querySelectorAll('#q-list > div'), function (d) {
+          return d.querySelector('h4').textContent + '\n' + Array.prototype.map.call(d.querySelectorAll('li'), function (li) { return '- ' + li.textContent; }).join('\n');
+        }).join('\n\n');
+        (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject())
+          .then(function () { msg.textContent = 'Copied to the clipboard.'; })
+          .catch(function () { msg.textContent = 'Copy blocked: select the questions and copy them.'; });
+      });
     })();
   </script>
 </body>

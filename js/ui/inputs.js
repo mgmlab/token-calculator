@@ -269,7 +269,7 @@
         const menu = form.querySelector('.ex-menu');
         if (exBtn && menu) { const open = menu.hidden; menu.hidden = !open; exBtn.setAttribute('aria-expanded', String(open)); return; }
         const item = e.target.closest('[data-ex]');
-        if (item) { menu.hidden = true; TC.loadExample(item.dataset.ex); return; }
+        if (item) { menu.hidden = true; form.querySelector('[data-act="examples"]').setAttribute('aria-expanded', 'false'); TC.loadExample(item.dataset.ex); return; }
         if (e.target.closest('[data-act="prov-all"]')) { w.api_excluded = []; this.save(w); this.render(el, w, onChange); onChange(); }
       });
       form.addEventListener('input', e => {
