@@ -514,3 +514,15 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; }
 .inputs fieldset { min-width: 0; }
 .inputs select { max-width: 100%; }
 .inputs { overflow-x: hidden; }
+
+/* summary tiles jump to the row and cost math behind their number */
+.exec-tile.jumpable { cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+.exec-tile.jumpable:hover, .exec-tile.jumpable:focus-visible { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); outline: none; }
+.exec-tile.jumpable::after { content: 'Show the math ↓'; font-size: 11px; color: var(--accent); opacity: 0; transition: opacity .15s; }
+.exec-tile.jumpable:hover::after, .exec-tile.jumpable:focus-visible::after { opacity: 1; }
+tr.row.jump-hl > td { animation: jumpRow 4s ease-out; }
+.math-cost.jump-hl, tr.jump-hl > td { border-radius: 6px; }
+.math-cost.jump-hl { outline: 2px solid var(--accent); outline-offset: 4px; background: var(--accent-soft); animation: jumpCost 6s ease-out forwards; }
+@keyframes jumpRow { 0%, 40% { background: var(--accent-soft); } 100% { background: transparent; } }
+@keyframes jumpCost { 0%, 60% { outline-color: var(--accent); background: var(--accent-soft); } 100% { outline-color: transparent; background: transparent; } }
+.hy-row-best.jump-hl > td { animation: jumpRow 4s ease-out; }

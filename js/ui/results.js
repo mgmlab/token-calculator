@@ -232,8 +232,9 @@
     try { x = TC.execSummary(data, w, res); } catch (e) { console.error(e); return ''; }
     TC.lastExec = x;
     TC.lastExecKey = JSON.stringify(w);
-    const tile = (label, r, rng, note, desc) => r
-      ? `<div class="exec-tile"><span class="label">${label}</span><span class="value">${TC.fmtRangeYear(rng, r.monthly)}<small>/yr</small></span>
+    const jump = (k, r) => `data-jump="${k}|${esc(r.id)}" role="button" tabindex="0" title="Show where this number comes from"`;
+    const tile = (label, r, rng, note, desc, k) => r
+      ? `<div class="exec-tile jumpable" ${jump(k, r)}><span class="label">${label}</span><span class="value">${TC.fmtRangeYear(rng, r.monthly)}<small>/yr</small></span>
           <span class="muted small">${esc(desc || r.name + ' · ' + r.sub)}</span><span class="muted small">${f.perM(r.perM)} per 1M tokens${note ? ' · ' + note : ''}</span></div>`
       : `<div class="exec-tile"><span class="label">${label}</span><span class="value muted">—</span><span class="muted small">No option fits</span></div>`;
     let be;
@@ -245,9 +246,9 @@
       <div class="exec-head"><div><h2>Analysis summary ${name}</h2><p class="muted small">Lowest-cost option in each category over ${w.term_years} years, shown per year. Ranges reflect the uncertain inputs below.</p></div>
         <span class="verdict v-${x.verdict.tone}">${esc(x.verdict.label)}</span></div>
       <div class="exec-tiles">
-        ${tile('Buy servers (on-prem)', x.on, x.onRange, x.on ? f.num(x.on.util * 100, x.on.util < 0.01 ? 1 : 0) + '% utilized' : '', x.onLabel)}
-        ${tile('Rent GPUs (GPU cloud)', x.cl, x.clRange, x.cl ? x.cl.pricing : '')}
-        ${tile('Pay per token (same model)', x.api, null, '')}
+        ${tile('Buy servers (on-prem)', x.on, x.onRange, x.on ? f.num(x.on.util * 100, x.on.util < 0.01 ? 1 : 0) + '% utilized' : '', x.onLabel, 'onprem')}
+        ${tile('Rent GPUs (GPU cloud)', x.cl, x.clRange, x.cl ? x.cl.pricing : '', null, 'cloud')}
+        ${tile('Pay per token (same model)', x.api, null, '', null, 'api_same')}
         ${hybridTile(x.hybrid)}
       </div>
       <p class="exec-be">${be}</p>
@@ -264,7 +265,7 @@
     if (!hy) return `<div class="exec-tile"><span class="label">Hybrid (owned baseline + API)</span><span class="value muted">—</span><span class="muted small">Needs a same-model API price</span></div>`;
     const b = hy.best;
     const note = !b.row ? 'best mix is all API' : b.pct >= 100 ? 'best mix is all owned' : b.share >= 0.95 ? `${TC.fmtShare(b.share)} of tokens on owned GPUs; API takes rare bursts` : `${TC.fmtShare(b.share)} of tokens on owned GPUs`;
-    return `<div class="exec-tile ${hy.wins ? 'hy-win' : ''}"><span class="label">Hybrid (owned baseline + API)</span><span class="value">${f.usdCompact(b.total * 12)}<small>/yr</small></span>
+    return `<div class="exec-tile jumpable ${hy.wins ? 'hy-win' : ''}" data-jump="hybrid|" role="button" tabindex="0" title="Show where this number comes from"><span class="label">Hybrid (owned baseline + API)</span><span class="value">${f.usdCompact(b.total * 12)}<small>/yr</small></span>
       <span class="muted small">${b.row ? esc(b.setup) + ' + ' + esc(hy.api.name) : esc(hy.api.name) + ' only'}</span><span class="muted small">${note}</span></div>`;
   }
 
@@ -324,6 +325,30 @@
       <td class="nowrap">${f.price(TC.v(r.price.input_per_m))} / ${f.price(TC.v(r.price.output_per_m))}</td>${money(r)}<td class="badges">${warnBadge(r)}${flagBadge(r)}${acts(r)}</td>`;
   }
 
+  // Summary tile → open its section and row, then highlight the cost math behind the number.
+  function jumpTo(el, rerender, k, id) {
+    TC.track('summary-jump', 'Opened the source of a summary figure');
+    view.collapsed.delete(k);
+    if (id) view.expanded.add(id);
+    rerender();
+    setTimeout(() => {
+      let target, marks = [];
+      if (k === 'hybrid') {
+        target = el.querySelector('#hybrid-body');
+        marks = [el.querySelector('#hybrid-body .hy-row-best')];
+      } else {
+        const tr = el.querySelector(`tr.row[data-id="${CSS.escape(id)}"]`);
+        if (tr) {
+          target = tr;
+          const cost = tr.nextElementSibling && tr.nextElementSibling.querySelector('.math-cost');
+          marks = [tr, cost];
+        } else target = el.querySelector(`[data-section="${k}"]`); // hidden by a filter: just show the section
+      }
+      marks.filter(Boolean).forEach(m => { m.classList.remove('jump-hl'); void m.offsetWidth; m.classList.add('jump-hl'); });
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+  }
+
   /** Wires clicks once; the container is re-rendered on every change. */
   TC.bindResults = function (el, rerender) {
     el.addEventListener('click', async e => {
@@ -339,6 +364,8 @@
         } else TC.exportCsv(ex.dataset.export);
         return;
       }
+      const jb = e.target.closest('[data-jump]');
+      if (jb) { jumpTo(el, rerender, ...jb.dataset.jump.split('|')); return; }
       if (e.target.closest('[data-ex-dismiss]')) { TC.dismissExample(); return; }
       const ed = e.target.closest('[data-edit]');
       if (ed) {
@@ -378,7 +405,7 @@
       rerender();
     });
     el.addEventListener('keydown', e => {
-      if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('tr.row')) { e.preventDefault(); e.target.click(); }
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('tr.row, [data-jump]')) { e.preventDefault(); e.target.click(); }
     });
     el.addEventListener('change', e => {
       const fl = e.target.closest('[data-filter]');

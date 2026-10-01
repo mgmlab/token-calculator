@@ -76,7 +76,7 @@
       h += TC.renderSteps(`Sizing — chosen layout (TP ${row.sizing.best.tp}${row.sizing.best.pp > 1 ? ' × PP ' + row.sizing.best.pp : ''})`, row.sizing.best.steps);
       h += TC.renderCandidates(row.sizing);
     }
-    if (row.cost) h += TC.renderSteps('Cost', row.cost.steps);
+    if (row.cost) h += '<div class="math-cost">' + TC.renderSteps('Cost', row.cost.steps) + '</div>';
     const prov = [].concat(row.sizing ? row.sizing.prov.items : [], row.cost ? row.cost.prov.items : []);
     h += TC.renderProvenance(prov);
     h += '</div>';
