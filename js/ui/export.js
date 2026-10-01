@@ -243,14 +243,15 @@
     ], { x: 0.5, y: 4.4, w: 12.3, h: 2.0, fontFace: FONT, fontSize: 15, valign: 'top' });
 
     if (HY) {
-      const sh = titled('Hybrid: owned baseline + pay-per-token overflow', 'Monthly cost as the owned share of peak capacity grows — overflow goes to ' + HY.api.name);
-      sh.addChart(pptx.ChartType.line, [
-        { name: 'Hybrid total', labels: HY.points.map(p => p.pct + '%'), values: HY.points.map(p => Math.round(p.total)) },
-        { name: 'All owned (with headroom)', labels: HY.points.map(p => p.pct + '%'), values: HY.points.map(() => Math.round(HY.onPremOnly)) },
+      const sh = titled('Hybrid: own some servers, send the rest to an API', 'Yearly cost of each option: your servers plus API for the traffic they don\u2019t handle (' + HY.api.name + ')');
+      const OPTS = TC.hybridOptions(HY).slice().reverse(); // bar charts draw the first category at the bottom
+      const optLabel = p => TC.shortSetup(p) + (p.row ? (p.capPct >= 100 ? ' (full peak)' : ` (${p.capPct}% of peak)`) : '');
+      sh.addChart(pptx.ChartType.bar, [
+        { name: 'Your servers', labels: OPTS.map(optLabel), values: OPTS.map(p => Math.round(p.ownedMonthly * 12)) },
+        { name: 'API (' + HY.api.name + ')', labels: OPTS.map(optLabel), values: OPTS.map(p => Math.round(p.apiMonthly * 12)) },
       ], {
-        x: 0.5, y: 1.45, w: 8.3, h: 4.9, chartColors: [P.purple, 'B7B2C6'], lineSize: 2, lineDataSymbol: 'none',
-        valAxisLabelFormatCode: '$#,##0', valAxisLabelFontSize: 9, catAxisLabelFontSize: 9, catAxisLabelFrequency: 4,
-        catAxisTitle: 'Owned capacity (% of peak concurrency)', showCatAxisTitle: true, catAxisTitleFontSize: 10, valAxisTitle: 'Monthly cost', showValAxisTitle: true, valAxisTitleFontSize: 10,
+        x: 0.5, y: 1.45, w: 8.3, h: 4.9, barDir: 'bar', barGrouping: 'stacked', chartColors: [P.purple, 'C9C3D9'],
+        valAxisLabelFormatCode: '$#,##0', valAxisLabelFontSize: 9, catAxisLabelFontSize: 9, valAxisTitle: 'Cost per year', showValAxisTitle: true, valAxisTitleFontSize: 10,
         valGridLine: { color: P.line, size: 0.5 }, catGridLine: { style: 'none' }, showLegend: true, legendPos: 'b', legendFontSize: 10, legendFontFace: FONT,
       });
       const b = HY.best;

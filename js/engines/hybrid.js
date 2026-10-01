@@ -71,6 +71,23 @@
   /** What an owned setup actually covers, in words ("about 95% of the calculated peak"). */
   TC.capText = p => (p.capPct >= 100 ? 'the full calculated peak' : `about ${p.capPct}% of the calculated peak`);
 
+  /**
+   * The distinct ownership options the sweep found, cheapest hardware first: "none (all API)", then each
+   * server setup once (several requested sizes often round up to the same servers). best = lowest total.
+   */
+  TC.hybridOptions = hy => {
+    const seen = new Map();
+    hy.points.forEach(p => {
+      const key = p.row ? p.setup + '|' + Math.round(p.ownedMonthly) : 'none';
+      if (!seen.has(key)) seen.set(key, p);
+    });
+    const opts = [...seen.values()].sort((a, b) => a.ownedMonthly - b.ownedMonthly || a.pct - b.pct);
+    const lowest = opts.reduce((m, p) => (p.total < m.total ? p : m), opts[0]);
+    return opts.map(p => Object.assign({}, p, { best: p === lowest || (p.row && hy.best.row && p.setup === hy.best.setup && Math.round(p.ownedMonthly) === Math.round(hy.best.ownedMonthly)) }));
+  };
+  /** Short server label for charts: "2× RTX PRO 6000 Blackwell Server 96GB" without the vendor list. */
+  TC.shortSetup = p => (p.row ? p.setup.replace(/\s*\([^)]*\)\s*$/, '') : 'None: all API');
+
   const cheapest = rows => rows.filter(r => r.feasible && isFinite(r.monthly)).sort((a, b) => a.monthly - b.monthly)[0] || null;
 
   TC.hybrid = function (data, w, res) {
