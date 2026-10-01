@@ -151,6 +151,7 @@
         cand.steps.push(S('Benchmarked aggregate output tok/s per replica', `${bench.engine || '?'} ${bench.engine_version || ''} · in ${f.int(bench.input_len)} / out ${f.int(bench.output_len)} · concurrency ${f.int(bench.concurrency)}`, B, 'tok/s', `Source: ${bench.aggregate_output_tps.source || '—'} (${bench.aggregate_output_tps.as_of || '—'})`));
         cand.steps.push(S('Replicas needed for throughput', `ceil(${f.int(reqTps)} ÷ ${f.int(B)})`, repTput, 'replicas'));
         base = Math.max(repMem, repTput);
+        cand.needF = Math.max(w.peak_concurrent_requests / Crep, reqTps / B);
         cand.steps.push(S('Base replicas', `max(${repMem} memory, ${repTput} throughput)`, base, 'replicas'));
         const prt = v(bench.per_request_output_tps);
         cand.perReqTps = prt;
@@ -206,6 +207,7 @@
         cand.steps.push(S('Replicas needed for throughput', `ceil(${f.int(reqTps)} ÷ ${f.int(B)})`, repTput, 'replicas'));
         cand.steps.push(S('Replicas needed for per-request speed', `ceil(${f.int(w.peak_concurrent_requests)} ÷ ${cStar})`, repConc, 'replicas'));
         base = Math.max(repMem, repTput, repConc);
+        cand.needF = Math.max(w.peak_concurrent_requests / Crep, reqTps / B, w.peak_concurrent_requests / cStar);
         cand.steps.push(S('Base replicas', `max(${repMem} memory, ${repTput} throughput, ${repConc} speed)`, base, 'replicas'));
       } else {
         cand.feasible = false;
@@ -214,8 +216,9 @@
       }
 
       const h = w.headroom_pct / 100;
-      let replicas = Math.ceil(base * (1 + h));
-      let rFormula = `ceil(${base} × (1 + ${f.num(w.headroom_pct)}% headroom))`;
+      // Headroom is applied to the exact need before rounding, so a fraction of a replica is not rounded up twice.
+      let replicas = Math.max(base, Math.ceil(cand.needF * (1 + h) - 1e-9));
+      let rFormula = `ceil(${f.num(cand.needF, 2)} replicas of exact need × (1 + ${f.num(w.headroom_pct)}% headroom))`;
       cand.replicas = replicas;
       cand.steps.push(S('Replicas incl. headroom', rFormula, replicas, 'replicas'));
 

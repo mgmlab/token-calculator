@@ -103,10 +103,10 @@
     const s = TC.sizeOnGpu({ model: llama70, gpu: gpu80, gpn: 8, w, a: assumptions, benchmarks: bench });
     const tp2 = s.candidates.find(c => c.tp === 2);
     eq(tp2.basis, 'benchmark', 'basis');
-    // required 10 × 10 = 100 tok/s ÷ 40 = 2.5 -> 3 replicas; × 1.5 headroom = 4.5 -> 5
-    eq(tp2.replicas, 5, 'replicas');
-    // 5 replicas at 4 per 8-GPU node -> 2 nodes, 16 GPUs
-    eq(tp2.nodes, 2, 'nodes'); eq(tp2.gpus, 16, 'gpus');
+    // required 10 × 10 = 100 tok/s ÷ 40 = 2.5 replicas of exact need; × 1.5 headroom = 3.75 -> 4 (rounded once)
+    eq(tp2.replicas, 4, 'replicas');
+    // 4 replicas at 4 per 8-GPU node -> 1 node, 8 GPUs
+    eq(tp2.nodes, 1, 'nodes'); eq(tp2.gpus, 8, 'gpus');
     eq(s.best, tp2, 'benchmarked layout preferred over theoretical ones');
   });
   test('N+1 adds one spare server', () => {

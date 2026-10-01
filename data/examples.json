@@ -7,7 +7,20 @@
       "summary": "Low volume: owned GPUs would sit about 1% busy.",
       "note": "A pilot this size cannot keep even one server busy, and owned hardware is paid for around the clock whether it is used or not. Paying per token follows actual usage.",
       "try": "Raise Users to 20,000. It still favors the API: office-hours traffic leaves owned GPUs idle overnight and on weekends.",
-      "workload": { "preset": "employee_copilot", "users": 500, "requests_per_user_per_day": 20, "avg_input_tokens": 1500, "avg_output_tokens": 400, "active_days_per_month": 21.7, "busy_hour_share_pct": 15, "target_output_tps_per_request": 20, "max_context": 32768, "api_cache_hit_pct": 30, "api_batch_share_pct": 0, "api_excluded": [] },
+      "workload": {
+        "preset": "employee_copilot",
+        "users": 500,
+        "requests_per_user_per_day": 20,
+        "avg_input_tokens": 1500,
+        "avg_output_tokens": 400,
+        "active_days_per_month": 21.7,
+        "busy_hour_share_pct": 15,
+        "target_output_tps_per_request": 20,
+        "max_context": 32768,
+        "api_cache_hit_pct": 30,
+        "api_batch_share_pct": 0,
+        "api_excluded": []
+      },
       "expect": "api"
     },
     {
@@ -16,7 +29,22 @@
       "summary": "20,000 users; only providers the customer has approved are compared.",
       "note": "Leaving out the lowest-cost routed provider raises the per-token price enough that owning a baseline for the steady daytime load and sending busy-hour overflow to an approved API becomes cheapest.",
       "try": "Under Advanced settings → API providers to compare, tick OpenRouter back on. The answer flips to paying per token.",
-      "workload": { "preset": "employee_copilot", "users": 20000, "requests_per_user_per_day": 20, "avg_input_tokens": 1500, "avg_output_tokens": 400, "active_days_per_month": 21.7, "busy_hour_share_pct": 15, "target_output_tps_per_request": 20, "max_context": 32768, "api_cache_hit_pct": 30, "api_batch_share_pct": 0, "api_excluded": ["OpenRouter"] },
+      "workload": {
+        "preset": "employee_copilot",
+        "users": 20000,
+        "requests_per_user_per_day": 20,
+        "avg_input_tokens": 1500,
+        "avg_output_tokens": 400,
+        "active_days_per_month": 21.7,
+        "busy_hour_share_pct": 15,
+        "target_output_tps_per_request": 20,
+        "max_context": 32768,
+        "api_cache_hit_pct": 30,
+        "api_batch_share_pct": 0,
+        "api_excluded": [
+          "OpenRouter"
+        ]
+      },
       "expect": "hybrid"
     },
     {
@@ -25,7 +53,22 @@
       "summary": "Steady traffic every day of the month keeps owned GPUs busy.",
       "note": "With demand spread across every day and most hours, a right-sized server carries almost all traffic. An API absorbs the rare spikes, so there is no need to buy for the busiest possible minute.",
       "try": "Set Active days per month to 21.7 and Busy-hour share to 15% (office hours only). Utilization drops and paying per token becomes cheaper.",
-      "workload": { "preset": "contact_center", "users": 2000, "requests_per_user_per_day": 60, "avg_input_tokens": 2500, "avg_output_tokens": 250, "active_days_per_month": 30.4, "busy_hour_share_pct": 10, "target_output_tps_per_request": 30, "max_context": 32768, "api_cache_hit_pct": 50, "api_batch_share_pct": 0, "api_excluded": ["OpenRouter"] },
+      "workload": {
+        "preset": "contact_center",
+        "users": 2000,
+        "requests_per_user_per_day": 60,
+        "avg_input_tokens": 2500,
+        "avg_output_tokens": 250,
+        "active_days_per_month": 30.4,
+        "busy_hour_share_pct": 10,
+        "target_output_tps_per_request": 30,
+        "max_context": 32768,
+        "api_cache_hit_pct": 50,
+        "api_batch_share_pct": 0,
+        "api_excluded": [
+          "OpenRouter"
+        ]
+      },
       "expect": "onprem-burst"
     },
     {
@@ -33,8 +76,23 @@
       "name": "Software development assistant, 5,000 developers",
       "summary": "Long prompts (6,000 tokens) and fast responses (40 tokens/sec) raise the hardware needed.",
       "note": "GPU memory for long contexts, not raw speed, sets how many servers are needed. Owning most of the capacity and sending the overflow to an API is cheapest.",
-      "try": "Lower Avg input tokens to 2,000. One server carries nearly all traffic and the result moves to on-prem with an API for bursts.",
-      "workload": { "preset": "coding_assistant", "users": 5000, "requests_per_user_per_day": 80, "avg_input_tokens": 6000, "avg_output_tokens": 600, "active_days_per_month": 21.7, "busy_hour_share_pct": 15, "target_output_tps_per_request": 40, "max_context": 131072, "api_cache_hit_pct": 60, "api_batch_share_pct": 0, "api_excluded": ["OpenRouter"] },
+      "try": "Lower Avg input tokens to 2,000 (smaller context per request). Far fewer servers are needed for the same users, and every option gets much cheaper.",
+      "workload": {
+        "preset": "coding_assistant",
+        "users": 5000,
+        "requests_per_user_per_day": 80,
+        "avg_input_tokens": 6000,
+        "avg_output_tokens": 600,
+        "active_days_per_month": 21.7,
+        "busy_hour_share_pct": 15,
+        "target_output_tps_per_request": 40,
+        "max_context": 131072,
+        "api_cache_hit_pct": 60,
+        "api_batch_share_pct": 0,
+        "api_excluded": [
+          "OpenRouter"
+        ]
+      },
       "expect": "hybrid"
     },
     {
@@ -43,16 +101,46 @@
       "summary": "Queued work spread evenly across 24 hours keeps GPUs about half busy.",
       "note": "Work that is not latency-sensitive can be queued and spread across available capacity instead of arriving in an interactive peak. High, steady utilization makes owning cheapest even against discounted batch API pricing.",
       "try": "Set Busy-hour share to 15% (an interactive, office-hours peak). Owning for that peak gets expensive and a hybrid mix wins.",
-      "workload": { "preset": "batch_inference", "users": 5000, "requests_per_user_per_day": 200, "avg_input_tokens": 2000, "avg_output_tokens": 500, "active_days_per_month": 30.4, "busy_hour_share_pct": 4.2, "target_output_tps_per_request": 10, "max_context": 32768, "api_cache_hit_pct": 0, "api_batch_share_pct": 100, "api_excluded": ["OpenRouter"] },
+      "workload": {
+        "preset": "batch_inference",
+        "users": 5000,
+        "requests_per_user_per_day": 200,
+        "avg_input_tokens": 2000,
+        "avg_output_tokens": 500,
+        "active_days_per_month": 30.4,
+        "busy_hour_share_pct": 4.2,
+        "target_output_tps_per_request": 10,
+        "max_context": 32768,
+        "api_cache_hit_pct": 0,
+        "api_batch_share_pct": 100,
+        "api_excluded": [
+          "OpenRouter"
+        ]
+      },
       "expect": "onprem"
     },
     {
       "id": "small-batch",
       "name": "Small batch workload that will grow",
-      "summary": "The same queued work at one tenth the volume: paying per token is slightly cheaper today.",
-      "note": "Owned GPUs would be about a quarter busy, and owning catches up at a few times today's volume. The Breakeven tab shows where the lines cross.",
-      "try": "Raise Users to 1,250 (2.5× today) and watch the result cross over to owning.",
-      "workload": { "preset": "batch_inference", "users": 500, "requests_per_user_per_day": 200, "avg_input_tokens": 2000, "avg_output_tokens": 500, "active_days_per_month": 30.4, "busy_hour_share_pct": 4.2, "target_output_tps_per_request": 10, "max_context": 32768, "api_cache_hit_pct": 0, "api_batch_share_pct": 100, "api_excluded": ["OpenRouter"] },
+      "summary": "The same queued work at a much smaller volume: paying per token is slightly cheaper today.",
+      "note": "Even the smallest server would be lightly used at this volume, so paying per token edges it out. Owning catches up at a few times today's volume; the Breakeven tab shows where the lines cross.",
+      "try": "Raise Users to 400 (about 2.5× today) and watch the result cross over to owning.",
+      "workload": {
+        "preset": "batch_inference",
+        "users": 150,
+        "requests_per_user_per_day": 200,
+        "avg_input_tokens": 2000,
+        "avg_output_tokens": 500,
+        "active_days_per_month": 30.4,
+        "busy_hour_share_pct": 4.2,
+        "target_output_tps_per_request": 10,
+        "max_context": 32768,
+        "api_cache_hit_pct": 0,
+        "api_batch_share_pct": 100,
+        "api_excluded": [
+          "OpenRouter"
+        ]
+      },
       "expect": "near"
     },
     {
@@ -61,12 +149,50 @@
       "summary": "Dedicated GPUs required; owning includes colocation and operations staff.",
       "note": "Every API provider is left out because the model must run on dedicated GPUs. Owning adds colocation and half an engineer. Rented GPUs still need about a quarter of an engineer for model serving, drivers and monitoring, but no facility or hardware lifecycle.",
       "try": "In Data editor → Assumptions, set onprem ops_fte to 0 and untick colo_enabled (the customer already has a data center and a team). Owning becomes cheaper.",
-      "workload": { "preset": "employee_copilot", "users": 20000, "requests_per_user_per_day": 20, "avg_input_tokens": 1500, "avg_output_tokens": 400, "active_days_per_month": 21.7, "busy_hour_share_pct": 15, "target_output_tps_per_request": 20, "max_context": 32768, "api_cache_hit_pct": 30, "api_batch_share_pct": 0, "api_excluded": ["OpenRouter", "Fireworks AI", "Together AI", "Amazon Bedrock", "Azure AI Foundry", "Google Vertex AI", "DeepSeek", "OpenAI", "Anthropic", "Google"] },
-      "data": { "assumptions": { "s": {
-        "onprem.ops_fte": { "value": 0.5, "source": "Example: half an engineer to run owned servers", "as_of": "2026-09-30", "status": "override" },
-        "onprem.colo_enabled": true,
-        "cloud.ops_fte": { "value": 0.25, "source": "Example: a quarter of an engineer to run the model on rented GPUs", "as_of": "2026-09-30", "status": "override" }
-      } } },
+      "workload": {
+        "preset": "employee_copilot",
+        "users": 20000,
+        "requests_per_user_per_day": 20,
+        "avg_input_tokens": 1500,
+        "avg_output_tokens": 400,
+        "active_days_per_month": 21.7,
+        "busy_hour_share_pct": 15,
+        "target_output_tps_per_request": 20,
+        "max_context": 32768,
+        "api_cache_hit_pct": 30,
+        "api_batch_share_pct": 0,
+        "api_excluded": [
+          "OpenRouter",
+          "Fireworks AI",
+          "Together AI",
+          "Amazon Bedrock",
+          "Azure AI Foundry",
+          "Google Vertex AI",
+          "DeepSeek",
+          "OpenAI",
+          "Anthropic",
+          "Google"
+        ]
+      },
+      "data": {
+        "assumptions": {
+          "s": {
+            "onprem.ops_fte": {
+              "value": 0.5,
+              "source": "Example: half an engineer to run owned servers",
+              "as_of": "2026-09-30",
+              "status": "override"
+            },
+            "onprem.colo_enabled": true,
+            "cloud.ops_fte": {
+              "value": 0.25,
+              "source": "Example: a quarter of an engineer to run the model on rented GPUs",
+              "as_of": "2026-09-30",
+              "status": "override"
+            }
+          }
+        }
+      },
       "expect": "cloud"
     }
   ]
