@@ -82,7 +82,7 @@ The form link is `requestFormUrl` in [`js/config.js`](js/config.js); the header,
 
 ### Scenarios, share links and removed options
 
-A scenario is the workload inputs **plus** any options removed from the analysis (✕ on the Compare tab, or Exclude in the Data editor). **Copy share link** and **Export scenario** carry both, and opening a share link or importing a scenario file replaces both, so nothing left over in the viewer's browser changes the answer. **New analysis** resets the inputs and, by default, brings removed options back.
+A scenario is the workload inputs **plus** any options removed from the analysis (✕ on the Compare tab, or Exclude in the Data editor). **Copy share link** carries both **and** the browser's Data editor changes (only what differs from the shared files: changed, added and removed records and changed assumption values), deflate-compressed into the `#z=` part of the link. Opening a link replaces all three, so the viewer sees exactly what the sender saw; older `#s=` links still open. **Export scenario** saves the inputs and removed options to a file. Links are encoded, not encrypted: anyone with a link can read any prices it carries. **New analysis** resets the inputs and, by default, brings removed options back.
 
 ### The verdict
 
