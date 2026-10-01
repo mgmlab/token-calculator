@@ -163,6 +163,7 @@ input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent);
 .callout.warn { background: var(--warn-bg); border-left-color: var(--warn-border); color: var(--warn-text); }
 .toolbar { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; font-size: 13px; }
 .toolbar label { display: flex; gap: 6px; align-items: center; }
+.toolbar:not(.filter-bar) { padding-inline: 13px; } /* line labels up with the text inside the cards above and below */
 
 .result-block { padding: 14px 0 4px; }
 .block-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 0 18px 10px; flex-wrap: wrap; }
@@ -490,3 +491,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; }
 .ex-try { display: block; margin-top: 4px; color: var(--text-2); }
 .ex-close { border: 0; background: none; font-size: 18px; line-height: 1; cursor: pointer; color: var(--muted); padding: 0 2px; }
 .ex-close:hover { color: var(--text); }
+
+.share-msg { position: relative; padding-right: 22px; }
+.share-x { position: absolute; top: -2px; right: 0; border: 0; background: none; font-size: 16px; line-height: 1; cursor: pointer; color: var(--muted); padding: 2px 4px; }
+.share-x:hover { color: var(--text); }

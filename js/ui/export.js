@@ -380,7 +380,7 @@
     if (a.onprem.colo_enabled) note(s7, `Colocation included at $${v(a.onprem.colo_usd_per_kw_month)}/kW-month${a.onprem.colo_includes_power ? ' (power included)' : ''}.`);
 
     // Caveats
-    const s8 = titled('How to read these results', 'Limitations to keep in mind before sharing numbers with a client');
+    const s8 = titled('How to read these results', 'Limitations to keep in mind when using these numbers');
     const phCount = new Set(rowsAll.flatMap(r => (r.placeholders || []).map(p => p.label))).size;
     const bullets = [
       'Throughput (tokens/sec per replica) is the least certain input. It depends on batch size, sequence lengths, inference engine and version (vLLM, TensorRT-LLM, SGLang), quantization and interconnect.',

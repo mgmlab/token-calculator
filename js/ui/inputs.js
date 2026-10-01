@@ -30,8 +30,8 @@
       { k: 'scenario_name', label: 'Scenario name (optional)', type: 'text', hint: 'Shown on exports — e.g. "Support assistant, 3-year view"',
         tip: 'A label for this analysis. It appears on the PowerPoint and CSV exports and in shared links. It is never saved to the shared data.' },
       { k: 'preset', label: 'What are you building?', type: 'select', options: [...Object.entries(PRESETS).map(([k, p]) => [k, p.label]), ['custom', 'Custom']],
-        hint: 'Illustrative starting point only. Confirm the workload with the customer before relying on the results.',
-        tip: 'Fills in illustrative starting values (requests, text in and out, busy hour, speed, caching) for common AI workloads. They are not Pellera benchmarks; adjust them to what the customer tells you. Open Advanced settings for the technical inputs.' },
+        hint: 'Illustrative starting values. Adjust them to the actual workload as you go.',
+        tip: 'Fills in illustrative starting values (requests, text in and out, busy hour, speed, caching) for common AI workloads. They are not Pellera benchmarks; adjust them to the actual workload. Open Advanced settings for the technical inputs.' },
       { k: 'term_years', label: 'Comparison term', type: 'select', options: [[3, '3 years'], [5, '5 years']],
         tip: 'Comparison horizon. On-prem hardware is amortized over this term; cloud and API costs are summed over it. 3 years is common given how fast GPUs age.' },
     ]},
@@ -65,7 +65,7 @@
       { k: 'model_id', label: 'Model (self-hostable)', type: 'model',
         tip: 'Open-weight model to size for self-hosting. The same model is priced from API providers that host it. Closed models (GPT, Claude, Gemini) appear only as an API reference.' },
       { k: 'precision', label: 'Weight precision', type: 'select', options: ['FP16', 'FP8', 'INT4'],
-        tip: 'Number format for the model weights. FP16: full quality, 2 bytes per parameter. FP8: near-lossless on current GPUs, half the memory. INT4: smallest (0.5 byte), some quality loss — validate on the client’s tasks.' },
+        tip: 'Number format for the model weights. FP16: full quality, 2 bytes per parameter. FP8: near-lossless on current GPUs, half the memory. INT4: smallest (0.5 byte), some quality loss, so it is worth testing on the actual use case.' },
       { k: 'kv_precision', label: 'KV-cache precision', type: 'select', options: ['FP16', 'FP8'],
         tip: 'Format of the attention cache that holds each request’s context. FP8 halves cache memory, roughly doubling how many requests fit per GPU, with minimal quality impact on modern inference engines.' },
       { k: 'kv_sizing_basis', label: 'KV sizing basis', type: 'select', options: [['typical', 'Typical (avg in + out)'], ['worst', 'Worst case (max context)']],
@@ -252,9 +252,9 @@
         ${GROUPS.map(g => { const fs = g.fields.filter(fd => ADVANCED.has(fd.k)); return fs.length ? `<fieldset><legend>${esc(g.title)}</legend>${fs.map(field).join('')}</fieldset>` : ''; }).join('')}
         </details>
         <div class="btn-row">
-          <button type="button" class="btn ghost" data-act="share" title="Copy a link that opens the calculator with these exact inputs">Copy share link</button>
           <button type="button" class="btn ghost" data-act="export">Export scenario</button>
           <button type="button" class="btn ghost" data-act="import">Import scenario</button>
+          <button type="button" class="btn ghost" data-act="share" title="Copy a link that opens the calculator with everything in this analysis">Copy share link</button>
         </div>
         <p class="share-msg muted small" hidden></p>
         <input type="file" accept=".json" hidden data-act="file"></form>`;
@@ -333,6 +333,8 @@
           box.value = url;
           setTimeout(() => { box.focus(); box.select(); }, 0);
         }
+        m.insertAdjacentHTML('afterbegin', '<button type="button" class="share-x" aria-label="Hide this message">×</button>');
+        m.querySelector('.share-x').onclick = () => { m.hidden = true; };
         m.hidden = false;
         TC.track('share-link', 'Copied share link');
       };

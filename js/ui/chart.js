@@ -6,14 +6,15 @@
   const hidden = new Set();
   let showTable = false;
   let kMax = 500;
-  let showHelp = true;
-  try { showHelp = localStorage.getItem('tc.beHelp') !== '0'; } catch (e) { /* ignore */ }
+  let showHelp = false;
+  // "How to read this chart" starts collapsed on every page load; it stays open or closed while you switch tabs.
+  try { localStorage.removeItem('tc.beHelp'); } catch (e) { /* ignore */ }
   const valOf = (p, key) => {
     const v = p.series[key];
     return v && v.monthly > 0 ? v.monthly : null;
   };
 
-  const W = 920, H = 440, M = { l: 72, r: 24, t: 20, b: 48 };
+  const W = 1000, H = 380, M = { l: 72, r: 24, t: 20, b: 48 };
 
   function logTicks(min, max) {
     const out = [];
@@ -206,7 +207,7 @@
       </details>`;
 
     const det = el.querySelector('.be-help');
-    det.addEventListener('toggle', () => { showHelp = det.open; try { localStorage.setItem('tc.beHelp', det.open ? '1' : '0'); } catch (e) { /* ignore */ } });
+    det.addEventListener('toggle', () => { showHelp = det.open; });
     if (showTable) el.querySelector('.be-more').open = true;
 
     el.querySelectorAll('[data-series]').forEach(cb => cb.onchange = () => {

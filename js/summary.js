@@ -81,7 +81,7 @@
     let why = '';
     if (verdict.key === 'onprem' || verdict.key === 'onprem-likely') {
       why = `The workload keeps dedicated GPUs busy enough (about ${f.num(util, 0)}% average utilization) that owning them costs less than ${altName} at today's volume.`;
-      if (verdict.key === 'onprem-likely') why += ` The pessimistic end of the on-prem range is above the ${cheapAlt === cl ? 'GPU cloud' : 'API'} cost, so confirm server pricing and measured throughput before relying on it.`;
+      if (verdict.key === 'onprem-likely') why += ` The pessimistic end of the on-prem range is above the ${cheapAlt === cl ? 'GPU cloud' : 'API'} cost, so current server pricing and a measured benchmark would make this call firmer.`;
     } else if (verdict.key === 'onprem-burst') {
       const b = hy.best;
       why = `Owning ${b.setup}, which covers ${TC.capText(b)}, carries ${TC.fmtShare(b.share)} of tokens; the rare bursts above that go to ${hy.api.name}. That costs about ${f.usdCompact(hy.savingsVsOnPrem * 12)}/yr less than buying servers for the full peak and ${f.usdCompact(hy.savingsVsApi * 12)}/yr less than paying per token for everything.`;
