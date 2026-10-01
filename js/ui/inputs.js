@@ -27,10 +27,10 @@
 
   const GROUPS = [
     { title: 'Scenario', fields: [
-      { k: 'scenario_name', label: 'Scenario name (optional)', type: 'text', hint: 'Shown on exports — e.g. "Support assistant, 3-year view"',
+      { k: 'scenario_name', label: 'Scenario name (optional)', type: 'text', hint: 'Shown on exports and share links',
         tip: 'A label for this analysis. It appears on the PowerPoint and CSV exports and in shared links. It is never saved to the shared data.' },
       { k: 'preset', label: 'What are you building?', type: 'select', options: [...Object.entries(PRESETS).map(([k, p]) => [k, p.label]), ['custom', 'Custom']],
-        hint: 'Illustrative starting values. Adjust them to the actual workload as you go.',
+        hint: 'Illustrative starting values',
         tip: 'Fills in illustrative starting values (requests, text in and out, busy hour, speed, caching) for common AI workloads. They are not Pellera benchmarks; adjust them to the actual workload. Open Advanced settings for the technical inputs.' },
       { k: 'term_years', label: 'Comparison term', type: 'select', options: [[3, '3 years'], [5, '5 years']],
         tip: 'Comparison horizon. On-prem hardware is amortized over this term; cloud and API costs are summed over it. 3 years is common given how fast GPUs age.' },
@@ -40,7 +40,7 @@
         tip: 'People who actively use the AI application in a typical month — not licensed seats or total headcount. If 400 of 1,000 employees actually use it, enter 400.' },
       { k: 'requests_per_user_per_day', label: 'Requests per user per day', type: 'number', min: 0, step: 'any',
         tip: 'Model calls per active user on an active day. One chat message = 1 request. RAG and agent workflows often make 3–10 model calls per user action — count the calls, not the clicks.' },
-      { k: 'avg_input_tokens', label: 'Avg input tokens', type: 'number', min: 1, hint: 'Prompt + retrieved context + chat history',
+      { k: 'avg_input_tokens', label: 'Avg input tokens', type: 'number', min: 1,
         tip: 'Tokens sent to the model per request: system prompt + user message + retrieved documents + prior conversation. 1 token ≈ 0.75 English words (≈ 4 characters). A 2-page document is ~1,300 tokens.' },
       { k: 'avg_output_tokens', label: 'Avg output tokens', type: 'number', min: 1,
         tip: 'Tokens the model generates per request. Short chat answers 150–400; summaries 200–500; drafted emails or reports 500–1,500; code can be more. Reasoning models also generate hidden "thinking" tokens that count here.' },
