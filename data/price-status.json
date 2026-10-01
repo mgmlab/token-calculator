@@ -1,6 +1,6 @@
 {
-  "checked_at": "2026-09-30T16:50Z",
-  "date": "2026-09-30",
+  "checked_at": "2026-10-01T17:23Z",
+  "date": "2026-10-01",
   "values_changed": 0,
   "changed": [],
   "needs_review": [],
@@ -96,5 +96,9 @@
       "changed": 0,
       "error": ""
     }
+  },
+  "examples": {
+    "checked": 7,
+    "mismatches": []
   }
 }
