@@ -291,8 +291,22 @@
         const url = TC.shareUrl(w);
         const m = form.querySelector('.share-msg');
         const nx = TC.excl.count();
-        try { await navigator.clipboard.writeText(url); m.textContent = 'Link copied — anyone who opens it sees these exact inputs' + (nx ? ` and the ${nx} removed option${nx > 1 ? 's' : ''}.` : '.'); }
-        catch (e) { m.textContent = 'Copy this link: ' + url; }
+        const btn = el.querySelector('[data-act="share"]');
+        try {
+          await navigator.clipboard.writeText(url);
+          // Confirm on the button itself, where the user is looking, then restore it.
+          btn.textContent = '✓ Link copied';
+          btn.classList.add('copied');
+          clearTimeout(btn._t);
+          btn._t = setTimeout(() => { btn.textContent = 'Copy share link'; btn.classList.remove('copied'); }, 2500);
+          m.textContent = 'Anyone who opens it sees these exact inputs' + (nx ? ` and the ${nx} removed option${nx > 1 ? 's' : ''}.` : '.');
+        } catch (e) {
+          // Clipboard blocked: show the link, selected, so it can be copied by hand.
+          m.innerHTML = 'Your browser blocked copying. Press Ctrl+C to copy this link:<input type="text" class="share-url" readonly>';
+          const box = m.querySelector('.share-url');
+          box.value = url;
+          setTimeout(() => { box.focus(); box.select(); }, 0);
+        }
         m.hidden = false;
         TC.track('share-link', 'Copied share link');
       };

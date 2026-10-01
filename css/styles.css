@@ -410,6 +410,8 @@ button.pill { border: 0; font: inherit; font-size: 12px; cursor: pointer; }
 .adv-settings > summary { cursor: pointer; font-weight: 600; font-size: 13.5px; color: var(--text-2); }
 .inputs input[type="text"] { width: 100%; }
 .share-msg { margin: 6px 0 0; }
+.btn.copied { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.share-url { display: block; width: 100%; margin-top: 6px; font-size: 12px; }
 
 .sect-toggle { appearance: none; background: none; border: 0; padding: 0; font: inherit; font-weight: 600; color: var(--text); cursor: pointer; text-align: left; }
 .sect-toggle:hover { color: var(--accent); }
