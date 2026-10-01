@@ -346,8 +346,37 @@
       }
       marks.filter(Boolean).forEach(m => { m.classList.remove('jump-hl'); void m.offsetWidth; m.classList.add('jump-hl'); });
       if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      showBack();
     }, 80);
   }
+
+  // Floating "Back to summary" after a jump; hides once the summary is on screen again.
+  let backBtn = null, backArmed = false;
+  function showBack() {
+    if (!backBtn) {
+      backBtn = document.createElement('button');
+      backBtn.type = 'button';
+      backBtn.className = 'back-summary';
+      backBtn.innerHTML = '↑ Back to summary';
+      backBtn.addEventListener('click', () => {
+        const c = document.getElementById('exec-card');
+        if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        hideBack();
+      });
+      document.body.appendChild(backBtn);
+      window.addEventListener('scroll', () => {
+        const c = document.getElementById('exec-card');
+        if (!backArmed || !c) return;
+        const r = c.getBoundingClientRect();
+        if (r.bottom > 80 && r.top < innerHeight - 80) hideBack();
+      }, { passive: true });
+    }
+    backArmed = false;
+    backBtn.hidden = false;
+    setTimeout(() => { backArmed = true; }, 1200); // let the smooth scroll leave the summary first
+  }
+  TC.hideBackToSummary = () => hideBack();
+  function hideBack() { if (backBtn) backBtn.hidden = true; backArmed = false; }
 
   /** Wires clicks once; the container is re-rendered on every change. */
   TC.bindResults = function (el, rerender) {

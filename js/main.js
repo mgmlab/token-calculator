@@ -187,6 +187,7 @@
   function showTab(name) {
     if (activeTab !== name) TC.track('tab-' + name, 'Opened ' + name + ' tab');
     activeTab = name;
+    if (name !== 'compare' && TC.hideBackToSummary) TC.hideBackToSummary();
     document.querySelectorAll('.tabs [data-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === name)));
     document.querySelectorAll('.tab-panel').forEach(p => { p.hidden = p.id !== 'tab-' + name; });
     try { sessionStorage.setItem('tc.tab', name); } catch (e) { /* ignore */ }
