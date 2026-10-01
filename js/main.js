@@ -36,6 +36,10 @@
   // Document-level listeners are attached once; statusPill() re-renders the pill on every data change.
   let ovrClose = null, ovrWrap = null;
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && ovrClose) ovrClose(); });
+  // Close the "Load an example" menu on outside click or Escape.
+  const closeExMenu = () => document.querySelectorAll('.ex-menu').forEach(m => { m.hidden = true; });
+  document.addEventListener('click', e => { if (!e.target.closest('.ex-wrap')) closeExMenu(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeExMenu(); });
   document.addEventListener('click', e => { if (ovrClose && ovrWrap && !ovrWrap.contains(e.target)) ovrClose(); });
 
   function pricePopover() {
@@ -51,6 +55,7 @@
       ${list('Held for review (moved more than 50%)', ps.needs_review)}
       ${list('Could not be read (left unchanged)', [...(ps.sources_failed || []), ...(ps.problems || [])])}
       ${list('Manual rows (no automatic source)', ps.manual_rows)}
+      ${list('Worked examples whose result changed (update data/examples.json and the demo playbook)', ((ps.examples && ps.examples.mismatches) || []).map(m => `${m.name}: expected ${m.expected}, now ${m.got}`))}
       ${ps.needs_review && ps.needs_review.length ? '<p class="muted small">To accept held changes: GitHub → Actions → Update prices (daily) → Run workflow, with "force" ticked.</p>' : ''}`;
   }
 
@@ -87,9 +92,10 @@
       const days = Math.round((Date.now() - new Date(ps.date + 'T12:00:00')) / 864e5);
       const failed = (ps.sources_failed || []).length + (ps.problems || []).length;
       const review = (ps.needs_review || []).length;
-      const warn = days > 2 || failed || review;
+      const exFlags = ((ps.examples && ps.examples.mismatches) || []).length;
+      const warn = days > 2 || failed || review || exFlags;
       const when = days <= 0 ? 'today' : days === 1 ? 'yesterday' : new Date(ps.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      priceTag = `<span class="ovr-wrap" data-pop="prices"><button type="button" class="pill ${warn ? 'warn' : ''}" aria-expanded="false">Prices checked ${when}${review ? ' · ' + review + ' to review' : ''}${failed ? ' · ' + failed + ' issue' + (failed > 1 ? 's' : '') : ''} ▾</button>
+      priceTag = `<span class="ovr-wrap" data-pop="prices"><button type="button" class="pill ${warn ? 'warn' : ''}" aria-expanded="false">Prices checked ${when}${review ? ' · ' + review + ' to review' : ''}${failed ? ' · ' + failed + ' issue' + (failed > 1 ? 's' : '') : ''}${exFlags ? ' · ' + exFlags + ' example' + (exFlags > 1 ? 's' : '') + ' to review' : ''} ▾</button>
         <div class="ovr-pop" role="dialog" aria-label="Price update status" hidden></div></span>`;
     }
     const tip = fromFile ? 'Numbers loaded from the shared data files everyone uses' : txt === 'Offline copy' ? 'The shared data files could not be reached; using the last copy saved in this browser, which may be out of date' : txt === 'Imported data' ? 'Using data files imported in this browser through the Data editor' : 'Some data files failed to load';
@@ -203,6 +209,35 @@
     if (clearData && editCount()) TC.store.resetAll(); // re-renders inputs via onChange
     else { TC.inputs.render($('#inputs'), w, schedule); compute(); }
   }
+  // ---- Worked examples: load one (replacing inputs, removed options and data edits, like a share link).
+  function applyExample(ex) {
+    Object.keys(w).forEach(k => delete w[k]);
+    Object.assign(w, TC.exampleWorkload(ex, TC.inputs.defaults()));
+    TC.inputs.save(w);
+    $('#resume-bar').hidden = true;
+    TC.excl.replace(null);
+    TC.store.applyDataPatch(ex.data || null); // re-renders inputs and results
+    TC.inputs.render($('#inputs'), w, schedule);
+    compute();
+    TC.track('example-' + ex.id, 'Loaded example ' + ex.name);
+  }
+  TC.loadExample = function (id) {
+    const ex = (TC.examples || []).find(x => x.id === id);
+    if (!ex) return;
+    if (!hasLeftovers() || w._example) { applyExample(ex); return; }
+    const dlg = $('#new-dialog');
+    dlg.innerHTML = `<form method="dialog" class="new-form">
+      <h3>Load the example “${TC.esc(ex.name)}”?</h3>
+      <p>This replaces your current inputs${w.scenario_name ? ` for <strong>${TC.esc(w.scenario_name)}</strong>` : ''}, removed options and Data editor changes.</p>
+      <p class="muted small">Want to keep your current analysis? Cancel and use <em>Copy share link</em> first.</p>
+      <div class="btn-row"><button value="cancel" class="btn ghost">Cancel</button><button value="ok" class="btn primary">Load example</button></div></form>`;
+    dlg.onclose = () => { if (dlg.returnValue === 'ok') applyExample(ex); };
+    dlg.returnValue = '';
+    dlg.showModal();
+  };
+  TC.activeExample = () => (w && w._example ? (TC.examples || []).find(x => x.id === w._example) || null : null);
+  TC.dismissExample = () => { delete w._example; TC.inputs.save(w); compute(); };
+
   TC.newAnalysis = function () {
     const dlg = $('#new-dialog');
     const n = editCount(), nx = TC.excl.count();
@@ -269,6 +304,10 @@
       const r = await fetch('data/price-status.json', { cache: 'no-cache' });
       if (r.ok) TC.priceStatus = await r.json();
     } catch (e) { /* file:// or offline: no status pill */ }
+    try {
+      const r = await fetch('data/examples.json', { cache: 'no-cache' });
+      if (r.ok) TC.examples = (await r.json()).examples || [];
+    } catch (e) { TC.examples = []; }
     statusPill();
     banner();
     TC.editor.init($('#editor'));

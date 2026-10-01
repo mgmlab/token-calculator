@@ -12,6 +12,22 @@
   const LIST = { models: 'models', gpus: 'gpus', servers: 'servers', benchmarks: 'benchmarks' };
   // Records are matched by id; benchmark rows have none, so they are matched by what they measured.
   const recKey = (n, r) => r.id || [r.gpu_id, r.model_id, r.precision, r.tp, r.pp, r.engine].join('|');
+  /** One dataset with a share-link/example patch applied (pure; used by links, examples and the example check). */
+  TC.patchDataset = function (n, base, p) {
+    const obj = TC.clone(base), lk = LIST[n];
+    if (lk) {
+      const rm = new Set(p.r || []), up = new Map((p.u || []).map(r => [recKey(n, r), r]));
+      const list = (obj[lk] || []).filter(r => !rm.has(recKey(n, r))).map(r => { const k = recKey(n, r); const x = up.get(k); if (x) up.delete(k); return x || r; });
+      obj[lk] = list.concat([...up.values()]);
+    } else {
+      Object.entries(p.s || {}).forEach(([path, val]) => {
+        const ks = path.split('.'); let t = obj;
+        ks.slice(0, -1).forEach(k => { if (!t[k] || typeof t[k] !== 'object') t[k] = {}; t = t[k]; });
+        t[ks[ks.length - 1]] = val;
+      });
+    }
+    return obj;
+  };
 
   const store = (TC.store = {
     NAMES,
@@ -97,21 +113,15 @@
       NAMES.forEach(n => {
         const p = patch && patch[n], base = this.defaults[n];
         if (!p || !base) { TC.storage.remove(KEY_OVR(n)); return; }
-        const obj = TC.clone(base), lk = LIST[n];
-        if (lk) {
-          const rm = new Set(p.r || []), up = new Map((p.u || []).map(r => [recKey(n, r), r]));
-          const list = (obj[lk] || []).filter(r => !rm.has(recKey(n, r))).map(r => { const k = recKey(n, r); const x = up.get(k); if (x) up.delete(k); return x || r; });
-          obj[lk] = list.concat([...up.values()]);
-        } else {
-          Object.entries(p.s || {}).forEach(([path, val]) => {
-            const ks = path.split('.'); let t = obj;
-            ks.slice(0, -1).forEach(k => { if (!t[k] || typeof t[k] !== 'object') t[k] = {}; t = t[k]; });
-            t[ks[ks.length - 1]] = val;
-          });
-        }
-        TC.storage.set(KEY_OVR(n), obj);
+        TC.storage.set(KEY_OVR(n), TC.patchDataset(n, base, p));
       });
       this.emit();
+    },
+    /** All datasets as they would look with a patch applied (does not touch this browser's edits). */
+    patchedAll(patch) {
+      const d = {};
+      NAMES.forEach(n => { d[n] = patch && patch[n] && this.defaults[n] ? TC.patchDataset(n, this.defaults[n], patch[n]) : this.defaults[n]; });
+      return d;
     },
     /** Number of datasets a patch touches. */
     patchSize(patch) { return patch ? Object.keys(patch).length : 0; },

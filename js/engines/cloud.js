@@ -54,8 +54,16 @@
             S('Instances', `${c.replicas} replicas at TP ${c.tp}${c.pp > 1 ? '×PP ' + c.pp : ''} packed into ${gpi}-GPU instances (same sizing as on-prem)`, c.nodes, 'instances'),
             S('GPUs billed', `${c.nodes} instances × ${gpi} GPUs`, gpus, 'GPUs'),
           ];
-          const monthly = gpus * rate * hours;
-          steps.push(S('Monthly cost', `${gpus} GPUs × $${f.num(rate, 3)}/GPU-hr × ${f.num(hours)} h/month (${hoursLabel})`, monthly, 'USD/mo'));
+          const gpuMonthly = gpus * rate * hours;
+          steps.push(S('GPU rental per month', `${gpus} GPUs × $${f.num(rate, 3)}/GPU-hr × ${f.num(hours)} h/month (${hoursLabel})`, gpuMonthly, 'USD/mo'));
+          // Rented GPUs still need someone to run model serving, drivers, monitoring and patching (optional, off by default).
+          const ca = data.assumptions.cloud || {};
+          const fte = ca.ops_fte ? prov.use('Cloud operations FTE', ca.ops_fte) : 0;
+          const fteCost = fte ? prov.use('Ops FTE cost $/yr', data.assumptions.onprem.ops_fte_cost_usd_per_year) : 0;
+          const opsMonthly = fte * fteCost / 12;
+          if (opsMonthly) steps.push(S('Cloud operations staff', `${f.num(fte, 2)} FTE × ${f.usd(fteCost)}/yr ÷ 12`, opsMonthly, 'USD/mo'));
+          const monthly = gpuMonthly + opsMonthly;
+          if (opsMonthly) steps.push(S('Monthly cost', 'GPU rental + operations staff', monthly, 'USD/mo'));
           const total = monthly * months;
           steps.push(S('Total cost over term', `${f.usd(monthly)} × ${months} months`, total, 'USD'));
           const perM = total / (wl.tTerm / 1e6);

@@ -31,6 +31,10 @@ jobs:
       - name: Pull API and GPU rental prices
         run: python scripts/update_prices.py ${{ inputs.force && '--force' || '' }}
 
+      # Re-check the worked examples against today's prices; a changed verdict shows in the app header.
+      - name: Check worked examples
+        run: node scripts/check_examples.js || echo "::warning::Example check failed to run"
+
       - name: Commit and publish
         id: commit
         run: |

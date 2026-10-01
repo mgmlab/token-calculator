@@ -150,7 +150,10 @@
     if (bestOn && bestOn.util < 0.3) {
       notes.push("<strong>Utilization:</strong> " + esc(`Self-hosted capacity is only ${f.num(bestOn.util * 100, 1)}% utilized on average (sized for peak concurrency of ${f.int(w.peak_concurrent_requests)}). Fully utilized, the lowest-cost on-prem option would be ${f.perM(bestOn.perMFull)} per 1M tokens instead of ${f.perM(bestOn.perM)}. Utilization — not hardware price — is usually what decides on-prem vs API.`));
     }
-    let h = execCard(data, w, res, notes);
+    const exm = TC.activeExample && TC.activeExample();
+    let h = exm ? `<div class="ex-note" role="note"><div><strong>Example: ${esc(exm.name)}.</strong> ${esc(exm.note)} <span class="ex-try"><b>Try:</b> ${esc(exm.try)}</span></div>
+      <button type="button" class="ex-close" data-ex-dismiss aria-label="Hide this explanation">×</button></div>` : '';
+    h += execCard(data, w, res, notes);
 
     h += `<div class="summary">
       <div class="stat"><span class="label">Tokens / month</span><span class="value">${f.tokens(wl.tMo)}</span><span class="muted small">${f.tokens(wl.tInMo)} in · ${f.tokens(wl.tOutMo)} out</span></div>
@@ -336,6 +339,7 @@
         } else TC.exportCsv(ex.dataset.export);
         return;
       }
+      if (e.target.closest('[data-ex-dismiss]')) { TC.dismissExample(); return; }
       const ed = e.target.closest('[data-edit]');
       if (ed) {
         const [ds, id, path] = ed.dataset.edit.split('|');

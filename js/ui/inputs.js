@@ -243,7 +243,10 @@
 
       el.innerHTML = `<form class="inputs-form" onsubmit="return false">
         <div class="inputs-head"><div class="inputs-title"><h2>Workload profile</h2><button type="button" class="btn small" data-act="new" title="Clear these inputs and start a fresh analysis for a new customer">New analysis</button></div>
-          <a class="guide-link" href="${DOC}" target="_blank" rel="noopener">How to gather these inputs from a client ↗</a></div>
+          <div class="head-links"><a class="guide-link" href="${DOC}" target="_blank" rel="noopener">How to gather these inputs from a client ↗</a>
+          ${(TC.examples || []).length ? `<span class="ex-wrap"><button type="button" class="guide-link linkish" data-act="examples" aria-expanded="false">Load an example ▾</button>
+            <div class="ex-menu" role="menu" hidden><p class="muted small">Worked examples that each lead to a different result. Loading one replaces the current inputs.</p>
+            ${TC.examples.map(x => `<button type="button" role="menuitem" class="ex-item" data-ex="${esc(x.id)}"><strong>${esc(x.name)}</strong><span>${esc(x.summary)}</span></button>`).join('')}</div></span>` : ''}</div></div>
         ${GROUPS.map(g => { const fs = g.fields.filter(fd => !ADVANCED.has(fd.k)); return fs.length ? `<fieldset><legend>${esc(g.title)}</legend>${fs.map(field).join('')}</fieldset>` : ''; }).join('')}
         <details class="adv-settings" ${advOpen() ? 'open' : ''}><summary>Advanced settings</summary>
         ${GROUPS.map(g => { const fs = g.fields.filter(fd => ADVANCED.has(fd.k)); return fs.length ? `<fieldset><legend>${esc(g.title)}</legend>${fs.map(field).join('')}</fieldset>` : ''; }).join('')}
@@ -260,6 +263,11 @@
       try { localStorage.removeItem(ADV_KEY); } catch (x) { /* clear the old saved state */ }
 
       form.addEventListener('click', e => {
+        const exBtn = e.target.closest('[data-act="examples"]');
+        const menu = form.querySelector('.ex-menu');
+        if (exBtn && menu) { const open = menu.hidden; menu.hidden = !open; exBtn.setAttribute('aria-expanded', String(open)); return; }
+        const item = e.target.closest('[data-ex]');
+        if (item) { menu.hidden = true; TC.loadExample(item.dataset.ex); return; }
         if (e.target.closest('[data-act="prov-all"]')) { w.api_excluded = []; this.save(w); this.render(el, w, onChange); onChange(); }
       });
       form.addEventListener('input', e => {

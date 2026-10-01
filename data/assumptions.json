@@ -113,7 +113,13 @@
     "prefill_warning_ratio": 10
   },
   "cloud": {
-    "hours_per_month": 730
+    "hours_per_month": 730,
+    "ops_fte": {
+      "value": 0,
+      "source": "Fraction of an FTE to run model serving, drivers, monitoring and patching on rented GPUs (cost per FTE from onprem.ops_fte_cost_usd_per_year); off by default",
+      "as_of": "2026-09-30",
+      "status": "placeholder"
+    }
   },
   "workload_defaults": {
     "scenario_name": "",

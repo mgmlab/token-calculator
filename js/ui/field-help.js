@@ -103,7 +103,7 @@
     'assumptions.net_storage_usd_per_node': 'Networking and storage per server (used when mode is per_node).',
     'assumptions.install_usd_per_node': 'One-time racking, integration and setup services per server.',
     'assumptions.software_usd_per_gpu_per_year': 'Optional software subscription per GPU per year (e.g. vendor AI software suites). Off by default to stay vendor-neutral.',
-    'assumptions.ops_fte': 'Share of one engineer\'s time spent running this cluster (e.g. 0.25).',
+    'assumptions.ops_fte': 'Share of one engineer’s time spent running this cluster (e.g. 0.25). Under onprem it covers the servers and the model; under cloud, running the model on rented GPUs (serving software, drivers, monitoring, patching).',
     'assumptions.ops_fte_cost_usd_per_year': 'Fully loaded yearly cost of one infrastructure engineer.',
     'assumptions.residual_value_pct': 'Resale value of the servers at the end of the term, as a % of their price (credited back).',
     'assumptions.financing_rate_pct_per_year': 'Cost of capital if the purchase is financed (0 = paid in cash).',

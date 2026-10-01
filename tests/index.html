@@ -19,6 +19,7 @@
   <div id="summary">running…</div>
   <ul id="list"></ul>
   <script src="../js/util.js"></script>
+  <script src="../js/data-store.js"></script>
   <script src="../js/workload.js"></script>
   <script src="../js/exclusions.js"></script>
   <script src="../js/engines/onprem.js"></script>
@@ -27,6 +28,24 @@
   <script src="../js/breakeven.js"></script>
   <script src="../js/engines/hybrid.js"></script>
   <script src="../js/summary.js"></script>
+  <script src="../js/examples.js"></script>
   <script src="engines.test.js"></script>
+  <script>
+  // Worked examples (data/examples.json) against today's real data: each must still reach its expected verdict.
+  (async () => {
+    const list = document.getElementById('list');
+    try {
+      const get = f => fetch('../data/' + f + '.json', { cache: 'no-cache' }).then(r => r.json());
+      const base = {};
+      for (const n of ['models', 'gpus', 'servers', 'benchmarks', 'assumptions']) base[n] = await get(n);
+      const ex = (await get('examples')).examples;
+      const rows = ex.map(e => { const r = TC.evaluateExample(e, base); return { e, r }; });
+      const bad = rows.filter(x => !x.r.ok).length;
+      list.insertAdjacentHTML('beforeend', `<li class="${bad ? 'fail' : 'pass'}">${bad ? '✗' : '✓'} worked examples keep their expected verdicts (${rows.length - bad}/${rows.length})${bad ? ' — ' + rows.filter(x => !x.r.ok).map(x => TC.esc(x.e.id + ': expected ' + x.e.expect + ', got ' + x.r.key)).join('; ') : ''}</li>`);
+    } catch (err) {
+      list.insertAdjacentHTML('beforeend', `<li class="fail">✗ worked examples could not be checked — ${TC.esc(err.message)}</li>`);
+    }
+  })();
+  </script>
 </body>
 </html>
