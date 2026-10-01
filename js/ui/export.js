@@ -179,7 +179,10 @@
     t.background = { color: P.white };
     t.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 0.35, h: 7.5, fill: { color: P.purple } });
     if (logo) t.addImage({ data: logo, x: 1.0, y: 0.9, w: 1.6, h: 1.04 });
-    t.addText(w.scenario_name || 'AI inference economics', { x: 1.0, y: 2.35, w: 11, h: 0.9, fontFace: FONT, fontSize: 40, bold: true, color: P.ink });
+    // Title sits above the subtitle and grows upward; long scenario names (up to 80 characters) get a smaller size.
+    const coverTitle = w.scenario_name || 'AI inference economics';
+    const coverSize = coverTitle.length > 60 ? 26 : coverTitle.length > 44 ? 30 : coverTitle.length > 30 ? 34 : 40;
+    t.addText(coverTitle, { x: 1.0, y: 1.75, w: 11, h: 1.4, fontFace: FONT, fontSize: coverSize, bold: true, color: P.ink, valign: 'bottom', fit: 'shrink' });
     t.addText(w.scenario_name ? 'AI inference economics — on-prem vs GPU cloud vs API' : 'Self-hosted on-prem vs GPU cloud vs public API', { x: 1.0, y: 3.2, w: 11, h: 0.5, fontFace: FONT, fontSize: 20, color: P.purple });
     t.addText(`${model ? model.name : w.model_id} · ${w.precision} weights · ${f.tokens(wl.tMo)} tokens/month · ${w.term_years}-year view`, { x: 1.0, y: 3.85, w: 11, h: 0.4, fontFace: FONT, fontSize: 15, color: P.ink2 });
     t.addText(dateStr, { x: 1.0, y: 4.3, w: 11, h: 0.4, fontFace: FONT, fontSize: 13, color: P.muted });
