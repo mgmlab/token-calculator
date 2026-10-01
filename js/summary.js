@@ -84,10 +84,10 @@
       if (verdict.key === 'onprem-likely') why += ` The pessimistic end of the on-prem range is above the ${cheapAlt === cl ? 'GPU cloud' : 'API'} cost, so confirm server pricing and measured throughput before relying on it.`;
     } else if (verdict.key === 'onprem-burst') {
       const b = hy.best;
-      why = `Owning servers sized for about ${b.pct}% of the calculated peak (${b.setup}) carries ${f.num(b.share * 100, b.share > 0.995 ? 1 : 0)}% of tokens; the rare bursts above that go to ${hy.api.name}. That costs about ${f.usdCompact(hy.savingsVsOnPrem * 12)}/yr less than buying servers for the full peak and ${f.usdCompact(hy.savingsVsApi * 12)}/yr less than paying per token for everything.`;
+      why = `Owning ${b.setup}, which covers ${TC.capText(b)}, carries ${TC.fmtShare(b.share)} of tokens; the rare bursts above that go to ${hy.api.name}. That costs about ${f.usdCompact(hy.savingsVsOnPrem * 12)}/yr less than buying servers for the full peak and ${f.usdCompact(hy.savingsVsApi * 12)}/yr less than paying per token for everything.`;
     } else if (verdict.key === 'hybrid') {
       const b = hy.best;
-      why = `Owning a baseline sized for about ${b.pct}% of peak demand would handle ${f.num(b.share * 100, 0)}% of tokens, with the busy-hour overflow sent to ${hy.api.name}. That mix saves about ${f.usdCompact(hy.savingsVsApi * 12)}/yr versus paying per token for everything`
+      why = `Owning a baseline that covers ${TC.capText(b)} (${b.setup}) would handle ${TC.fmtShare(b.share)} of tokens, with the busy-hour overflow sent to ${hy.api.name}. That mix saves about ${f.usdCompact(hy.savingsVsApi * 12)}/yr versus paying per token for everything`
         + (hy.savingsVsOnPrem > 0 ? ` and ${f.usdCompact(hy.savingsVsOnPrem * 12)}/yr versus owning capacity for the full peak.` : '.');
     } else if (verdict.key === 'cloud') {
       why = `Renting GPUs (${cl.name}, ${cl.pricing.toLowerCase()}) is the lowest-cost option: about ${f.usdCompact((on.monthly - cl.monthly) * 12)}/yr less than owning servers`

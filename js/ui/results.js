@@ -260,7 +260,7 @@
   function hybridTile(hy) {
     if (!hy) return `<div class="exec-tile"><span class="label">Hybrid (owned baseline + API)</span><span class="value muted">—</span><span class="muted small">Needs a same-model API price</span></div>`;
     const b = hy.best;
-    const note = !b.row ? 'best mix is all API' : b.pct >= 100 ? 'best mix is all owned' : b.share >= 0.95 ? `${f.num(b.share * 100, 0)}% of tokens on owned GPUs; API takes rare bursts` : `${f.num(b.share * 100, 0)}% of tokens on owned GPUs`;
+    const note = !b.row ? 'best mix is all API' : b.pct >= 100 ? 'best mix is all owned' : b.share >= 0.95 ? `${TC.fmtShare(b.share)} of tokens on owned GPUs; API takes rare bursts` : `${TC.fmtShare(b.share)} of tokens on owned GPUs`;
     return `<div class="exec-tile ${hy.wins ? 'hy-win' : ''}"><span class="label">Hybrid (owned baseline + API)</span><span class="value">${f.usdCompact(b.total * 12)}<small>/yr</small></span>
       <span class="muted small">${b.row ? esc(b.setup) + ' + ' + esc(hy.api.name) : esc(hy.api.name) + ' only'}</span><span class="muted small">${note}</span></div>`;
   }
@@ -283,7 +283,7 @@
     let svg = `<svg viewBox="0 0 ${W} ${H}" class="hy-chart" role="img" aria-label="Yearly cost by how much of peak demand you own GPUs for">`;
     ticks.forEach(t => { svg += `<line class="grid" x1="${M.l}" x2="${W - M.r}" y1="${Y(t)}" y2="${Y(t)}"/><text class="tick" x="${M.l - 8}" y="${Y(t) + 4}" text-anchor="end">${f.usdCompact(t)}</text>`; });
     [0, 25, 50, 75, 100].forEach(p => { svg += `<text class="tick" x="${X(p)}" y="${H - M.b + 18}" text-anchor="middle">${p}%</text>`; });
-    svg += `<text class="axis-label" x="${(M.l + W - M.r) / 2}" y="${H - 6}" text-anchor="middle">Owned GPU capacity, as % of peak demand (0% = all API)</text>`;
+    svg += `<text class="axis-label" x="${(M.l + W - M.r) / 2}" y="${H - 6}" text-anchor="middle">Owned capacity requested, as % of peak demand (0% = all API)</text>`;
     svg += `<text class="axis-label" transform="translate(16 ${(M.t + H - M.b) / 2}) rotate(-90)" text-anchor="middle">Cost per year</text>`;
     svg += `<line class="ref" x1="${M.l}" x2="${W - M.r}" y1="${Y(Y12(hy.onPremOnly))}" y2="${Y(Y12(hy.onPremOnly))}"/>`;
     svg += `<path d="${path('ownedMonthly')}" fill="none" stroke="var(--muted)" stroke-width="1.5"/>`;
@@ -293,24 +293,34 @@
     const ends = [['Total', Y(Y12(last.total)), 'hy-best'], ['Owned GPUs', Y(Y12(last.ownedMonthly)), 'tick'], ['API overflow', Y(Y12(last.apiMonthly)), 'tick'], [`All owned: ${f.usdCompact(Y12(hy.onPremOnly))}`, Y(Y12(hy.onPremOnly)), 'ref-label']].sort((p, q) => p[1] - q[1]);
     for (let i = 1; i < ends.length; i++) if (ends[i][1] - ends[i - 1][1] < 14) ends[i][1] = ends[i - 1][1] + 14;
     ends.forEach(([l, y, c]) => { svg += `<text class="${c}" x="${W - M.r + 8}" y="${y + 4}">${l}</text>`; });
-    pts.forEach(p => { svg += `<circle cx="${X(p.pct)}" cy="${Y(Y12(p.total))}" r="9" fill="transparent"><title>${p.pct}% of peak owned${p.row ? ' (' + p.setup + ')' : ''}\nOwned GPUs: ${f.usd(Y12(p.ownedMonthly))}/yr\nAPI overflow: ${f.usd(Y12(p.apiMonthly))}/yr\nTotal: ${f.usd(Y12(p.total))}/yr</title></circle>`; });
+    pts.forEach(p => { svg += `<circle cx="${X(p.pct)}" cy="${Y(Y12(p.total))}" r="9" fill="transparent"><title>${p.pct}% of peak requested${p.row ? ' → ' + p.setup + ', covers ' + (p.capPct >= 100 ? 'the full peak' : p.capPct + '% of peak') : ''}\nTokens on owned GPUs: ${TC.fmtShare(p.share)}\nOwned GPUs: ${f.usd(Y12(p.ownedMonthly))}/yr\nAPI overflow: ${f.usd(Y12(p.apiMonthly))}/yr\nTotal: ${f.usd(Y12(p.total))}/yr</title></circle>`; });
     svg += `<circle cx="${X(b.pct)}" cy="${Y(Y12(b.total))}" r="7" fill="var(--surface)" stroke="var(--accent)" stroke-width="3" pointer-events="none"/>`;
     const lx = X(b.pct) > (W - M.r) * 0.6 ? X(b.pct) - 12 : X(b.pct) + 12;
     svg += `<text class="hy-best" x="${lx}" y="${Y(Y12(b.total)) - 12}" text-anchor="${X(b.pct) > (W - M.r) * 0.6 ? 'end' : 'start'}">Lowest total: ${f.usdCompact(Y12(b.total))}/yr at ${b.pct}%</text>`;
     svg += '</svg>';
     const legend = `<div class="hy-legend"><span><i style="border-color:var(--accent)"></i>Total = owned + API overflow</span><span><i style="border-color:var(--muted)"></i>Owned GPUs</span><span><i style="border-color:var(--muted);border-top-style:dashed"></i>API overflow</span><span><i style="border-color:var(--muted);border-top-style:dotted"></i>All owned, sized for the full peak (no API)</span></div>
       <p class="muted small">Read left to right: owning more GPUs moves tokens off the API. Owned cost rises in steps because hardware comes in whole servers; where it stays flat, one server already covers that share. Hover a point for the numbers.</p>`;
-    const rows = pts.filter(p => p.pct % 25 === 0 || p === b);
-    const tbl = `<div class="table-wrap"><table class="results-table compact"><thead><tr><th>Owned capacity</th><th>Owned setup</th><th class="num">Tokens on owned GPUs</th><th class="num">Owned / yr</th><th class="num">API overflow / yr</th><th class="num">Total / yr</th><th class="num">vs all-API</th></tr></thead><tbody>` +
-      rows.map(p => `<tr class="${p === b ? 'hy-row-best' : ''}"><td>${p.pct}% of peak${p === b ? ' <span class="badge basis-bench">lowest</span>' : ''}</td><td>${p.row ? esc(p.setup) : 'none (all API)'}</td>
-        <td class="num">${f.num(p.share * 100, 0)}%</td><td class="num">${f.usd(p.ownedMonthly * 12)}</td><td class="num">${f.usd(p.apiMonthly * 12)}</td><td class="num strong">${f.usd(p.total * 12)}</td>
-        <td class="num">${p.pct === 0 ? '—' : p.total <= hy.apiOnly ? '−' + f.usd((hy.apiOnly - p.total) * 12) : '+' + f.usd((p.total - hy.apiOnly) * 12)}</td></tr>`).join('') + '</tbody></table></div>';
+    // One row per distinct owned setup: requests that round up to the same servers are merged ("5–25% of peak").
+    const groups = [];
+    pts.forEach(p => {
+      const g = groups[groups.length - 1];
+      const key = p.row ? p.setup + '|' + Math.round(p.ownedMonthly) : 'none';
+      if (g && g.key === key) { g.to = p.pct; if (p === b) g.p = p; } else groups.push({ key, from: p.pct, to: p.pct, p });
+    });
+    const tbl = `<div class="table-wrap"><table class="results-table compact"><thead><tr><th>Capacity requested</th><th>Owned setup</th><th class="num">Actual capacity</th><th class="num">Tokens on owned GPUs</th><th class="num">Owned / yr</th><th class="num">API overflow / yr</th><th class="num">Total / yr</th><th class="num">vs all-API</th></tr></thead><tbody>` +
+      groups.map(({ from, to, p }) => {
+        const best = p === b;
+        return `<tr class="${best ? 'hy-row-best' : ''}"><td>${from === to ? from : from + '–' + to}% of peak${best ? ' <span class="badge basis-bench">lowest</span>' : ''}</td><td>${p.row ? esc(p.setup) : 'none (all API)'}</td>
+        <td class="num">${p.row ? (p.capPct >= 100 ? 'full peak' : p.capPct + '% of peak') : '—'}</td>
+        <td class="num">${TC.fmtShare(p.share)}</td><td class="num">${f.usd(p.ownedMonthly * 12)}</td><td class="num">${f.usd(p.apiMonthly * 12)}</td><td class="num strong">${f.usd(p.total * 12)}</td>
+        <td class="num">${p.pct === 0 ? '—' : p.total <= hy.apiOnly ? '−' + f.usd((hy.apiOnly - p.total) * 12) : '+' + f.usd((p.total - hy.apiOnly) * 12)}</td></tr>`;
+      }).join('') + '</tbody></table></div><p class="muted small">Servers come in whole units, so the capacity you actually buy is often well above what was requested. Requests that land on the same servers are merged into one row.</p>';
     const verdict = hy.wins
-      ? `Owning a baseline sized for <strong>${b.pct}%</strong> of peak and sending the overflow to <strong>${esc(hy.api.name)}</strong> is the lowest-cost mix — about <strong>${f.usdCompact(hy.savingsVsApi * 12)}/yr</strong> less than all-API${hy.savingsVsOnPrem > 0 ? ` and ${f.usdCompact(hy.savingsVsOnPrem * 12)}/yr less than owning for the full peak` : ''}.`
+      ? `Owning a baseline that covers <strong>${TC.capText(b)}</strong> (${esc(b.setup)}) and sending the overflow to <strong>${esc(hy.api.name)}</strong> is the lowest-cost mix — about <strong>${f.usdCompact(hy.savingsVsApi * 12)}/yr</strong> less than all-API${hy.savingsVsOnPrem > 0 ? ` and ${f.usdCompact(hy.savingsVsOnPrem * 12)}/yr less than owning for the full peak` : ''}.`
       : !b.row ? (() => {
         const o = pts.filter(p => p.row).sort((p, q) => p.ownedMonthly - q.ownedMonthly)[0];
         return 'At this volume the lowest-cost mix is <strong>all API</strong>: owned capacity costs more than the tokens it would serve.' + (o
-          ? ` Even the smallest owned setup (${esc(o.setup)}) costs <strong>${f.usdCompact(o.ownedMonthly * 12)}/yr</strong> and already serves ${f.num(o.share * 100, 0)}% of demand at ${o.pct}% of peak, versus <strong>${f.usdCompact(hy.apiOnly * 12)}/yr</strong> for all API — which is why the line jumps and then stays flat.`
+          ? ` Even the smallest owned setup (${esc(o.setup)}) costs <strong>${f.usdCompact(o.ownedMonthly * 12)}/yr</strong> and already serves ${TC.fmtShare(o.share)} of demand, versus <strong>${f.usdCompact(hy.apiOnly * 12)}/yr</strong> for all API — which is why the line jumps and then stays flat.`
           : '');
       })()
       : b.pct >= 100 ? 'At this volume the lowest-cost mix is <strong>all owned</strong>: overflow to the API costs more than owning for the peak.'

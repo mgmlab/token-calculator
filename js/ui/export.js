@@ -219,7 +219,7 @@
     se.addShape(pptx.ShapeType.roundRect, { x: 0.5, y: 1.45, w: 4.2, h: 0.55, rectRadius: 0.27, fill: { color: toneFill }, line: { color: toneFill } });
     se.addText(X.verdict.label, { x: 0.5, y: 1.45, w: 4.2, h: 0.55, fontFace: FONT, fontSize: 16, bold: true, color: toneInk, align: 'center', valign: 'middle' });
     const HY = X.hybrid;
-    const hyRow = HY ? { monthly: HY.best.total, name: HY.best.row ? HY.best.setup + ' + ' + HY.api.name : HY.api.name + ' only', sub: `${f.num(HY.best.share * 100, 0)}% of tokens owned`, perM: HY.best.total * 12 * w.term_years / (res.wl.tTerm / 1e6) } : null;
+    const hyRow = HY ? { monthly: HY.best.total, name: HY.best.row ? HY.best.setup + ' + ' + HY.api.name : HY.api.name + ' only', sub: `${TC.fmtShare(HY.best.share)} of tokens owned`, perM: HY.best.total * 12 * w.term_years / (res.wl.tTerm / 1e6) } : null;
     const onTile = X.on ? Object.assign({}, X.on, { name: X.onLabel, sub: `${f.num(X.on.util * 100, X.on.util < 0.01 ? 1 : 0)}% utilized` }) : null;
     const tiles = [['Buy servers (on-prem)', onTile, X.onRange], ['Rent GPUs (GPU cloud)', X.cl, X.clRange], ['Pay per token (same model)', X.api, null], ['Hybrid (owned + API)', hyRow, null]];
     tiles.forEach(([lbl, r, rng], i) => {
@@ -255,7 +255,7 @@
       });
       const b = HY.best;
       const msg = HY.wins
-        ? `Lowest cost: own a baseline for ${b.pct}% of peak (${b.row ? b.setup : ''}) and send the rest to ${HY.api.name}. ${f.num(b.share * 100, 0)}% of tokens run on owned GPUs.`
+        ? `Lowest cost: own ${b.row ? b.setup : ''}, which covers ${TC.capText(b)}, and send the rest to ${HY.api.name}. ${TC.fmtShare(b.share)} of tokens run on owned GPUs.`
         : !b.row ? 'At this volume the lowest-cost mix is all API.' : b.pct >= 100 ? 'At this volume the lowest-cost mix is all owned.' : `A ${b.pct}% baseline is cheapest, but saves under 5% versus the best single option.`;
       sh.addText([
         { text: msg, options: { breakLine: true, paraSpaceAfter: 12, color: P.ink } },

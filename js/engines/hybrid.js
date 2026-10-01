@@ -59,6 +59,18 @@
     return Math.max(0, Math.min(1, (sumBelowK + kInt * (1 - cdfBelowK)) / c));
   };
 
+  /** Share of tokens as text that never rounds a near-miss up to 100% (99.97% stays 99.97%). */
+  TC.fmtShare = s => {
+    const v = s * 100;
+    if (v >= 100 - 1e-9) return '100%';
+    if (v > 99.99) return '>99.99%';
+    if (v >= 99.5) return (Math.floor(v * 100) / 100).toFixed(2) + '%';
+    if (v > 0 && v < 0.5) return '<1%';
+    return f.num(v, 0) + '%';
+  };
+  /** What an owned setup actually covers, in words ("about 95% of the calculated peak"). */
+  TC.capText = p => (p.capPct >= 100 ? 'the full calculated peak' : `about ${p.capPct}% of the calculated peak`);
+
   const cheapest = rows => rows.filter(r => r.feasible && isFinite(r.monthly)).sort((a, b) => a.monthly - b.monthly)[0] || null;
 
   TC.hybrid = function (data, w, res) {
@@ -97,7 +109,7 @@
       const served = hourly.reduce((a, c) => a + c * TC.servedFraction(c, cap), 0);
       const share = demand > 0 ? served / demand : 1;
       const apiMonthly = api.monthly * (1 - share);
-      points.push({ pct: step * 5, K, capacity: cap, share, ownedMonthly: row.monthly, apiMonthly, total: row.monthly + apiMonthly, row, setup: TC.describeOnPrem(onRows, row).label });
+      points.push({ pct: step * 5, K, capacity: cap, capPct: Math.round(cap / Math.max(peak, 1e-9) * 100), share, ownedMonthly: row.monthly, apiMonthly, total: row.monthly + apiMonthly, row, setup: TC.describeOnPrem(onRows, row).label });
     }
     const best = points.reduce((a, p) => (p.total < a.total ? p : a), points[0]);
     // A mix only "wins" if it beats every single-architecture option, GPU cloud included.
@@ -109,6 +121,7 @@
     const steps = [
       S('Traffic curve', `busiest hour carries ${f.num(busy * 100, 1)}% of daily requests; the other hours follow a bell curve around midday${busy <= 1 / 24 + 1e-9 ? ' (flat, 24/7)' : ''}`, Math.max(...hourly), 'requests', 'Peak-hour mean concurrency; bursts within each hour are modelled as random (Poisson) arrivals.'),
       S('Owned capacity tried', '0% to 100% of peak concurrency in 5% steps, cheapest server layout for each (same headroom and N+1 settings as on-prem)', points.length - 1, 'options'),
+      S('Owned capacity actually installed', best.row ? `${best.setup}: can carry ${f.int(best.capacity || 0)} concurrent requests vs ${f.int(peak)} at peak (servers come in whole units, so this is usually more than the ${best.pct}% requested)` : 'none', best.capPct || 0, '% of peak'),
       S('Tokens served on owned GPUs', 'Σ hours: mean concurrency × E[min(demand, capacity)] ÷ total demand', best.share * 100, '%'),
       S('Overflow API cost', `${f.usd(api.monthly)} all-API monthly × (1 − ${f.num(best.share * 100, 1)}%) via ${api.name}`, best.apiMonthly, 'USD/mo'),
       S('Owned baseline cost', best.row ? `${best.setup} · ${best.row.cost.nodes} node(s)` : 'none', best.ownedMonthly, 'USD/mo'),
