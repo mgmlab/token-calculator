@@ -496,3 +496,16 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; }
 .share-msg { position: relative; padding-right: 22px; }
 .share-x { position: absolute; top: -2px; right: 0; border: 0; background: none; font-size: 16px; line-height: 1; cursor: pointer; color: var(--muted); padding: 2px 4px; }
 .share-x:hover { color: var(--text); }
+
+/* ---------- workload header: one quiet segmented toolbar */
+.inputs-head { gap: 10px; margin-bottom: 12px; }
+.inputs-head h2 { margin: 0; }
+.seg-bar { display: flex; border: 1px solid var(--border-strong); border-radius: 8px; overflow: visible; background: var(--surface); }
+.seg-bar > .ex-wrap { display: flex; flex: 1; min-width: 0; }
+.seg-btn { flex: 1; min-width: 0; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 8px; background: none; border: 0; border-left: 1px solid var(--border); font: 500 12.5px/1.2 var(--font, inherit); color: var(--text); text-decoration: none; cursor: pointer; white-space: nowrap; }
+.seg-bar > :first-child.seg-btn, .seg-bar > :first-child .seg-btn { border-left: 0; border-radius: 7px 0 0 7px; }
+.seg-bar > :last-child.seg-btn { border-radius: 0 7px 7px 0; }
+.seg-btn:hover, .seg-btn[aria-expanded="true"] { background: var(--accent-soft); color: var(--accent); }
+.seg-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.seg-caret { width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid currentColor; opacity: .7; }
+.seg-ext { font-size: 11px; opacity: .7; }

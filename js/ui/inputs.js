@@ -241,11 +241,14 @@
       };
 
       el.innerHTML = `<form class="inputs-form" onsubmit="return false">
-        <div class="inputs-head"><div class="inputs-title"><h2>Workload profile</h2><button type="button" class="btn small" data-act="new" title="Clear these inputs and start a fresh analysis for a new customer">New analysis</button></div>
-          <div class="head-links">${(TC.examples || []).length ? `<span class="ex-wrap"><button type="button" class="btn ghost small" data-act="examples" aria-expanded="false" title="Load a worked example">Examples ▾</button>
-            <div class="ex-menu" role="menu" hidden><p class="muted small">Worked examples that each lead to a different result. Loading one replaces the current inputs.</p>
-            ${TC.examples.map(x => `<button type="button" role="menuitem" class="ex-item" data-ex="${esc(x.id)}"><strong>${esc(x.name)}</strong><span>${esc(x.summary)}</span></button>`).join('')}</div></span>` : ''}
-          <a class="btn ghost small" href="${DOC}" target="_blank" rel="noopener" title="How to gather these inputs from a client">Input guide ↗</a></div></div>
+        <div class="inputs-head"><h2>Workload profile</h2>
+          <div class="seg-bar" role="toolbar" aria-label="Workload actions">
+            <button type="button" class="seg-btn" data-act="new" title="Clear these inputs and start a fresh analysis">New analysis</button>
+            ${(TC.examples || []).length ? `<span class="ex-wrap"><button type="button" class="seg-btn" data-act="examples" aria-expanded="false" title="Load a worked example">Examples<span class="seg-caret" aria-hidden="true"></span></button>
+              <div class="ex-menu" role="menu" hidden><p class="muted small">Worked examples that each lead to a different result. Loading one replaces the current inputs.</p>
+              ${TC.examples.map(x => `<button type="button" role="menuitem" class="ex-item" data-ex="${esc(x.id)}"><strong>${esc(x.name)}</strong><span>${esc(x.summary)}</span></button>`).join('')}</div></span>` : ''}
+            <a class="seg-btn" href="${DOC}" target="_blank" rel="noopener" title="How to gather these inputs from a client">Input guide<span class="seg-ext" aria-hidden="true">↗</span></a>
+          </div></div>
         ${GROUPS.map(g => { const fs = g.fields.filter(fd => !ADVANCED.has(fd.k)); return fs.length ? `<fieldset><legend>${esc(g.title)}</legend>${fs.map(field).join('')}</fieldset>` : ''; }).join('')}
         <details class="adv-settings" ${advOpen() ? 'open' : ''}><summary>Advanced settings</summary>
         ${GROUPS.map(g => { const fs = g.fields.filter(fd => ADVANCED.has(fd.k)); return fs.length ? `<fieldset><legend>${esc(g.title)}</legend>${fs.map(field).join('')}</fieldset>` : ''; }).join('')}
