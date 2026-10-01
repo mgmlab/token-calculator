@@ -84,6 +84,10 @@ The form link is `requestFormUrl` in [`js/config.js`](js/config.js); the header,
 
 A scenario is the workload inputs **plus** any options removed from the analysis (✕ on the Compare tab, or Exclude in the Data editor). **Copy share link** carries both **and** the browser's Data editor changes (only what differs from the shared files: changed, added and removed records and changed assumption values), deflate-compressed into the `#z=` part of the link. Opening a link replaces all three, so the viewer sees exactly what the sender saw; older `#s=` links still open. **Export scenario** saves the inputs and removed options to a file. Links are encoded, not encrypted: anyone with a link can read any prices it carries. **New analysis** resets the inputs and, by default, brings removed options back.
 
+### Worked examples
+
+**Load an example ▾** (Workload profile header) loads one of seven worked examples from [`data/examples.json`](data/examples.json), each leading to a different result, with a note explaining what drives it and one input to change live. Loading one replaces the inputs, removed options and data edits, like a share link. Each example stores its expected verdict; after the daily price update, `scripts/check_examples.js` (Node) re-runs them and records any change in `data/price-status.json`, which the header's price pill flags as "example(s) to review". The /tests/ page runs the same check. The [demo playbook](docs/demo-playbook.html) is built on these examples.
+
 ### The verdict
 
 The Analysis summary names the lowest-cost architecture among owning servers, renting GPUs, paying per token for the same model and the hybrid mix: *Strong / Likely on-prem candidate*, *On-prem + API for bursts* (owned servers sized below the full peak carry 97%+ of tokens; an API absorbs rare spikes), *GPU cloud candidate*, *Hybrid candidate*, *Near breakeven* (paying per token is cheapest, but owning catches up within 3× today's usage) or *API candidate*. The breakeven sentence separately reports where owning crosses the same-model API. Confidence drops one level for each of: theoretical throughput, a placeholder server price, and default operating assumptions.
@@ -256,6 +260,9 @@ js/ui/*.js              inputs (+ tooltips), results tables, show-the-math, char
                         export (CSV / PowerPoint), request (change-request form links)
 js/config.js            credits, copyright, change-request form link
 js/exclusions.js        options removed from the current analysis
+js/examples.js          worked examples: build inputs, check verdicts
+data/examples.json      the worked examples (inputs, expected verdict, note, lever)
+scripts/check_examples.js  daily re-check of the worked examples (Node)
 docs/workload-guide.html  how to gather workload inputs from a client
 docs/demo-playbook.html   demo scenarios and talk track (https://mgmlab.github.io/token-calculator/docs/demo-playbook.html)
 assets/                 Pellera logo and favicon
