@@ -334,7 +334,7 @@
     setTimeout(() => {
       let target, marks = [];
       if (k === 'hybrid') {
-        target = el.querySelector('#hybrid-body');
+        target = el.querySelector('#hybrid-body'); target = target && target.closest('section');
         marks = [el.querySelector('#hybrid-body .hy-row-best')];
       } else {
         const tr = el.querySelector(`tr.row[data-id="${CSS.escape(id)}"]`);

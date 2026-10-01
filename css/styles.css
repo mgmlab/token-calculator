@@ -526,3 +526,5 @@ tr.row.jump-hl > td { animation: jumpRow 4s ease-out; }
 @keyframes jumpRow { 0%, 40% { background: var(--accent-soft); } 100% { background: transparent; } }
 @keyframes jumpCost { 0%, 60% { outline-color: var(--accent); background: var(--accent-soft); } 100% { outline-color: transparent; background: transparent; } }
 .hy-row-best.jump-hl > td { animation: jumpRow 4s ease-out; }
+
+.result-block, tr.row { scroll-margin-top: 12px; }
