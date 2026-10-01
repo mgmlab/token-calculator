@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Workload Input Guide</title>
   <link rel="icon" href="../assets/favicon.png">
-  <link rel="stylesheet" href="../css/styles.css?v=202610010052">
+  <link rel="stylesheet" href="../css/styles.css?v=202610010100">
   <style>
     /* Layout: sticky topic nav on the left, reference content on the right; one card per input. */
     .g-wrap { max-width: 1180px; margin: 0 auto; padding: 20px 24px 48px; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 28px; align-items: start; }
@@ -13,6 +13,9 @@
     .g-nav h4 { margin: 0 0 4px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
     .g-nav a { display: block; padding: 3px 8px; border-radius: 6px; color: var(--text-2); text-decoration: none; }
     .g-nav a:hover { background: var(--accent-soft); color: var(--accent); }
+    .g-nav { max-height: calc(100vh - 32px); overflow-y: auto; }
+    .g-nav a.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; box-shadow: inset 2px 0 0 var(--accent); }
+    .g-nav div.active-group h4 { color: var(--accent); }
     .g-main { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
     .g-intro { display: flex; flex-direction: column; gap: 12px; }
     .g-intro p { margin: 0; max-width: 72ch; color: var(--text-2); }
@@ -264,11 +267,37 @@ peak concurrent ≈ peak requests/sec × seconds per request, plus a 99th-percen
   </div>
 
   <footer class="site-footer" id="footer"></footer>
-  <script src="../js/config.js?v=202610010052"></script>
+  <script src="../js/config.js?v=202610010100"></script>
   <script>
     (function () {
       var c = window.TC && window.TC.config;
       if (c) document.getElementById('footer').innerHTML = c.copyright + ' · Internal use · <a href="' + c.requestFormUrl + '" target="_blank" rel="noopener">Submit a request</a>';
+      // Highlight the nav entry for the part of the page being read (the last target whose top has passed ~30% of the viewport).
+      var links = Array.prototype.slice.call(document.querySelectorAll('.g-nav a[href^="#"]'));
+      var targets = links.map(function (l) { return document.getElementById(l.getAttribute('href').slice(1)); });
+      function spy() {
+        var line = 140, best = 0, bestTop = -Infinity;
+        var atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+        targets.forEach(function (t, i) {
+          if (!t) return;
+          var top = t.getBoundingClientRect().top;
+          // The entry being read: the target whose top most recently passed the reading line.
+          // At the very bottom, the lowest target on screen wins (it can never reach the line).
+          var limit = atBottom ? window.innerHeight : line;
+          if (top <= limit && top > bestTop) { bestTop = top; best = i; }
+        });
+        // Cards sit two to a row: highlight every entry in the current row (same top edge).
+        links.forEach(function (l, i) {
+          var t = targets[i];
+          var on = i === best || (t && Math.abs(t.getBoundingClientRect().top - bestTop) < 4);
+          l.classList.toggle('active', !!on);
+        });
+        document.querySelectorAll('.g-nav > div').forEach(function (g) { g.classList.toggle('active-group', !!g.querySelector('a.active')); });
+      }
+      window.addEventListener('scroll', spy, { passive: true });
+      window.addEventListener('resize', spy);
+      spy();
+
       var btn = document.getElementById('copy-q'), msg = document.getElementById('copy-msg');
       btn.addEventListener('click', function () {
         var text = Array.prototype.map.call(document.querySelectorAll('#q-list > div'), function (d) {
