@@ -50,13 +50,13 @@
     { title: 'Performance', fields: [
       { k: 'peak_concurrency_mode', label: 'Peak concurrency', type: 'select', options: [['derived', 'Derive from traffic pattern'], ['manual', 'Enter manually']],
         tip: 'Derive (recommended): calculated from requests per day, the busy-hour share and a burst allowance, so it stays consistent with volume. Manual: enter a measured peak from a pilot or monitoring data.' },
-      { k: 'busy_hour_share_pct', label: 'Busy-hour share of daily requests %', type: 'number', min: 1, max: 100, step: 'any', only: 'derived', hint: '4% = flat 24/7 · 12.5% = even over 8 h · 15–20% = typical workday peak',
+      { k: 'busy_hour_share_pct', label: 'Busy-hour share of daily requests %', type: 'number', min: 1, max: 100, step: 'any', only: 'derived',
         tip: 'What share of a day’s requests arrive in the busiest hour. Flat 24/7 traffic = 4%. Traffic spread evenly across an 8-hour workday = 12.5%. Typical office use peaks at 15–20% (mid-morning).' },
       { k: 'burst_percentile', label: 'Burst allowance', type: 'select', options: [[95, '95th percentile'], [99, '99th percentile'], [99.9, '99.9th percentile']], only: 'derived',
         tip: 'Extra concurrency above the busy-hour average for random bursts, based on Poisson arrivals. 99th percentile means capacity is exceeded in about 1% of busy-hour moments (those requests queue briefly).' },
       { k: 'peak_concurrent_requests', label: 'Peak concurrent requests', type: 'number', min: 1,
         tip: 'The most requests being generated at the same moment during the busiest period. In derived mode this shows the calculated value. This input drives GPU count more than any other.' },
-      { k: 'target_output_tps_per_request', label: 'Target output tok/s per request', type: 'number', min: 1, step: 'any', hint: 'Reading speed is roughly 5–10 tok/s; chat UIs often target 20–50',
+      { k: 'target_output_tps_per_request', label: 'Target output tok/s per request', type: 'number', min: 1, step: 'any',
         tip: 'How fast each user sees text stream (output tokens per second). People read ~5–10 tok/s; 20–50 feels responsive for chat. Batch or back-office jobs can accept less, which lowers cost.' },
       { k: 'max_context', label: 'Max context length', type: 'number', min: 256,
         tip: 'The longest single request (input + output tokens) the system must support, e.g. the largest document someone might paste in. Used to check that a worst-case request fits in GPU memory.' },
@@ -83,18 +83,17 @@
         tip: 'Adds one whole spare server to every on-prem and hybrid configuration, so a server failure or maintenance window never drops capacity below the need. Typical for business-critical services. The spare is costed but not counted as serving capacity.' },
     ]},
     { title: 'Cloud & API', fields: [
-      { k: 'cloud_active_hours_per_month', label: 'On-demand active hours / month', type: 'number', min: 1, max: 744, hint: '730 = 24/7 · 12 h × 21.7 days ≈ 260',
+      { k: 'cloud_active_hours_per_month', label: 'On-demand active hours / month', type: 'number', min: 1, max: 744,
         tip: 'Hours per month on-demand cloud GPUs run. 730 = always on. If capacity is shut down outside business hours: 12 h × 21.7 days ≈ 260. Reserved capacity is always billed 730 h.' },
       { k: 'api_cache_hit_pct', label: 'API cached-input share %', type: 'number', min: 0, max: 100, step: 'any',
         tip: 'Share of input tokens the API provider serves from its prompt cache — repeated system prompts, tool definitions or documents reused across requests. Cached input is billed at a steep discount (often 90%).' },
-      { k: 'api_batch_share_pct', label: 'API batch share %', type: 'number', min: 0, max: 100, step: 'any', hint: 'Share of traffic that can wait for async batch pricing',
+      { k: 'api_batch_share_pct', label: 'API batch share %', type: 'number', min: 0, max: 100, step: 'any',
         tip: 'Share of traffic that can wait (up to ~24 h) for asynchronous batch pricing, usually 50% off. Interactive chat = 0%; overnight document processing could be 100%.' },
       { k: 'api_excluded', label: 'API providers to compare', type: 'providers',
         tip: 'Untick providers your customer would not realistically buy from — for example the lowest-cost routed hosts when the customer needs an enterprise agreement. Unticked providers are left out of the tables, the Analysis summary, breakeven and hybrid.' },
       { k: 'include_closed_models', label: 'Show closed-model API reference', type: 'checkbox',
         tip: 'Also list closed models (GPT, Claude, Gemini, DeepSeek API) for cost context. They are different models, so this is not a like-for-like quality comparison.' },
       { k: 'closed_tier', label: 'Closed-model tier', type: 'select', options: [['all', 'All tiers (cheapest wins)'], ['budget', 'Budget (mini / Flash / Haiku)'], ['mid', 'Mid (Sonnet-class)'], ['frontier', 'Frontier (flagship)']],
-        hint: 'Which closed models the reference line uses',
         tip: 'Closed models range from small budget models to flagship frontier models, and prices differ several-fold. "All tiers" shows the cheapest closed model, which is usually a budget model. Pick Frontier when the customer is really comparing against a flagship model such as GPT, Claude Opus or Gemini Pro. Tiers follow each vendor’s own positioning and can be changed in the Data editor.' },
     ]},
   ];
@@ -243,10 +242,10 @@
 
       el.innerHTML = `<form class="inputs-form" onsubmit="return false">
         <div class="inputs-head"><div class="inputs-title"><h2>Workload profile</h2><button type="button" class="btn small" data-act="new" title="Clear these inputs and start a fresh analysis for a new customer">New analysis</button></div>
-          <div class="head-links"><a class="guide-link" href="${DOC}" target="_blank" rel="noopener">How to gather these inputs from a client ↗</a>
-          ${(TC.examples || []).length ? `<span class="ex-wrap"><button type="button" class="guide-link linkish" data-act="examples" aria-expanded="false">Load an example ▾</button>
+          <div class="head-links">${(TC.examples || []).length ? `<span class="ex-wrap"><button type="button" class="btn ghost small" data-act="examples" aria-expanded="false" title="Load a worked example">Examples ▾</button>
             <div class="ex-menu" role="menu" hidden><p class="muted small">Worked examples that each lead to a different result. Loading one replaces the current inputs.</p>
-            ${TC.examples.map(x => `<button type="button" role="menuitem" class="ex-item" data-ex="${esc(x.id)}"><strong>${esc(x.name)}</strong><span>${esc(x.summary)}</span></button>`).join('')}</div></span>` : ''}</div></div>
+            ${TC.examples.map(x => `<button type="button" role="menuitem" class="ex-item" data-ex="${esc(x.id)}"><strong>${esc(x.name)}</strong><span>${esc(x.summary)}</span></button>`).join('')}</div></span>` : ''}
+          <a class="btn ghost small" href="${DOC}" target="_blank" rel="noopener" title="How to gather these inputs from a client">Input guide ↗</a></div></div>
         ${GROUPS.map(g => { const fs = g.fields.filter(fd => !ADVANCED.has(fd.k)); return fs.length ? `<fieldset><legend>${esc(g.title)}</legend>${fs.map(field).join('')}</fieldset>` : ''; }).join('')}
         <details class="adv-settings" ${advOpen() ? 'open' : ''}><summary>Advanced settings</summary>
         ${GROUPS.map(g => { const fs = g.fields.filter(fd => ADVANCED.has(fd.k)); return fs.length ? `<fieldset><legend>${esc(g.title)}</legend>${fs.map(field).join('')}</fieldset>` : ''; }).join('')}
