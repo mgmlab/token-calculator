@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Workload Input Guide</title>
   <link rel="icon" href="../assets/favicon.png">
-  <link rel="stylesheet" href="../css/styles.css?v=202610010100">
+  <link rel="stylesheet" href="../css/styles.css?v=202610010114">
   <style>
     /* Layout: sticky topic nav on the left, reference content on the right; one card per input. */
     .g-wrap { max-width: 1180px; margin: 0 auto; padding: 20px 24px 48px; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 28px; align-items: start; }
@@ -72,11 +72,12 @@
 
   <div class="g-wrap">
     <nav class="g-nav" aria-label="Guide sections">
-      <div><h4>Start here</h4><a href="#quick">Quick reference</a><a href="#example">Worked example</a><a href="#questions">Discovery questions</a></div>
+      <div><h4>Start here</h4><a href="#quick">Quick reference</a></div>
       <div><h4>Usage</h4><a href="#users">Users</a><a href="#requests_per_user_per_day">Requests per day</a><a href="#avg_input_tokens">Input tokens</a><a href="#avg_output_tokens">Output tokens</a><a href="#active_days_per_month">Active days</a></div>
       <div><h4>Performance</h4><a href="#peak_concurrent_requests">Peak demand</a><a href="#target_output_tps_per_request">Response speed</a><a href="#max_context">Max context</a></div>
       <div><h4>Model &amp; sizing</h4><a href="#model_id">Model &amp; precision</a><a href="#headroom_pct">Headroom, N+1, term</a></div>
       <div><h4>Cost options</h4><a href="#cloud_active_hours_per_month">Cloud hours</a><a href="#api_cache_hit_pct">Caching &amp; batch</a><a href="#api_excluded">API providers</a></div>
+      <div><h4>Templates</h4><a href="#example">Worked example</a><a href="#questions">Discovery questions</a></div>
     </nav>
 
     <main class="g-main">
@@ -267,7 +268,7 @@ peak concurrent ≈ peak requests/sec × seconds per request, plus a 99th-percen
   </div>
 
   <footer class="site-footer" id="footer"></footer>
-  <script src="../js/config.js?v=202610010100"></script>
+  <script src="../js/config.js?v=202610010114"></script>
   <script>
     (function () {
       var c = window.TC && window.TC.config;
