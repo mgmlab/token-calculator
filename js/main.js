@@ -236,21 +236,26 @@
     };
   }
 
-  function start() {
+  async function start() {
     w = TC.inputs.load();
-    const shared = TC.readShareHash();
+    const shared = await TC.readShareHash();
     if (shared) {
-      // A shared scenario replaces both the inputs and the removed options, so nothing from this browser leaks in.
+      // A shared scenario replaces the inputs, the removed options and (for newer links) the data edits,
+      // so nothing left in this browser changes the answer the sender saw.
       const sharedExcl = shared.excluded || null;
-      delete shared.excluded;
+      const hasData = 'data' in shared, sharedData = shared.data || null;
+      delete shared.excluded; delete shared.data;
       TC.excl.replace(sharedExcl);
+      if (hasData) TC.store.applyDataPatch(sharedData);
       Object.keys(w).forEach(k => delete w[k]);
       Object.assign(w, TC.inputs.defaults(), shared);
       TC.inputs.save(w);
       history.replaceState(null, '', location.pathname + location.search);
       const b = $('#banner');
       b.hidden = false; b.className = 'banner';
-      b.innerHTML = `<div>Loaded a shared scenario${w.scenario_name ? ': <strong>' + TC.esc(w.scenario_name) + '</strong>' : ''}. Your previous inputs${sharedExcl && TC.excl.count() ? ` were replaced, and ${TC.excl.count()} option${TC.excl.count() > 1 ? 's are' : ' is'} removed as in the shared analysis` : ' and removed options were replaced'}.</div>`;
+      const nd = TC.store.patchSize(sharedData), nx = TC.excl.count();
+      const extras = [nx ? `${nx} removed option${nx > 1 ? 's' : ''}` : '', nd ? `data edits to ${nd} dataset${nd > 1 ? 's' : ''} (prices, specs or assumptions)` : ''].filter(Boolean);
+      b.innerHTML = `<div>Loaded a shared scenario${w.scenario_name ? ': <strong>' + TC.esc(w.scenario_name) + '</strong>' : ''}${extras.length ? ', including ' + extras.join(' and ') : ''}. It replaced your previous inputs${hasData ? ', removed options and data edits' : ' and removed options'}. Use <strong>New analysis</strong> or Data editor → Clear all my changes to go back to the shared data.</div>`;
       TC.track('share-link-opened', 'Opened a shared scenario');
     } else resumeBar();
     TC.inputs.render($('#inputs'), w, schedule);
@@ -279,12 +284,12 @@
     TC.bindResults($('#results'), compute);
 
     let started = false;
-    if (TC.store.ready()) { start(); started = true; }
+    if (TC.store.ready()) { started = true; await start(); statusPill(); }
     TC.store.onChange(() => {
       statusPill();
       banner();
       if (!TC.store.ready()) return;
-      if (!started) { start(); started = true; return; }
+      if (!started) { started = true; start(); return; }
       TC.inputs.render($('#inputs'), w, schedule);
       schedule();
     });

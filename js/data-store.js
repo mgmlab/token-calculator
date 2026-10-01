@@ -9,6 +9,9 @@
   const NAMES = ['models', 'gpus', 'servers', 'benchmarks', 'assumptions'];
   const KEY_OVR = n => 'tc.override.' + n;
   const KEY_CACHE = n => 'tc.cache.' + n;
+  const LIST = { models: 'models', gpus: 'gpus', servers: 'servers', benchmarks: 'benchmarks' };
+  // Records are matched by id; benchmark rows have none, so they are matched by what they measured.
+  const recKey = (n, r) => r.id || [r.gpu_id, r.model_id, r.precision, r.tp, r.pp, r.engine].join('|');
 
   const store = (TC.store = {
     NAMES,
@@ -55,6 +58,63 @@
       TC.storage.remove(KEY_OVR(name));
       this.emit();
     },
+    /**
+     * This browser's data edits as a compact patch against the shared files (for share links):
+     * list datasets → { u: [changed or added records], r: [keys of removed records] }; assumptions → { s: { section: value } }.
+     * Returns null when nothing is edited.
+     */
+    dataPatch() {
+      const out = {};
+      NAMES.forEach(n => {
+        const o = TC.storage.get(KEY_OVR(n)), base = this.defaults[n];
+        if (!o || !base) return;
+        const lk = LIST[n];
+        if (lk) {
+          const bm = new Map((base[lk] || []).map(r => [recKey(n, r), JSON.stringify(r)]));
+          const om = new Set();
+          const u = (o[lk] || []).filter(r => { const k = recKey(n, r); om.add(k); return bm.get(k) !== JSON.stringify(r); });
+          const rm = [...bm.keys()].filter(k => !om.has(k));
+          if (u.length || rm.length) out[n] = Object.assign({}, u.length ? { u } : {}, rm.length ? { r: rm } : {});
+        } else {
+          // Only the changed values, by dotted path (a sourced value {value, source, …} counts as one value).
+          const s = {};
+          (function walk(a, b, path) {
+            Object.keys(a).forEach(k => {
+              if (k === '_readme') return;
+              const p = path ? path + '.' + k : k, x = a[k], y = b ? b[k] : undefined;
+              if (JSON.stringify(x) === JSON.stringify(y)) return;
+              const leaf = !x || typeof x !== 'object' || Array.isArray(x) || TC.isWrapped(x) || !y || typeof y !== 'object';
+              if (leaf) s[p] = x; else walk(x, y, p);
+            });
+          })(o, base, '');
+          if (Object.keys(s).length) out[n] = { s };
+        }
+      });
+      return Object.keys(out).length ? out : null;
+    },
+    /** Make this browser's data edits exactly the given patch (null = no edits), applied on top of the shared files. */
+    applyDataPatch(patch) {
+      NAMES.forEach(n => {
+        const p = patch && patch[n], base = this.defaults[n];
+        if (!p || !base) { TC.storage.remove(KEY_OVR(n)); return; }
+        const obj = TC.clone(base), lk = LIST[n];
+        if (lk) {
+          const rm = new Set(p.r || []), up = new Map((p.u || []).map(r => [recKey(n, r), r]));
+          const list = (obj[lk] || []).filter(r => !rm.has(recKey(n, r))).map(r => { const k = recKey(n, r); const x = up.get(k); if (x) up.delete(k); return x || r; });
+          obj[lk] = list.concat([...up.values()]);
+        } else {
+          Object.entries(p.s || {}).forEach(([path, val]) => {
+            const ks = path.split('.'); let t = obj;
+            ks.slice(0, -1).forEach(k => { if (!t[k] || typeof t[k] !== 'object') t[k] = {}; t = t[k]; });
+            t[ks[ks.length - 1]] = val;
+          });
+        }
+        TC.storage.set(KEY_OVR(n), obj);
+      });
+      this.emit();
+    },
+    /** Number of datasets a patch touches. */
+    patchSize(patch) { return patch ? Object.keys(patch).length : 0; },
     resetAll() {
       TC.track('clear-all-changes', 'Cleared all browser edits');
       NAMES.forEach(n => TC.storage.remove(KEY_OVR(n)));

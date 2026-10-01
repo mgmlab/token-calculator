@@ -161,15 +161,29 @@
   function advOpen() { return advIsOpen; }
 
   // Share links carry the inputs in the #hash, which browsers never send to the server or analytics.
-  TC.shareUrl = w => {
-    // Workload inputs plus options removed from the analysis, so the link reproduces the same answer.
-    const payload = Object.fromEntries(Object.entries(w).filter(([k]) => !k.startsWith('_') && k !== 'excluded'));
-    if (TC.excl.count()) payload.excluded = TC.excl.get();
-    const json = JSON.stringify(payload);
-    const b64 = btoa(unescape(encodeURIComponent(json))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-    return location.origin + location.pathname + '#s=' + b64;
+  // A link is a complete snapshot: workload inputs, removed options and this browser's data edits (as changes
+  // against the shared files), compressed. Opening it replaces all three in the viewer's browser.
+  const b64u = bytes => { let s = ''; bytes.forEach(b => { s += String.fromCharCode(b); }); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
+  const unb64u = str => Uint8Array.from(atob(str.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+  async function pipe(bytes, stream) { return new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(stream)).arrayBuffer()); }
+  TC.sharePayload = w => {
+    const payload = Object.fromEntries(Object.entries(w).filter(([k]) => !k.startsWith('_') && k !== 'excluded' && k !== 'data'));
+    payload.excluded = TC.excl.count() ? TC.excl.get() : null;
+    payload.data = TC.store.dataPatch();
+    return payload;
   };
-  TC.readShareHash = () => {
+  TC.shareUrl = async w => {
+    const json = new TextEncoder().encode(JSON.stringify(TC.sharePayload(w)));
+    const base = location.origin + location.pathname;
+    if (typeof CompressionStream === 'function') return base + '#z=' + b64u(await pipe(json, new CompressionStream('deflate-raw')));
+    return base + '#s=' + b64u(json);
+  };
+  /** Returns the shared scenario in the URL (new #z= or older #s= links), or null. */
+  TC.readShareHash = async () => {
+    try {
+      const z = /[#&]z=([A-Za-z0-9_-]+)/.exec(location.hash);
+      if (z) return JSON.parse(new TextDecoder().decode(await pipe(unb64u(z[1]), new DecompressionStream('deflate-raw'))));
+    } catch (e) { return null; }
     const m = /[#&]s=([A-Za-z0-9_-]+)/.exec(location.hash);
     if (!m) return null;
     try {
@@ -288,9 +302,9 @@
       const fileIn = el.querySelector('[data-act="file"]');
       el.querySelector('[data-act="new"]').onclick = () => TC.newAnalysis();
       el.querySelector('[data-act="share"]').onclick = async () => {
-        const url = TC.shareUrl(w);
+        const url = await TC.shareUrl(w);
         const m = form.querySelector('.share-msg');
-        const nx = TC.excl.count();
+        const nx = TC.excl.count(), nd = TC.store.patchSize(TC.store.dataPatch());
         const btn = el.querySelector('[data-act="share"]');
         try {
           await navigator.clipboard.writeText(url);
@@ -299,7 +313,11 @@
           btn.classList.add('copied');
           clearTimeout(btn._t);
           btn._t = setTimeout(() => { btn.textContent = 'Copy share link'; btn.classList.remove('copied'); }, 2500);
-          m.textContent = 'Anyone who opens it sees these exact inputs' + (nx ? ` and the ${nx} removed option${nx > 1 ? 's' : ''}.` : '.');
+          const parts = ['these exact inputs'];
+          if (nx) parts.push(`the ${nx} removed option${nx > 1 ? 's' : ''}`);
+          if (nd) parts.push(`your Data editor changes (${nd} dataset${nd > 1 ? 's' : ''})`);
+          m.innerHTML = TC.esc('Anyone who opens it sees ' + parts.join(', ').replace(/, ([^,]*)$/, ' and $1') + '.')
+            + (nd ? ' <strong>The link includes your edited prices and specs, so share it only with people who should see them.</strong>' : '');
         } catch (e) {
           // Clipboard blocked: show the link, selected, so it can be copied by hand.
           m.innerHTML = 'Your browser blocked copying. Press Ctrl+C to copy this link:<input type="text" class="share-url" readonly>';
