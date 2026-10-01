@@ -224,7 +224,14 @@
             <small>${ex.size ? `${ex.size} excluded · <button type="button" class="linkish" data-act="prov-all">include all</button>` : 'All providers included'}</small></div>`;
         }
         if (fd.type === 'model') {
-          ctl = `<select id="${id}" data-k="${fd.k}">` + models.map(m => `<option value="${esc(m.id)}" ${m.id === val ? 'selected' : ''}>${esc(m.name)}</option>`).join('') + '</select>';
+          // Grouped by maker (alphabetical, vendor-neutral), smallest model first within each group.
+          const size = m => TC.v(m.params_total_b) || 0;
+          const fam = m => (m.family || 'Other').replace(/ open-weight$/, ' (open-weight)');
+          const groups = {};
+          models.slice().sort((a, b) => fam(a).localeCompare(fam(b)) || size(a) - size(b) || a.name.localeCompare(b.name))
+            .forEach(m => { (groups[fam(m)] = groups[fam(m)] || []).push(m); });
+          ctl = `<select id="${id}" data-k="${fd.k}">` + Object.entries(groups).map(([g, ms]) => `<optgroup label="${esc(g)}">` +
+            ms.map(m => `<option value="${esc(m.id)}" ${m.id === val ? 'selected' : ''}>${esc(m.name)}</option>`).join('') + '</optgroup>').join('') + '</select>';
         } else if (fd.type === 'select') {
           ctl = `<select id="${id}" data-k="${fd.k}" ${typeof fd.options[0] === 'object' && typeof fd.options[0][0] === 'number' ? 'data-num="1"' : ''}>` + fd.options.map(o => {
             const [ov, ol] = Array.isArray(o) ? o : [o, o];

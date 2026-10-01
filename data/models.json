@@ -2,6 +2,93 @@
   "_readme": "Model catalog. Architecture fields drive KV-cache sizing; api_prices are USD per 1M tokens. self_hostable=false models appear only in the API comparison. Rows with a \"feed\" block are refreshed daily by scripts/update_prices.py (GitHub Actions); see data/price-status.json for the latest check. Closed models carry a tier (budget / mid / frontier) from each vendor's own product positioning (small/fast, mid-size, flagship); it only filters the closed-model reference line.",
   "models": [
     {
+      "id": "deepseek-v3",
+      "name": "DeepSeek V3 (MoE, MLA)",
+      "family": "DeepSeek",
+      "self_hostable": true,
+      "architecture": "moe",
+      "params_total_b": {
+        "value": 671,
+        "source": "DeepSeek-V3 technical report",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "params_active_b": {
+        "value": 37,
+        "source": "DeepSeek-V3 technical report",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "layers": {
+        "value": 61,
+        "source": "Hugging Face config.json (deepseek-ai/DeepSeek-V3)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "attention_heads": {
+        "value": 128,
+        "source": "Hugging Face config.json (deepseek-ai/DeepSeek-V3)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "kv_heads": {
+        "value": 128,
+        "source": "Hugging Face config.json (deepseek-ai/DeepSeek-V3)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "head_dim": {
+        "value": 128,
+        "source": "Hugging Face config.json (deepseek-ai/DeepSeek-V3)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "max_context": {
+        "value": 131072,
+        "source": "Hugging Face config.json (deepseek-ai/DeepSeek-V3)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "kv_layout": {
+        "type": "mla",
+        "elems_per_token_per_layer": 576,
+        "source": "Hugging Face config.json (deepseek-ai/DeepSeek-V3): kv_lora_rank 512 + qk_rope_head_dim 64",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "api_prices": [
+        {
+          "provider": "OpenRouter",
+          "input_per_m": {
+            "value": 0.29,
+            "source": "openrouter.ai/api/v1/models (deepseek/deepseek-chat-v3-0324)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 1.14,
+            "source": "openrouter.ai/api/v1/models (deepseek/deepseek-chat-v3-0324)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.11,
+            "source": "openrouter.ai/api/v1/models (deepseek/deepseek-chat-v3-0324)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "batch_discount_pct": null,
+          "note": "OpenRouter routes each request to one of several hosting providers; this is its listed price for the model. Throughput, rate limits and data-handling terms depend on the underlying provider.",
+          "feed": {
+            "source": "openrouter",
+            "id": "deepseek/deepseek-chat-v3-0324",
+            "mode": "own"
+          }
+        }
+      ],
+      "note": "Multi-head Latent Attention: KV cache is a 576-element latent per token per layer, not 2 x kv_heads x head_dim. DeepSeek's own API now serves V4 models (see API-only reference models)."
+    },
+    {
       "id": "llama-3.1-8b",
       "name": "Llama 3.1 8B Instruct",
       "family": "Meta Llama",
@@ -358,213 +445,278 @@
       "note": "No verified public serverless price found on 2026-09-28; add one in the Data editor if you have a quote."
     },
     {
-      "id": "qwen3-32b",
-      "name": "Qwen3 32B",
-      "family": "Qwen",
+      "id": "minimax-m2.7",
+      "name": "MiniMax M2.7 (MoE)",
+      "family": "MiniMax",
       "self_hostable": true,
-      "architecture": "dense",
+      "architecture": "moe",
       "params_total_b": {
-        "value": 32.8,
-        "source": "Qwen3 model card",
-        "as_of": "2026-09-28",
+        "value": 229,
+        "source": "Hugging Face safetensors size (MiniMaxAI/MiniMax-M2.7)",
+        "as_of": "2026-10-01",
         "status": "estimate"
       },
       "params_active_b": {
-        "value": 32.8,
-        "source": "Qwen3 model card",
-        "as_of": "2026-09-28",
+        "value": 10,
+        "source": "MiniMax-M2 family model card (10B activated)",
+        "as_of": "2026-10-01",
         "status": "estimate"
       },
       "layers": {
-        "value": 64,
-        "source": "Hugging Face config.json (Qwen/Qwen3-32B)",
-        "as_of": "2026-09-28",
+        "value": 62,
+        "source": "Hugging Face config.json (MiniMaxAI/MiniMax-M2.7)",
+        "as_of": "2026-10-01",
         "status": "estimate"
       },
       "attention_heads": {
-        "value": 64,
-        "source": "Hugging Face config.json (Qwen/Qwen3-32B)",
-        "as_of": "2026-09-28",
+        "value": 48,
+        "source": "Hugging Face config.json (MiniMaxAI/MiniMax-M2.7)",
+        "as_of": "2026-10-01",
         "status": "estimate"
       },
       "kv_heads": {
         "value": 8,
-        "source": "Hugging Face config.json (Qwen/Qwen3-32B)",
-        "as_of": "2026-09-28",
+        "source": "Hugging Face config.json (MiniMaxAI/MiniMax-M2.7)",
+        "as_of": "2026-10-01",
         "status": "estimate"
       },
       "head_dim": {
         "value": 128,
-        "source": "Hugging Face config.json (Qwen/Qwen3-32B)",
-        "as_of": "2026-09-28",
+        "source": "Hugging Face config.json (MiniMaxAI/MiniMax-M2.7)",
+        "as_of": "2026-10-01",
         "status": "estimate"
       },
       "max_context": {
-        "value": 32768,
-        "source": "Hugging Face config.json (Qwen/Qwen3-32B)",
-        "as_of": "2026-09-28",
+        "value": 204800,
+        "source": "Hugging Face config.json (MiniMaxAI/MiniMax-M2.7)",
+        "as_of": "2026-10-01",
         "status": "estimate"
       },
       "kv_layout": {
-        "type": "standard"
+        "type": "standard",
+        "source": "Hugging Face config.json (MiniMaxAI/MiniMax-M2.7): full attention on all 62 layers, 8 KV heads × 128",
+        "as_of": "2026-10-01",
+        "status": "estimate"
       },
+      "native_precision": "FP8 weights; FP8 setting matches",
       "api_prices": [
-        {
-          "provider": "Fireworks AI",
-          "input_per_m": {
-            "value": 0.9,
-            "source": "docs.fireworks.ai/serverless/pricing (generic size-tier price; serverless availability of this model not verified)",
-            "as_of": "2026-09-28",
-            "status": "placeholder"
-          },
-          "output_per_m": {
-            "value": 0.9,
-            "source": "docs.fireworks.ai/serverless/pricing (generic size-tier price; serverless availability of this model not verified)",
-            "as_of": "2026-09-28",
-            "status": "placeholder"
-          },
-          "cached_input_per_m": null,
-          "batch_discount_pct": {
-            "value": 50,
-            "source": "docs.fireworks.ai/serverless/pricing (generic size-tier price; serverless availability of this model not verified)",
-            "as_of": "2026-09-28",
-            "status": "placeholder"
-          },
-          "feed": {
-            "source": "fireworks",
-            "tier": "More than 16B parameters",
-            "status": "placeholder"
-          }
-        },
         {
           "provider": "OpenRouter",
           "input_per_m": {
-            "value": 0.08,
-            "source": "openrouter.ai/api/v1/models (qwen/qwen3-32b)",
-            "as_of": "2026-09-29",
+            "value": 0.21,
+            "source": "openrouter.ai/api/v1/models (minimax/minimax-m2.7)",
+            "as_of": "2026-10-01",
             "status": "estimate"
           },
           "output_per_m": {
-            "value": 0.28,
-            "source": "openrouter.ai/api/v1/models (qwen/qwen3-32b)",
-            "as_of": "2026-09-29",
+            "value": 0.84,
+            "source": "openrouter.ai/api/v1/models (minimax/minimax-m2.7)",
+            "as_of": "2026-10-01",
             "status": "estimate"
           },
-          "cached_input_per_m": null,
+          "cached_input_per_m": {
+            "value": 0.042,
+            "source": "openrouter.ai/api/v1/models (minimax/minimax-m2.7)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
           "batch_discount_pct": null,
-          "note": "OpenRouter routes each request to one of several hosting providers; this is its listed price for the model. Throughput, rate limits and data-handling terms depend on the underlying provider.",
           "feed": {
             "source": "openrouter",
-            "id": "qwen/qwen3-32b",
+            "id": "minimax/minimax-m2.7",
             "mode": "own"
           }
+        },
+        {
+          "provider": "MiniMax",
+          "input_per_m": {
+            "value": 0.3,
+            "source": "Minimax price listed on OpenRouter (minimax/minimax-m2.7 endpoints)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 1.2,
+            "source": "Minimax price listed on OpenRouter (minimax/minimax-m2.7 endpoints)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.06,
+            "source": "Minimax price listed on OpenRouter (minimax/minimax-m2.7 endpoints)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "batch_discount_pct": null,
+          "feed": {
+            "source": "openrouter-endpoint",
+            "id": "minimax/minimax-m2.7",
+            "provider": "Minimax"
+          }
         }
-      ],
-      "note": "Native context 32,768; up to 131,072 with YaRN rope scaling (edit max_context if you enable it)."
+      ]
     },
     {
-      "id": "qwen3-235b-a22b",
-      "name": "Qwen3 235B-A22B (MoE)",
-      "family": "Qwen",
+      "id": "minimax-m3",
+      "name": "MiniMax M3 (MoE)",
+      "family": "MiniMax",
       "self_hostable": true,
       "architecture": "moe",
       "params_total_b": {
-        "value": 235,
-        "source": "Qwen3 model card",
-        "as_of": "2026-09-28",
+        "value": 428,
+        "source": "MiniMaxAI/MiniMax-M3 model card (~428B total)",
+        "as_of": "2026-10-01",
         "status": "estimate"
       },
       "params_active_b": {
-        "value": 22,
-        "source": "Qwen3 model card",
-        "as_of": "2026-09-28",
+        "value": 23,
+        "source": "MiniMaxAI/MiniMax-M3 model card (~23B activated)",
+        "as_of": "2026-10-01",
         "status": "estimate"
       },
       "layers": {
-        "value": 94,
-        "source": "Hugging Face config.json (Qwen/Qwen3-235B-A22B)",
-        "as_of": "2026-09-28",
+        "value": 60,
+        "source": "Hugging Face config.json (MiniMaxAI/Minimax-M3)",
+        "as_of": "2026-10-01",
         "status": "estimate"
       },
       "attention_heads": {
         "value": 64,
-        "source": "Hugging Face config.json (Qwen/Qwen3-235B-A22B)",
-        "as_of": "2026-09-28",
+        "source": "Hugging Face config.json (MiniMaxAI/Minimax-M3)",
+        "as_of": "2026-10-01",
         "status": "estimate"
       },
       "kv_heads": {
         "value": 4,
-        "source": "Hugging Face config.json (Qwen/Qwen3-235B-A22B)",
-        "as_of": "2026-09-28",
+        "source": "Hugging Face config.json (MiniMaxAI/Minimax-M3)",
+        "as_of": "2026-10-01",
         "status": "estimate"
       },
       "head_dim": {
         "value": 128,
-        "source": "Hugging Face config.json (Qwen/Qwen3-235B-A22B)",
-        "as_of": "2026-09-28",
+        "source": "Hugging Face config.json (MiniMaxAI/Minimax-M3)",
+        "as_of": "2026-10-01",
         "status": "estimate"
       },
       "max_context": {
-        "value": 32768,
-        "source": "Hugging Face config.json (Qwen/Qwen3-235B-A22B)",
-        "as_of": "2026-09-28",
+        "value": 1048576,
+        "source": "Hugging Face config.json (MiniMaxAI/Minimax-M3)",
+        "as_of": "2026-10-01",
         "status": "estimate"
       },
       "kv_layout": {
-        "type": "standard"
+        "type": "standard",
+        "source": "Hugging Face config.json (MiniMaxAI/Minimax-M3): grouped-query attention, 4 KV heads × 128; sparse attention reads only selected blocks but the cache is stored for every token",
+        "as_of": "2026-10-01",
+        "status": "estimate"
       },
+      "note": "Sparse attention lowers compute for long contexts; KV memory is modeled as standard GQA. MiniMax community license.",
       "api_prices": [
         {
           "provider": "OpenRouter",
           "input_per_m": {
-            "value": 0.455,
-            "source": "openrouter.ai/api/v1/models (qwen/qwen3-235b-a22b)",
-            "as_of": "2026-09-29",
+            "value": 0.3,
+            "source": "openrouter.ai/api/v1/models (minimax/minimax-m3)",
+            "as_of": "2026-10-01",
             "status": "estimate"
           },
           "output_per_m": {
-            "value": 1.82,
-            "source": "openrouter.ai/api/v1/models (qwen/qwen3-235b-a22b)",
-            "as_of": "2026-09-29",
+            "value": 1.2,
+            "source": "openrouter.ai/api/v1/models (minimax/minimax-m3)",
+            "as_of": "2026-10-01",
             "status": "estimate"
           },
-          "cached_input_per_m": null,
+          "cached_input_per_m": {
+            "value": 0.06,
+            "source": "openrouter.ai/api/v1/models (minimax/minimax-m3)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
           "batch_discount_pct": null,
-          "note": "OpenRouter routes each request to one of several hosting providers; this is its listed price for the model. Throughput, rate limits and data-handling terms depend on the underlying provider.",
           "feed": {
             "source": "openrouter",
-            "id": "qwen/qwen3-235b-a22b",
+            "id": "minimax/minimax-m3",
             "mode": "own"
           }
         },
         {
-          "provider": "Google Vertex AI",
+          "provider": "MiniMax",
           "input_per_m": {
-            "value": 0.22,
-            "source": "cloud.google.com/vertex-ai/generative-ai/pricing (Qwen3-235B-A22B-Instruct-2507); the 2507 instruct update of Qwen3 235B-A22B, same architecture",
-            "as_of": "2026-09-29",
+            "value": 0.3,
+            "source": "Minimax price listed on OpenRouter (minimax/minimax-m3 endpoints)",
+            "as_of": "2026-10-01",
             "status": "estimate"
           },
           "output_per_m": {
-            "value": 0.88,
-            "source": "cloud.google.com/vertex-ai/generative-ai/pricing (Qwen3-235B-A22B-Instruct-2507); the 2507 instruct update of Qwen3 235B-A22B, same architecture",
-            "as_of": "2026-09-29",
+            "value": 1.2,
+            "source": "Minimax price listed on OpenRouter (minimax/minimax-m3 endpoints)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.06,
+            "source": "Minimax price listed on OpenRouter (minimax/minimax-m3 endpoints)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "batch_discount_pct": null,
+          "feed": {
+            "source": "openrouter-endpoint",
+            "id": "minimax/minimax-m3",
+            "provider": "Minimax"
+          }
+        },
+        {
+          "provider": "Together AI",
+          "input_per_m": {
+            "value": 0.3,
+            "source": "Together price listed on OpenRouter (minimax/minimax-m3 endpoints)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 1.2,
+            "source": "Together price listed on OpenRouter (minimax/minimax-m3 endpoints)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.06,
+            "source": "Together price listed on OpenRouter (minimax/minimax-m3 endpoints)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "batch_discount_pct": null,
+          "feed": {
+            "source": "openrouter-endpoint",
+            "id": "minimax/minimax-m3",
+            "provider": "Together"
+          }
+        },
+        {
+          "provider": "Azure AI Foundry",
+          "input_per_m": {
+            "value": 0.33,
+            "source": "Azure Retail Prices API, Foundry Models (FW MiniMax 3 Inp DZ Tokens / FW MiniMax 3 Outp DZ Tokens, eastus2); data-zone deployment, hosted by Fireworks on Azure",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 1.32,
+            "source": "Azure Retail Prices API, Foundry Models (FW MiniMax 3 Inp DZ Tokens / FW MiniMax 3 Outp DZ Tokens, eastus2); data-zone deployment, hosted by Fireworks on Azure",
+            "as_of": "2026-10-01",
             "status": "estimate"
           },
           "cached_input_per_m": null,
-          "batch_discount_pct": {
-            "value": 50,
-            "source": "cloud.google.com/vertex-ai/generative-ai/pricing (Qwen3-235B-A22B-Instruct-2507); the 2507 instruct update of Qwen3 235B-A22B, same architecture",
-            "as_of": "2026-09-29",
-            "status": "estimate"
-          },
+          "batch_discount_pct": null,
           "feed": {
-            "source": "vertex",
-            "model": "Qwen3-235B-A22B-Instruct-2507"
+            "source": "azure-foundry",
+            "input": "FW MiniMax 3 Inp DZ Tokens",
+            "output": "FW MiniMax 3 Outp DZ Tokens",
+            "region": "eastus2"
           }
         }
-      ],
-      "note": "Native context 32,768; up to 131,072 with YaRN. No verified public serverless price found on 2026-09-28."
+      ]
     },
     {
       "id": "mistral-small-3.2-24b",
@@ -666,6 +818,312 @@
             "source": "openrouter",
             "id": "mistralai/mistral-small-3.2-24b-instruct",
             "mode": "own"
+          }
+        }
+      ]
+    },
+    {
+      "id": "kimi-k2.6",
+      "name": "Kimi K2.6 (MoE, MLA)",
+      "family": "Moonshot AI",
+      "self_hostable": true,
+      "architecture": "moe",
+      "params_total_b": {
+        "value": 1027,
+        "source": "moonshotai/Kimi-K2.6 model card (1T total)",
+        "as_of": "2026-10-01",
+        "status": "estimate"
+      },
+      "params_active_b": {
+        "value": 32,
+        "source": "moonshotai/Kimi-K2.6 model card (32B activated)",
+        "as_of": "2026-10-01",
+        "status": "estimate"
+      },
+      "layers": {
+        "value": 61,
+        "source": "Hugging Face config.json (moonshotai/Kimi-K2.6)",
+        "as_of": "2026-10-01",
+        "status": "estimate"
+      },
+      "attention_heads": {
+        "value": 64,
+        "source": "Hugging Face config.json (moonshotai/Kimi-K2.6)",
+        "as_of": "2026-10-01",
+        "status": "estimate"
+      },
+      "kv_heads": {
+        "value": 64,
+        "source": "Hugging Face config.json (moonshotai/Kimi-K2.6)",
+        "as_of": "2026-10-01",
+        "status": "estimate"
+      },
+      "head_dim": {
+        "value": 128,
+        "source": "Hugging Face config.json (moonshotai/Kimi-K2.6)",
+        "as_of": "2026-10-01",
+        "status": "estimate"
+      },
+      "max_context": {
+        "value": 262144,
+        "source": "Hugging Face config.json (moonshotai/Kimi-K2.6)",
+        "as_of": "2026-10-01",
+        "status": "estimate"
+      },
+      "kv_layout": {
+        "type": "mla",
+        "elems_per_token_per_layer": 576,
+        "source": "Hugging Face config.json (moonshotai/Kimi-K2.6): kv_lora_rank 512 + qk_rope_head_dim 64 (DeepSeek V3 architecture)",
+        "as_of": "2026-10-01",
+        "status": "estimate"
+      },
+      "native_precision": "INT4 MoE weights (quantization-aware); INT4 setting matches",
+      "note": "DeepSeek V3 architecture (MLA). Modified MIT license.",
+      "api_prices": [
+        {
+          "provider": "OpenRouter",
+          "input_per_m": {
+            "value": 0.43415,
+            "source": "openrouter.ai/api/v1/models (moonshotai/kimi-k2.6)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 1.828,
+            "source": "openrouter.ai/api/v1/models (moonshotai/kimi-k2.6)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.07312,
+            "source": "openrouter.ai/api/v1/models (moonshotai/kimi-k2.6)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "batch_discount_pct": null,
+          "feed": {
+            "source": "openrouter",
+            "id": "moonshotai/kimi-k2.6",
+            "mode": "own"
+          }
+        },
+        {
+          "provider": "Moonshot AI",
+          "input_per_m": {
+            "value": 0.95,
+            "source": "Moonshot AI price listed on OpenRouter (moonshotai/kimi-k2.6 endpoints)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 4.0,
+            "source": "Moonshot AI price listed on OpenRouter (moonshotai/kimi-k2.6 endpoints)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.16,
+            "source": "Moonshot AI price listed on OpenRouter (moonshotai/kimi-k2.6 endpoints)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "batch_discount_pct": null,
+          "feed": {
+            "source": "openrouter-endpoint",
+            "id": "moonshotai/kimi-k2.6",
+            "provider": "Moonshot AI"
+          }
+        }
+      ]
+    },
+    {
+      "id": "kimi-k3",
+      "name": "Kimi K3 (MoE, MLA + linear attention)",
+      "family": "Moonshot AI",
+      "self_hostable": true,
+      "architecture": "moe",
+      "params_total_b": {
+        "value": 2780,
+        "source": "moonshotai/Kimi-K3 model card (2.8T total)",
+        "as_of": "2026-10-01",
+        "status": "estimate"
+      },
+      "params_active_b": {
+        "value": 104,
+        "source": "moonshotai/Kimi-K3 model card (104B activated)",
+        "as_of": "2026-10-01",
+        "status": "estimate"
+      },
+      "layers": {
+        "value": 93,
+        "source": "Hugging Face config.json (moonshotai/Kimi-K3)",
+        "as_of": "2026-10-01",
+        "status": "estimate"
+      },
+      "attention_heads": {
+        "value": 96,
+        "source": "Hugging Face config.json (moonshotai/Kimi-K3)",
+        "as_of": "2026-10-01",
+        "status": "estimate"
+      },
+      "kv_heads": {
+        "value": 96,
+        "source": "Hugging Face config.json (moonshotai/Kimi-K3)",
+        "as_of": "2026-10-01",
+        "status": "estimate"
+      },
+      "head_dim": {
+        "value": 128,
+        "source": "Hugging Face config.json (moonshotai/Kimi-K3)",
+        "as_of": "2026-10-01",
+        "status": "estimate"
+      },
+      "max_context": {
+        "value": 1048576,
+        "source": "Hugging Face config.json (moonshotai/Kimi-K3)",
+        "as_of": "2026-10-01",
+        "status": "estimate"
+      },
+      "kv_layout": {
+        "type": "mla",
+        "elems_per_token_per_layer": 576,
+        "kv_layers": 24,
+        "source": "Hugging Face config.json (moonshotai/Kimi-K3): kv_lora_rank 512 + qk_rope_head_dim 64; linear_attn_config lists 24 full-attention layers, the other 69 are KDA linear-attention layers with a fixed-size state",
+        "as_of": "2026-10-01",
+        "status": "estimate"
+      },
+      "native_precision": "MXFP4 MoE weights (~4.25 bits); INT4 is the closest setting here",
+      "note": "Hybrid attention: only the 24 full-attention (MLA) layers keep a KV cache that grows with context; the 69 linear-attention layers keep a small fixed state per request, not modeled. Kimi K3 License (open weights).",
+      "api_prices": [
+        {
+          "provider": "OpenRouter",
+          "input_per_m": {
+            "value": 0.6635,
+            "source": "openrouter.ai/api/v1/models (moonshotai/kimi-k3)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 10.0,
+            "source": "openrouter.ai/api/v1/models (moonshotai/kimi-k3)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.6635,
+            "source": "openrouter.ai/api/v1/models (moonshotai/kimi-k3)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "batch_discount_pct": null,
+          "feed": {
+            "source": "openrouter",
+            "id": "moonshotai/kimi-k3",
+            "mode": "own"
+          }
+        },
+        {
+          "provider": "Moonshot AI",
+          "input_per_m": {
+            "value": 3.0,
+            "source": "Moonshot AI price listed on OpenRouter (moonshotai/kimi-k3 endpoints)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 15.0,
+            "source": "Moonshot AI price listed on OpenRouter (moonshotai/kimi-k3 endpoints)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.3,
+            "source": "Moonshot AI price listed on OpenRouter (moonshotai/kimi-k3 endpoints)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "batch_discount_pct": null,
+          "feed": {
+            "source": "openrouter-endpoint",
+            "id": "moonshotai/kimi-k3",
+            "provider": "Moonshot AI"
+          }
+        },
+        {
+          "provider": "Together AI",
+          "input_per_m": {
+            "value": 2.7,
+            "source": "Together price listed on OpenRouter (moonshotai/kimi-k3 endpoints)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 13.5,
+            "source": "Together price listed on OpenRouter (moonshotai/kimi-k3 endpoints)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.27,
+            "source": "Together price listed on OpenRouter (moonshotai/kimi-k3 endpoints)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "batch_discount_pct": null,
+          "feed": {
+            "source": "openrouter-endpoint",
+            "id": "moonshotai/kimi-k3",
+            "provider": "Together"
+          }
+        },
+        {
+          "provider": "Fireworks AI",
+          "input_per_m": {
+            "value": 3.0,
+            "source": "Fireworks price listed on OpenRouter (moonshotai/kimi-k3 endpoints)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 15.0,
+            "source": "Fireworks price listed on OpenRouter (moonshotai/kimi-k3 endpoints)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.3,
+            "source": "Fireworks price listed on OpenRouter (moonshotai/kimi-k3 endpoints)",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "batch_discount_pct": null,
+          "feed": {
+            "source": "openrouter-endpoint",
+            "id": "moonshotai/kimi-k3",
+            "provider": "Fireworks"
+          }
+        },
+        {
+          "provider": "Azure AI Foundry",
+          "input_per_m": {
+            "value": 3.0,
+            "source": "Azure Retail Prices API, Foundry Models (FW Kimi-K3 Gl Inp Tokens / FW Kimi-K3 Gl Opt Tokens, eastus2); global deployment, hosted by Fireworks on Azure",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 15.0,
+            "source": "Azure Retail Prices API, Foundry Models (FW Kimi-K3 Gl Inp Tokens / FW Kimi-K3 Gl Opt Tokens, eastus2); global deployment, hosted by Fireworks on Azure",
+            "as_of": "2026-10-01",
+            "status": "estimate"
+          },
+          "cached_input_per_m": null,
+          "batch_discount_pct": null,
+          "feed": {
+            "source": "azure-foundry",
+            "input": "FW Kimi-K3 Gl Inp Tokens",
+            "output": "FW Kimi-K3 Gl Opt Tokens",
+            "region": "eastus2"
           }
         }
       ]
@@ -1036,825 +1494,238 @@
       ]
     },
     {
-      "id": "deepseek-v3",
-      "name": "DeepSeek V3 (MoE, MLA)",
-      "family": "DeepSeek",
+      "id": "qwen3-32b",
+      "name": "Qwen3 32B",
+      "family": "Qwen",
       "self_hostable": true,
-      "architecture": "moe",
+      "architecture": "dense",
       "params_total_b": {
-        "value": 671,
-        "source": "DeepSeek-V3 technical report",
+        "value": 32.8,
+        "source": "Qwen3 model card",
         "as_of": "2026-09-28",
         "status": "estimate"
       },
       "params_active_b": {
-        "value": 37,
-        "source": "DeepSeek-V3 technical report",
+        "value": 32.8,
+        "source": "Qwen3 model card",
         "as_of": "2026-09-28",
         "status": "estimate"
       },
       "layers": {
-        "value": 61,
-        "source": "Hugging Face config.json (deepseek-ai/DeepSeek-V3)",
+        "value": 64,
+        "source": "Hugging Face config.json (Qwen/Qwen3-32B)",
         "as_of": "2026-09-28",
-        "status": "estimate"
-      },
-      "attention_heads": {
-        "value": 128,
-        "source": "Hugging Face config.json (deepseek-ai/DeepSeek-V3)",
-        "as_of": "2026-09-28",
-        "status": "estimate"
-      },
-      "kv_heads": {
-        "value": 128,
-        "source": "Hugging Face config.json (deepseek-ai/DeepSeek-V3)",
-        "as_of": "2026-09-28",
-        "status": "estimate"
-      },
-      "head_dim": {
-        "value": 128,
-        "source": "Hugging Face config.json (deepseek-ai/DeepSeek-V3)",
-        "as_of": "2026-09-28",
-        "status": "estimate"
-      },
-      "max_context": {
-        "value": 131072,
-        "source": "Hugging Face config.json (deepseek-ai/DeepSeek-V3)",
-        "as_of": "2026-09-28",
-        "status": "estimate"
-      },
-      "kv_layout": {
-        "type": "mla",
-        "elems_per_token_per_layer": 576,
-        "source": "Hugging Face config.json (deepseek-ai/DeepSeek-V3): kv_lora_rank 512 + qk_rope_head_dim 64",
-        "as_of": "2026-09-28",
-        "status": "estimate"
-      },
-      "api_prices": [
-        {
-          "provider": "OpenRouter",
-          "input_per_m": {
-            "value": 0.29,
-            "source": "openrouter.ai/api/v1/models (deepseek/deepseek-chat-v3-0324)",
-            "as_of": "2026-09-29",
-            "status": "estimate"
-          },
-          "output_per_m": {
-            "value": 1.14,
-            "source": "openrouter.ai/api/v1/models (deepseek/deepseek-chat-v3-0324)",
-            "as_of": "2026-09-29",
-            "status": "estimate"
-          },
-          "cached_input_per_m": {
-            "value": 0.11,
-            "source": "openrouter.ai/api/v1/models (deepseek/deepseek-chat-v3-0324)",
-            "as_of": "2026-09-29",
-            "status": "estimate"
-          },
-          "batch_discount_pct": null,
-          "note": "OpenRouter routes each request to one of several hosting providers; this is its listed price for the model. Throughput, rate limits and data-handling terms depend on the underlying provider.",
-          "feed": {
-            "source": "openrouter",
-            "id": "deepseek/deepseek-chat-v3-0324",
-            "mode": "own"
-          }
-        }
-      ],
-      "note": "Multi-head Latent Attention: KV cache is a 576-element latent per token per layer, not 2 x kv_heads x head_dim. DeepSeek's own API now serves V4 models (see API-only reference models)."
-    },
-    {
-      "id": "kimi-k3",
-      "name": "Kimi K3 (MoE, MLA + linear attention)",
-      "family": "Moonshot AI",
-      "self_hostable": true,
-      "architecture": "moe",
-      "params_total_b": {
-        "value": 2780,
-        "source": "moonshotai/Kimi-K3 model card (2.8T total)",
-        "as_of": "2026-10-01",
-        "status": "estimate"
-      },
-      "params_active_b": {
-        "value": 104,
-        "source": "moonshotai/Kimi-K3 model card (104B activated)",
-        "as_of": "2026-10-01",
-        "status": "estimate"
-      },
-      "layers": {
-        "value": 93,
-        "source": "Hugging Face config.json (moonshotai/Kimi-K3)",
-        "as_of": "2026-10-01",
-        "status": "estimate"
-      },
-      "attention_heads": {
-        "value": 96,
-        "source": "Hugging Face config.json (moonshotai/Kimi-K3)",
-        "as_of": "2026-10-01",
-        "status": "estimate"
-      },
-      "kv_heads": {
-        "value": 96,
-        "source": "Hugging Face config.json (moonshotai/Kimi-K3)",
-        "as_of": "2026-10-01",
-        "status": "estimate"
-      },
-      "head_dim": {
-        "value": 128,
-        "source": "Hugging Face config.json (moonshotai/Kimi-K3)",
-        "as_of": "2026-10-01",
-        "status": "estimate"
-      },
-      "max_context": {
-        "value": 1048576,
-        "source": "Hugging Face config.json (moonshotai/Kimi-K3)",
-        "as_of": "2026-10-01",
-        "status": "estimate"
-      },
-      "kv_layout": {
-        "type": "mla",
-        "elems_per_token_per_layer": 576,
-        "kv_layers": 24,
-        "source": "Hugging Face config.json (moonshotai/Kimi-K3): kv_lora_rank 512 + qk_rope_head_dim 64; linear_attn_config lists 24 full-attention layers, the other 69 are KDA linear-attention layers with a fixed-size state",
-        "as_of": "2026-10-01",
-        "status": "estimate"
-      },
-      "native_precision": "MXFP4 MoE weights (~4.25 bits); INT4 is the closest setting here",
-      "note": "Hybrid attention: only the 24 full-attention (MLA) layers keep a KV cache that grows with context; the 69 linear-attention layers keep a small fixed state per request, not modeled. Kimi K3 License (open weights).",
-      "api_prices": [
-        {
-          "provider": "OpenRouter",
-          "input_per_m": {
-            "value": 0.6635,
-            "source": "openrouter.ai/api/v1/models (moonshotai/kimi-k3)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "output_per_m": {
-            "value": 10.0,
-            "source": "openrouter.ai/api/v1/models (moonshotai/kimi-k3)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "cached_input_per_m": {
-            "value": 0.6635,
-            "source": "openrouter.ai/api/v1/models (moonshotai/kimi-k3)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "batch_discount_pct": null,
-          "feed": {
-            "source": "openrouter",
-            "id": "moonshotai/kimi-k3",
-            "mode": "own"
-          }
-        },
-        {
-          "provider": "Moonshot AI",
-          "input_per_m": {
-            "value": 3.0,
-            "source": "Moonshot AI price listed on OpenRouter (moonshotai/kimi-k3 endpoints)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "output_per_m": {
-            "value": 15.0,
-            "source": "Moonshot AI price listed on OpenRouter (moonshotai/kimi-k3 endpoints)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "cached_input_per_m": {
-            "value": 0.3,
-            "source": "Moonshot AI price listed on OpenRouter (moonshotai/kimi-k3 endpoints)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "batch_discount_pct": null,
-          "feed": {
-            "source": "openrouter-endpoint",
-            "id": "moonshotai/kimi-k3",
-            "provider": "Moonshot AI"
-          }
-        },
-        {
-          "provider": "Together AI",
-          "input_per_m": {
-            "value": 2.7,
-            "source": "Together price listed on OpenRouter (moonshotai/kimi-k3 endpoints)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "output_per_m": {
-            "value": 13.5,
-            "source": "Together price listed on OpenRouter (moonshotai/kimi-k3 endpoints)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "cached_input_per_m": {
-            "value": 0.27,
-            "source": "Together price listed on OpenRouter (moonshotai/kimi-k3 endpoints)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "batch_discount_pct": null,
-          "feed": {
-            "source": "openrouter-endpoint",
-            "id": "moonshotai/kimi-k3",
-            "provider": "Together"
-          }
-        },
-        {
-          "provider": "Fireworks AI",
-          "input_per_m": {
-            "value": 3.0,
-            "source": "Fireworks price listed on OpenRouter (moonshotai/kimi-k3 endpoints)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "output_per_m": {
-            "value": 15.0,
-            "source": "Fireworks price listed on OpenRouter (moonshotai/kimi-k3 endpoints)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "cached_input_per_m": {
-            "value": 0.3,
-            "source": "Fireworks price listed on OpenRouter (moonshotai/kimi-k3 endpoints)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "batch_discount_pct": null,
-          "feed": {
-            "source": "openrouter-endpoint",
-            "id": "moonshotai/kimi-k3",
-            "provider": "Fireworks"
-          }
-        },
-        {
-          "provider": "Azure AI Foundry",
-          "input_per_m": {
-            "value": 3.0,
-            "source": "Azure Retail Prices API, Foundry Models (FW Kimi-K3 Gl Inp Tokens / FW Kimi-K3 Gl Opt Tokens, eastus2); global deployment, hosted by Fireworks on Azure",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "output_per_m": {
-            "value": 15.0,
-            "source": "Azure Retail Prices API, Foundry Models (FW Kimi-K3 Gl Inp Tokens / FW Kimi-K3 Gl Opt Tokens, eastus2); global deployment, hosted by Fireworks on Azure",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "cached_input_per_m": null,
-          "batch_discount_pct": null,
-          "feed": {
-            "source": "azure-foundry",
-            "input": "FW Kimi-K3 Gl Inp Tokens",
-            "output": "FW Kimi-K3 Gl Opt Tokens",
-            "region": "eastus2"
-          }
-        }
-      ]
-    },
-    {
-      "id": "kimi-k2.6",
-      "name": "Kimi K2.6 (MoE, MLA)",
-      "family": "Moonshot AI",
-      "self_hostable": true,
-      "architecture": "moe",
-      "params_total_b": {
-        "value": 1027,
-        "source": "moonshotai/Kimi-K2.6 model card (1T total)",
-        "as_of": "2026-10-01",
-        "status": "estimate"
-      },
-      "params_active_b": {
-        "value": 32,
-        "source": "moonshotai/Kimi-K2.6 model card (32B activated)",
-        "as_of": "2026-10-01",
-        "status": "estimate"
-      },
-      "layers": {
-        "value": 61,
-        "source": "Hugging Face config.json (moonshotai/Kimi-K2.6)",
-        "as_of": "2026-10-01",
         "status": "estimate"
       },
       "attention_heads": {
         "value": 64,
-        "source": "Hugging Face config.json (moonshotai/Kimi-K2.6)",
-        "as_of": "2026-10-01",
-        "status": "estimate"
-      },
-      "kv_heads": {
-        "value": 64,
-        "source": "Hugging Face config.json (moonshotai/Kimi-K2.6)",
-        "as_of": "2026-10-01",
-        "status": "estimate"
-      },
-      "head_dim": {
-        "value": 128,
-        "source": "Hugging Face config.json (moonshotai/Kimi-K2.6)",
-        "as_of": "2026-10-01",
-        "status": "estimate"
-      },
-      "max_context": {
-        "value": 262144,
-        "source": "Hugging Face config.json (moonshotai/Kimi-K2.6)",
-        "as_of": "2026-10-01",
-        "status": "estimate"
-      },
-      "kv_layout": {
-        "type": "mla",
-        "elems_per_token_per_layer": 576,
-        "source": "Hugging Face config.json (moonshotai/Kimi-K2.6): kv_lora_rank 512 + qk_rope_head_dim 64 (DeepSeek V3 architecture)",
-        "as_of": "2026-10-01",
-        "status": "estimate"
-      },
-      "native_precision": "INT4 MoE weights (quantization-aware); INT4 setting matches",
-      "note": "DeepSeek V3 architecture (MLA). Modified MIT license.",
-      "api_prices": [
-        {
-          "provider": "OpenRouter",
-          "input_per_m": {
-            "value": 0.43415,
-            "source": "openrouter.ai/api/v1/models (moonshotai/kimi-k2.6)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "output_per_m": {
-            "value": 1.828,
-            "source": "openrouter.ai/api/v1/models (moonshotai/kimi-k2.6)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "cached_input_per_m": {
-            "value": 0.07312,
-            "source": "openrouter.ai/api/v1/models (moonshotai/kimi-k2.6)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "batch_discount_pct": null,
-          "feed": {
-            "source": "openrouter",
-            "id": "moonshotai/kimi-k2.6",
-            "mode": "own"
-          }
-        },
-        {
-          "provider": "Moonshot AI",
-          "input_per_m": {
-            "value": 0.95,
-            "source": "Moonshot AI price listed on OpenRouter (moonshotai/kimi-k2.6 endpoints)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "output_per_m": {
-            "value": 4.0,
-            "source": "Moonshot AI price listed on OpenRouter (moonshotai/kimi-k2.6 endpoints)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "cached_input_per_m": {
-            "value": 0.16,
-            "source": "Moonshot AI price listed on OpenRouter (moonshotai/kimi-k2.6 endpoints)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "batch_discount_pct": null,
-          "feed": {
-            "source": "openrouter-endpoint",
-            "id": "moonshotai/kimi-k2.6",
-            "provider": "Moonshot AI"
-          }
-        }
-      ]
-    },
-    {
-      "id": "minimax-m3",
-      "name": "MiniMax M3 (MoE)",
-      "family": "MiniMax",
-      "self_hostable": true,
-      "architecture": "moe",
-      "params_total_b": {
-        "value": 428,
-        "source": "MiniMaxAI/MiniMax-M3 model card (~428B total)",
-        "as_of": "2026-10-01",
-        "status": "estimate"
-      },
-      "params_active_b": {
-        "value": 23,
-        "source": "MiniMaxAI/MiniMax-M3 model card (~23B activated)",
-        "as_of": "2026-10-01",
-        "status": "estimate"
-      },
-      "layers": {
-        "value": 60,
-        "source": "Hugging Face config.json (MiniMaxAI/Minimax-M3)",
-        "as_of": "2026-10-01",
-        "status": "estimate"
-      },
-      "attention_heads": {
-        "value": 64,
-        "source": "Hugging Face config.json (MiniMaxAI/Minimax-M3)",
-        "as_of": "2026-10-01",
-        "status": "estimate"
-      },
-      "kv_heads": {
-        "value": 4,
-        "source": "Hugging Face config.json (MiniMaxAI/Minimax-M3)",
-        "as_of": "2026-10-01",
-        "status": "estimate"
-      },
-      "head_dim": {
-        "value": 128,
-        "source": "Hugging Face config.json (MiniMaxAI/Minimax-M3)",
-        "as_of": "2026-10-01",
-        "status": "estimate"
-      },
-      "max_context": {
-        "value": 1048576,
-        "source": "Hugging Face config.json (MiniMaxAI/Minimax-M3)",
-        "as_of": "2026-10-01",
-        "status": "estimate"
-      },
-      "kv_layout": {
-        "type": "standard",
-        "source": "Hugging Face config.json (MiniMaxAI/Minimax-M3): grouped-query attention, 4 KV heads × 128; sparse attention reads only selected blocks but the cache is stored for every token",
-        "as_of": "2026-10-01",
-        "status": "estimate"
-      },
-      "note": "Sparse attention lowers compute for long contexts; KV memory is modeled as standard GQA. MiniMax community license.",
-      "api_prices": [
-        {
-          "provider": "OpenRouter",
-          "input_per_m": {
-            "value": 0.3,
-            "source": "openrouter.ai/api/v1/models (minimax/minimax-m3)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "output_per_m": {
-            "value": 1.2,
-            "source": "openrouter.ai/api/v1/models (minimax/minimax-m3)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "cached_input_per_m": {
-            "value": 0.06,
-            "source": "openrouter.ai/api/v1/models (minimax/minimax-m3)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "batch_discount_pct": null,
-          "feed": {
-            "source": "openrouter",
-            "id": "minimax/minimax-m3",
-            "mode": "own"
-          }
-        },
-        {
-          "provider": "MiniMax",
-          "input_per_m": {
-            "value": 0.3,
-            "source": "Minimax price listed on OpenRouter (minimax/minimax-m3 endpoints)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "output_per_m": {
-            "value": 1.2,
-            "source": "Minimax price listed on OpenRouter (minimax/minimax-m3 endpoints)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "cached_input_per_m": {
-            "value": 0.06,
-            "source": "Minimax price listed on OpenRouter (minimax/minimax-m3 endpoints)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "batch_discount_pct": null,
-          "feed": {
-            "source": "openrouter-endpoint",
-            "id": "minimax/minimax-m3",
-            "provider": "Minimax"
-          }
-        },
-        {
-          "provider": "Together AI",
-          "input_per_m": {
-            "value": 0.3,
-            "source": "Together price listed on OpenRouter (minimax/minimax-m3 endpoints)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "output_per_m": {
-            "value": 1.2,
-            "source": "Together price listed on OpenRouter (minimax/minimax-m3 endpoints)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "cached_input_per_m": {
-            "value": 0.06,
-            "source": "Together price listed on OpenRouter (minimax/minimax-m3 endpoints)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "batch_discount_pct": null,
-          "feed": {
-            "source": "openrouter-endpoint",
-            "id": "minimax/minimax-m3",
-            "provider": "Together"
-          }
-        },
-        {
-          "provider": "Azure AI Foundry",
-          "input_per_m": {
-            "value": 0.33,
-            "source": "Azure Retail Prices API, Foundry Models (FW MiniMax 3 Inp DZ Tokens / FW MiniMax 3 Outp DZ Tokens, eastus2); data-zone deployment, hosted by Fireworks on Azure",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "output_per_m": {
-            "value": 1.32,
-            "source": "Azure Retail Prices API, Foundry Models (FW MiniMax 3 Inp DZ Tokens / FW MiniMax 3 Outp DZ Tokens, eastus2); data-zone deployment, hosted by Fireworks on Azure",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "cached_input_per_m": null,
-          "batch_discount_pct": null,
-          "feed": {
-            "source": "azure-foundry",
-            "input": "FW MiniMax 3 Inp DZ Tokens",
-            "output": "FW MiniMax 3 Outp DZ Tokens",
-            "region": "eastus2"
-          }
-        }
-      ]
-    },
-    {
-      "id": "minimax-m2.7",
-      "name": "MiniMax M2.7 (MoE)",
-      "family": "MiniMax",
-      "self_hostable": true,
-      "architecture": "moe",
-      "params_total_b": {
-        "value": 229,
-        "source": "Hugging Face safetensors size (MiniMaxAI/MiniMax-M2.7)",
-        "as_of": "2026-10-01",
-        "status": "estimate"
-      },
-      "params_active_b": {
-        "value": 10,
-        "source": "MiniMax-M2 family model card (10B activated)",
-        "as_of": "2026-10-01",
-        "status": "estimate"
-      },
-      "layers": {
-        "value": 62,
-        "source": "Hugging Face config.json (MiniMaxAI/MiniMax-M2.7)",
-        "as_of": "2026-10-01",
-        "status": "estimate"
-      },
-      "attention_heads": {
-        "value": 48,
-        "source": "Hugging Face config.json (MiniMaxAI/MiniMax-M2.7)",
-        "as_of": "2026-10-01",
+        "source": "Hugging Face config.json (Qwen/Qwen3-32B)",
+        "as_of": "2026-09-28",
         "status": "estimate"
       },
       "kv_heads": {
         "value": 8,
-        "source": "Hugging Face config.json (MiniMaxAI/MiniMax-M2.7)",
-        "as_of": "2026-10-01",
+        "source": "Hugging Face config.json (Qwen/Qwen3-32B)",
+        "as_of": "2026-09-28",
         "status": "estimate"
       },
       "head_dim": {
         "value": 128,
-        "source": "Hugging Face config.json (MiniMaxAI/MiniMax-M2.7)",
-        "as_of": "2026-10-01",
+        "source": "Hugging Face config.json (Qwen/Qwen3-32B)",
+        "as_of": "2026-09-28",
         "status": "estimate"
       },
       "max_context": {
-        "value": 204800,
-        "source": "Hugging Face config.json (MiniMaxAI/MiniMax-M2.7)",
-        "as_of": "2026-10-01",
+        "value": 32768,
+        "source": "Hugging Face config.json (Qwen/Qwen3-32B)",
+        "as_of": "2026-09-28",
         "status": "estimate"
       },
       "kv_layout": {
-        "type": "standard",
-        "source": "Hugging Face config.json (MiniMaxAI/MiniMax-M2.7): full attention on all 62 layers, 8 KV heads × 128",
-        "as_of": "2026-10-01",
+        "type": "standard"
+      },
+      "api_prices": [
+        {
+          "provider": "Fireworks AI",
+          "input_per_m": {
+            "value": 0.9,
+            "source": "docs.fireworks.ai/serverless/pricing (generic size-tier price; serverless availability of this model not verified)",
+            "as_of": "2026-09-28",
+            "status": "placeholder"
+          },
+          "output_per_m": {
+            "value": 0.9,
+            "source": "docs.fireworks.ai/serverless/pricing (generic size-tier price; serverless availability of this model not verified)",
+            "as_of": "2026-09-28",
+            "status": "placeholder"
+          },
+          "cached_input_per_m": null,
+          "batch_discount_pct": {
+            "value": 50,
+            "source": "docs.fireworks.ai/serverless/pricing (generic size-tier price; serverless availability of this model not verified)",
+            "as_of": "2026-09-28",
+            "status": "placeholder"
+          },
+          "feed": {
+            "source": "fireworks",
+            "tier": "More than 16B parameters",
+            "status": "placeholder"
+          }
+        },
+        {
+          "provider": "OpenRouter",
+          "input_per_m": {
+            "value": 0.08,
+            "source": "openrouter.ai/api/v1/models (qwen/qwen3-32b)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 0.28,
+            "source": "openrouter.ai/api/v1/models (qwen/qwen3-32b)",
+            "as_of": "2026-09-29",
+            "status": "estimate"
+          },
+          "cached_input_per_m": null,
+          "batch_discount_pct": null,
+          "note": "OpenRouter routes each request to one of several hosting providers; this is its listed price for the model. Throughput, rate limits and data-handling terms depend on the underlying provider.",
+          "feed": {
+            "source": "openrouter",
+            "id": "qwen/qwen3-32b",
+            "mode": "own"
+          }
+        }
+      ],
+      "note": "Native context 32,768; up to 131,072 with YaRN rope scaling (edit max_context if you enable it)."
+    },
+    {
+      "id": "qwen3-235b-a22b",
+      "name": "Qwen3 235B-A22B (MoE)",
+      "family": "Qwen",
+      "self_hostable": true,
+      "architecture": "moe",
+      "params_total_b": {
+        "value": 235,
+        "source": "Qwen3 model card",
+        "as_of": "2026-09-28",
         "status": "estimate"
       },
-      "native_precision": "FP8 weights; FP8 setting matches",
+      "params_active_b": {
+        "value": 22,
+        "source": "Qwen3 model card",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "layers": {
+        "value": 94,
+        "source": "Hugging Face config.json (Qwen/Qwen3-235B-A22B)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "attention_heads": {
+        "value": 64,
+        "source": "Hugging Face config.json (Qwen/Qwen3-235B-A22B)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "kv_heads": {
+        "value": 4,
+        "source": "Hugging Face config.json (Qwen/Qwen3-235B-A22B)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "head_dim": {
+        "value": 128,
+        "source": "Hugging Face config.json (Qwen/Qwen3-235B-A22B)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "max_context": {
+        "value": 32768,
+        "source": "Hugging Face config.json (Qwen/Qwen3-235B-A22B)",
+        "as_of": "2026-09-28",
+        "status": "estimate"
+      },
+      "kv_layout": {
+        "type": "standard"
+      },
       "api_prices": [
         {
           "provider": "OpenRouter",
           "input_per_m": {
-            "value": 0.21,
-            "source": "openrouter.ai/api/v1/models (minimax/minimax-m2.7)",
-            "as_of": "2026-10-01",
+            "value": 0.455,
+            "source": "openrouter.ai/api/v1/models (qwen/qwen3-235b-a22b)",
+            "as_of": "2026-09-29",
             "status": "estimate"
           },
           "output_per_m": {
-            "value": 0.84,
-            "source": "openrouter.ai/api/v1/models (minimax/minimax-m2.7)",
-            "as_of": "2026-10-01",
+            "value": 1.82,
+            "source": "openrouter.ai/api/v1/models (qwen/qwen3-235b-a22b)",
+            "as_of": "2026-09-29",
             "status": "estimate"
           },
-          "cached_input_per_m": {
-            "value": 0.042,
-            "source": "openrouter.ai/api/v1/models (minimax/minimax-m2.7)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
+          "cached_input_per_m": null,
           "batch_discount_pct": null,
+          "note": "OpenRouter routes each request to one of several hosting providers; this is its listed price for the model. Throughput, rate limits and data-handling terms depend on the underlying provider.",
           "feed": {
             "source": "openrouter",
-            "id": "minimax/minimax-m2.7",
+            "id": "qwen/qwen3-235b-a22b",
             "mode": "own"
           }
         },
         {
-          "provider": "MiniMax",
+          "provider": "Google Vertex AI",
           "input_per_m": {
-            "value": 0.3,
-            "source": "Minimax price listed on OpenRouter (minimax/minimax-m2.7 endpoints)",
-            "as_of": "2026-10-01",
+            "value": 0.22,
+            "source": "cloud.google.com/vertex-ai/generative-ai/pricing (Qwen3-235B-A22B-Instruct-2507); the 2507 instruct update of Qwen3 235B-A22B, same architecture",
+            "as_of": "2026-09-29",
             "status": "estimate"
           },
           "output_per_m": {
-            "value": 1.2,
-            "source": "Minimax price listed on OpenRouter (minimax/minimax-m2.7 endpoints)",
-            "as_of": "2026-10-01",
+            "value": 0.88,
+            "source": "cloud.google.com/vertex-ai/generative-ai/pricing (Qwen3-235B-A22B-Instruct-2507); the 2507 instruct update of Qwen3 235B-A22B, same architecture",
+            "as_of": "2026-09-29",
             "status": "estimate"
           },
-          "cached_input_per_m": {
-            "value": 0.06,
-            "source": "Minimax price listed on OpenRouter (minimax/minimax-m2.7 endpoints)",
-            "as_of": "2026-10-01",
-            "status": "estimate"
-          },
-          "batch_discount_pct": null,
-          "feed": {
-            "source": "openrouter-endpoint",
-            "id": "minimax/minimax-m2.7",
-            "provider": "Minimax"
-          }
-        }
-      ]
-    },
-    {
-      "id": "gpt-6-sol",
-      "name": "GPT-6 Sol",
-      "family": "OpenAI",
-      "tier": "frontier",
-      "self_hostable": false,
-      "architecture": null,
-      "api_prices": [
-        {
-          "provider": "OpenAI",
-          "input_per_m": {
-            "value": 2.0,
-            "source": "developers.openai.com/api/docs/pricing (standard tier)",
-            "as_of": "2026-09-28",
-            "status": "estimate"
-          },
-          "output_per_m": {
-            "value": 10.0,
-            "source": "developers.openai.com/api/docs/pricing (standard tier)",
-            "as_of": "2026-09-28",
-            "status": "estimate"
-          },
-          "cached_input_per_m": {
-            "value": 0.2,
-            "source": "developers.openai.com/api/docs/pricing (standard tier)",
-            "as_of": "2026-09-28",
-            "status": "estimate"
-          },
+          "cached_input_per_m": null,
           "batch_discount_pct": {
             "value": 50,
-            "source": "developers.openai.com/api/docs/pricing (standard tier)",
-            "as_of": "2026-09-28",
+            "source": "cloud.google.com/vertex-ai/generative-ai/pricing (Qwen3-235B-A22B-Instruct-2507); the 2507 instruct update of Qwen3 235B-A22B, same architecture",
+            "as_of": "2026-09-29",
             "status": "estimate"
           },
           "feed": {
-            "source": "openrouter",
-            "id": "openai/gpt-6-sol",
-            "mode": "mirror"
+            "source": "vertex",
+            "model": "Qwen3-235B-A22B-Instruct-2507"
           }
         }
       ],
-      "note": "API-only reference model (weights not available for self-hosting). Not an apples-to-apples quality comparison with open-weight models."
+      "note": "Native context 32,768; up to 131,072 with YaRN. No verified public serverless price found on 2026-09-28."
     },
     {
-      "id": "gpt-5.6-terra",
-      "name": "GPT-5.6 Terra",
-      "family": "OpenAI",
-      "tier": "mid",
-      "self_hostable": false,
-      "architecture": null,
-      "api_prices": [
-        {
-          "provider": "OpenAI",
-          "input_per_m": {
-            "value": 2.0,
-            "source": "developers.openai.com/api/docs/pricing (standard tier)",
-            "as_of": "2026-09-28",
-            "status": "estimate"
-          },
-          "output_per_m": {
-            "value": 12.0,
-            "source": "developers.openai.com/api/docs/pricing (standard tier)",
-            "as_of": "2026-09-28",
-            "status": "estimate"
-          },
-          "cached_input_per_m": {
-            "value": 0.2,
-            "source": "developers.openai.com/api/docs/pricing (standard tier)",
-            "as_of": "2026-09-28",
-            "status": "estimate"
-          },
-          "batch_discount_pct": {
-            "value": 50,
-            "source": "developers.openai.com/api/docs/pricing (standard tier)",
-            "as_of": "2026-09-28",
-            "status": "estimate"
-          },
-          "feed": {
-            "source": "openrouter",
-            "id": "openai/gpt-5.6-terra",
-            "mode": "mirror"
-          }
-        }
-      ],
-      "note": "API-only reference model (weights not available for self-hosting). Not an apples-to-apples quality comparison with open-weight models."
-    },
-    {
-      "id": "gpt-5.4-mini",
-      "name": "GPT-5.4 mini",
-      "family": "OpenAI",
-      "tier": "budget",
-      "self_hostable": false,
-      "architecture": null,
-      "api_prices": [
-        {
-          "provider": "OpenAI",
-          "input_per_m": {
-            "value": 0.75,
-            "source": "developers.openai.com/api/docs/pricing (standard tier)",
-            "as_of": "2026-09-28",
-            "status": "estimate"
-          },
-          "output_per_m": {
-            "value": 4.5,
-            "source": "developers.openai.com/api/docs/pricing (standard tier)",
-            "as_of": "2026-09-28",
-            "status": "estimate"
-          },
-          "cached_input_per_m": {
-            "value": 0.075,
-            "source": "developers.openai.com/api/docs/pricing (standard tier)",
-            "as_of": "2026-09-28",
-            "status": "estimate"
-          },
-          "batch_discount_pct": {
-            "value": 50,
-            "source": "developers.openai.com/api/docs/pricing (standard tier)",
-            "as_of": "2026-09-28",
-            "status": "estimate"
-          },
-          "feed": {
-            "source": "openrouter",
-            "id": "openai/gpt-5.4-mini",
-            "mode": "mirror"
-          }
-        }
-      ],
-      "note": "API-only reference model (weights not available for self-hosting). Not an apples-to-apples quality comparison with open-weight models."
-    },
-    {
-      "id": "claude-opus-5.5",
-      "name": "Claude Opus 5.5",
+      "id": "claude-haiku-4.5",
+      "name": "Claude Haiku 4.5",
       "family": "Anthropic",
-      "tier": "frontier",
+      "tier": "budget",
       "self_hostable": false,
       "architecture": null,
       "api_prices": [
         {
           "provider": "Anthropic",
           "input_per_m": {
-            "value": 4.0,
+            "value": 1.0,
             "source": "platform.claude.com/docs/en/about-claude/pricing",
             "as_of": "2026-09-28",
             "status": "estimate"
           },
           "output_per_m": {
-            "value": 20.0,
+            "value": 5.0,
             "source": "platform.claude.com/docs/en/about-claude/pricing",
             "as_of": "2026-09-28",
             "status": "estimate"
           },
           "cached_input_per_m": {
-            "value": 0.2,
+            "value": 0.1,
             "source": "platform.claude.com/docs/en/about-claude/pricing",
             "as_of": "2026-09-28",
             "status": "estimate"
@@ -1867,7 +1738,7 @@
           },
           "feed": {
             "source": "openrouter",
-            "id": "anthropic/claude-opus-5.5",
+            "id": "anthropic/claude-haiku-4.5",
             "mode": "mirror"
           }
         }
@@ -1918,29 +1789,29 @@
       "note": "API-only reference model (weights not available for self-hosting). Not an apples-to-apples quality comparison with open-weight models."
     },
     {
-      "id": "claude-haiku-4.5",
-      "name": "Claude Haiku 4.5",
+      "id": "claude-opus-5.5",
+      "name": "Claude Opus 5.5",
       "family": "Anthropic",
-      "tier": "budget",
+      "tier": "frontier",
       "self_hostable": false,
       "architecture": null,
       "api_prices": [
         {
           "provider": "Anthropic",
           "input_per_m": {
-            "value": 1.0,
+            "value": 4.0,
             "source": "platform.claude.com/docs/en/about-claude/pricing",
             "as_of": "2026-09-28",
             "status": "estimate"
           },
           "output_per_m": {
-            "value": 5.0,
+            "value": 20.0,
             "source": "platform.claude.com/docs/en/about-claude/pricing",
             "as_of": "2026-09-28",
             "status": "estimate"
           },
           "cached_input_per_m": {
-            "value": 0.1,
+            "value": 0.2,
             "source": "platform.claude.com/docs/en/about-claude/pricing",
             "as_of": "2026-09-28",
             "status": "estimate"
@@ -1953,7 +1824,124 @@
           },
           "feed": {
             "source": "openrouter",
-            "id": "anthropic/claude-haiku-4.5",
+            "id": "anthropic/claude-opus-5.5",
+            "mode": "mirror"
+          }
+        }
+      ],
+      "note": "API-only reference model (weights not available for self-hosting). Not an apples-to-apples quality comparison with open-weight models."
+    },
+    {
+      "id": "deepseek-flash",
+      "name": "DeepSeek Flash",
+      "family": "DeepSeek",
+      "tier": "budget",
+      "self_hostable": false,
+      "architecture": null,
+      "api_prices": [
+        {
+          "provider": "DeepSeek",
+          "input_per_m": {
+            "value": 0.3,
+            "source": "api-docs.deepseek.com/quick_start/pricing (peak rate; off-peak is 50% lower)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 1.2,
+            "source": "api-docs.deepseek.com/quick_start/pricing (peak rate; off-peak is 50% lower)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.006,
+            "source": "api-docs.deepseek.com/quick_start/pricing (peak rate; off-peak is 50% lower)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "batch_discount_pct": null,
+          "feed": {
+            "source": "deepseek",
+            "column": 0
+          }
+        }
+      ],
+      "note": "API-only reference model (weights not available for self-hosting). Not an apples-to-apples quality comparison with open-weight models."
+    },
+    {
+      "id": "deepseek-v4-pro",
+      "name": "DeepSeek V4 Pro",
+      "family": "DeepSeek",
+      "tier": "mid",
+      "self_hostable": false,
+      "architecture": null,
+      "api_prices": [
+        {
+          "provider": "DeepSeek",
+          "input_per_m": {
+            "value": 1.32,
+            "source": "api-docs.deepseek.com/quick_start/pricing (peak rate; off-peak is 50% lower)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 3.96,
+            "source": "api-docs.deepseek.com/quick_start/pricing (peak rate; off-peak is 50% lower)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.044,
+            "source": "api-docs.deepseek.com/quick_start/pricing (peak rate; off-peak is 50% lower)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "batch_discount_pct": null,
+          "feed": {
+            "source": "deepseek",
+            "column": 1
+          }
+        }
+      ],
+      "note": "API-only reference model (weights not available for self-hosting). Not an apples-to-apples quality comparison with open-weight models."
+    },
+    {
+      "id": "gemini-3.8-flash",
+      "name": "Gemini 3.8 Flash",
+      "family": "Google",
+      "tier": "budget",
+      "self_hostable": false,
+      "architecture": null,
+      "api_prices": [
+        {
+          "provider": "Google",
+          "input_per_m": {
+            "value": 0.75,
+            "source": "ai.google.dev/gemini-api/docs/pricing (paid tier, prompts <=200k); promotional price through 2026-12-31, doubles on 2027-01-01",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "output_per_m": {
+            "value": 3.75,
+            "source": "ai.google.dev/gemini-api/docs/pricing (paid tier, prompts <=200k); promotional price through 2026-12-31, doubles on 2027-01-01",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "cached_input_per_m": {
+            "value": 0.075,
+            "source": "ai.google.dev/gemini-api/docs/pricing (paid tier, prompts <=200k); promotional price through 2026-12-31, doubles on 2027-01-01",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "batch_discount_pct": {
+            "value": 50,
+            "source": "ai.google.dev/gemini-api/docs/pricing (paid tier, prompts <=200k); promotional price through 2026-12-31, doubles on 2027-01-01",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
+          "feed": {
+            "source": "openrouter",
+            "id": "google/gemini-3.8-flash",
             "mode": "mirror"
           }
         }
@@ -2004,42 +1992,42 @@
       "note": "API-only reference model (weights not available for self-hosting). Not an apples-to-apples quality comparison with open-weight models."
     },
     {
-      "id": "gemini-3.8-flash",
-      "name": "Gemini 3.8 Flash",
-      "family": "Google",
+      "id": "gpt-5.4-mini",
+      "name": "GPT-5.4 mini",
+      "family": "OpenAI",
       "tier": "budget",
       "self_hostable": false,
       "architecture": null,
       "api_prices": [
         {
-          "provider": "Google",
+          "provider": "OpenAI",
           "input_per_m": {
             "value": 0.75,
-            "source": "ai.google.dev/gemini-api/docs/pricing (paid tier, prompts <=200k); promotional price through 2026-12-31, doubles on 2027-01-01",
+            "source": "developers.openai.com/api/docs/pricing (standard tier)",
             "as_of": "2026-09-28",
             "status": "estimate"
           },
           "output_per_m": {
-            "value": 3.75,
-            "source": "ai.google.dev/gemini-api/docs/pricing (paid tier, prompts <=200k); promotional price through 2026-12-31, doubles on 2027-01-01",
+            "value": 4.5,
+            "source": "developers.openai.com/api/docs/pricing (standard tier)",
             "as_of": "2026-09-28",
             "status": "estimate"
           },
           "cached_input_per_m": {
             "value": 0.075,
-            "source": "ai.google.dev/gemini-api/docs/pricing (paid tier, prompts <=200k); promotional price through 2026-12-31, doubles on 2027-01-01",
+            "source": "developers.openai.com/api/docs/pricing (standard tier)",
             "as_of": "2026-09-28",
             "status": "estimate"
           },
           "batch_discount_pct": {
             "value": 50,
-            "source": "ai.google.dev/gemini-api/docs/pricing (paid tier, prompts <=200k); promotional price through 2026-12-31, doubles on 2027-01-01",
+            "source": "developers.openai.com/api/docs/pricing (standard tier)",
             "as_of": "2026-09-28",
             "status": "estimate"
           },
           "feed": {
             "source": "openrouter",
-            "id": "google/gemini-3.8-flash",
+            "id": "openai/gpt-5.4-mini",
             "mode": "mirror"
           }
         }
@@ -2047,74 +2035,86 @@
       "note": "API-only reference model (weights not available for self-hosting). Not an apples-to-apples quality comparison with open-weight models."
     },
     {
-      "id": "deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro",
-      "family": "DeepSeek",
+      "id": "gpt-5.6-terra",
+      "name": "GPT-5.6 Terra",
+      "family": "OpenAI",
       "tier": "mid",
       "self_hostable": false,
       "architecture": null,
       "api_prices": [
         {
-          "provider": "DeepSeek",
+          "provider": "OpenAI",
           "input_per_m": {
-            "value": 1.32,
-            "source": "api-docs.deepseek.com/quick_start/pricing (peak rate; off-peak is 50% lower)",
+            "value": 2.0,
+            "source": "developers.openai.com/api/docs/pricing (standard tier)",
             "as_of": "2026-09-28",
             "status": "estimate"
           },
           "output_per_m": {
-            "value": 3.96,
-            "source": "api-docs.deepseek.com/quick_start/pricing (peak rate; off-peak is 50% lower)",
+            "value": 12.0,
+            "source": "developers.openai.com/api/docs/pricing (standard tier)",
             "as_of": "2026-09-28",
             "status": "estimate"
           },
           "cached_input_per_m": {
-            "value": 0.044,
-            "source": "api-docs.deepseek.com/quick_start/pricing (peak rate; off-peak is 50% lower)",
+            "value": 0.2,
+            "source": "developers.openai.com/api/docs/pricing (standard tier)",
             "as_of": "2026-09-28",
             "status": "estimate"
           },
-          "batch_discount_pct": null,
+          "batch_discount_pct": {
+            "value": 50,
+            "source": "developers.openai.com/api/docs/pricing (standard tier)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
           "feed": {
-            "source": "deepseek",
-            "column": 1
+            "source": "openrouter",
+            "id": "openai/gpt-5.6-terra",
+            "mode": "mirror"
           }
         }
       ],
       "note": "API-only reference model (weights not available for self-hosting). Not an apples-to-apples quality comparison with open-weight models."
     },
     {
-      "id": "deepseek-flash",
-      "name": "DeepSeek Flash",
-      "family": "DeepSeek",
-      "tier": "budget",
+      "id": "gpt-6-sol",
+      "name": "GPT-6 Sol",
+      "family": "OpenAI",
+      "tier": "frontier",
       "self_hostable": false,
       "architecture": null,
       "api_prices": [
         {
-          "provider": "DeepSeek",
+          "provider": "OpenAI",
           "input_per_m": {
-            "value": 0.3,
-            "source": "api-docs.deepseek.com/quick_start/pricing (peak rate; off-peak is 50% lower)",
+            "value": 2.0,
+            "source": "developers.openai.com/api/docs/pricing (standard tier)",
             "as_of": "2026-09-28",
             "status": "estimate"
           },
           "output_per_m": {
-            "value": 1.2,
-            "source": "api-docs.deepseek.com/quick_start/pricing (peak rate; off-peak is 50% lower)",
+            "value": 10.0,
+            "source": "developers.openai.com/api/docs/pricing (standard tier)",
             "as_of": "2026-09-28",
             "status": "estimate"
           },
           "cached_input_per_m": {
-            "value": 0.006,
-            "source": "api-docs.deepseek.com/quick_start/pricing (peak rate; off-peak is 50% lower)",
+            "value": 0.2,
+            "source": "developers.openai.com/api/docs/pricing (standard tier)",
             "as_of": "2026-09-28",
             "status": "estimate"
           },
-          "batch_discount_pct": null,
+          "batch_discount_pct": {
+            "value": 50,
+            "source": "developers.openai.com/api/docs/pricing (standard tier)",
+            "as_of": "2026-09-28",
+            "status": "estimate"
+          },
           "feed": {
-            "source": "deepseek",
-            "column": 0
+            "source": "openrouter",
+            "id": "openai/gpt-6-sol",
+            "mode": "mirror"
           }
         }
       ],
