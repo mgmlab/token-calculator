@@ -233,8 +233,11 @@
     TC.lastExec = x;
     TC.lastExecKey = JSON.stringify(w);
     const jump = (k, r) => `data-jump="${k}|${esc(r.id)}" role="button" tabindex="0" title="Show where this number comes from"`;
+    // The box behind the verdict is highlighted, whichever architecture wins.
+    const winKey = { onprem: 'onprem', 'onprem-likely': 'onprem', cloud: 'cloud', api: 'api_same', near: 'api_same', hybrid: 'hybrid' }[x.verdict.key];
+    const tag = '<span class="win-tag">Recommended</span>';
     const tile = (label, r, rng, note, desc, k) => r
-      ? `<div class="exec-tile jumpable" ${jump(k, r)}><span class="label">${label}</span><span class="value">${TC.fmtRangeYear(rng, r.monthly)}<small>/yr</small></span>
+      ? `<div class="exec-tile jumpable ${winKey === k ? 'tile-win' : ''}" ${jump(k, r)}><span class="label">${label}${winKey === k ? tag : ''}</span><span class="value">${TC.fmtRangeYear(rng, r.monthly)}<small>/yr</small></span>
           <span class="muted small">${esc(desc || r.name + ' · ' + r.sub)}</span><span class="muted small">${f.perM(r.perM)} per 1M tokens${note ? ' · ' + note : ''}</span></div>`
       : `<div class="exec-tile"><span class="label">${label}</span><span class="value muted">—</span><span class="muted small">No option fits</span></div>`;
     let be;
@@ -249,7 +252,7 @@
         ${tile('Buy servers (on-prem)', x.on, x.onRange, x.on ? f.num(x.on.util * 100, x.on.util < 0.01 ? 1 : 0) + '% utilized' : '', x.onLabel, 'onprem')}
         ${tile('Rent GPUs (GPU cloud)', x.cl, x.clRange, x.cl ? x.cl.pricing : '', null, 'cloud')}
         ${tile('Pay per token (same model)', x.api, null, '', null, 'api_same')}
-        ${hybridTile(x.hybrid)}
+        ${hybridTile(x.hybrid, winKey === 'hybrid' ? tag : '')}
       </div>
       <p class="exec-be">${be}</p>
       <p class="exec-why"><strong>Why:</strong> ${esc(x.why)}</p>
@@ -261,13 +264,15 @@
     </section>`;
   }
 
-  function hybridTile(hy) {
+  function hybridTile(hy, tag) {
     if (!hy) return `<div class="exec-tile"><span class="label">Hybrid (owned baseline + API)</span><span class="value muted">—</span><span class="muted small">Needs a same-model API price</span></div>`;
     const b = hy.best;
-    const tiny = b.row && b.pct < 100 && !hy.material;
-    const note = tiny ? `API would take only ${TC.fmtShare(1 - b.share)} of tokens (${f.usdCompact(b.apiMonthly * 12)}/yr): too little to justify a hybrid` : !b.row ? 'best mix is all API' : b.pct >= 100 ? 'best mix is all owned' : b.share >= 0.95 ? `${TC.fmtShare(b.share)} of tokens on owned GPUs; API takes rare bursts` : `${TC.fmtShare(b.share)} of tokens on owned GPUs`;
-    return `<div class="exec-tile jumpable ${hy.wins ? 'hy-win' : ''}" data-jump="hybrid|" role="button" tabindex="0" title="Show where this number comes from"><span class="label">Hybrid (owned baseline + API)</span><span class="value">${f.usdCompact(b.total * 12)}<small>/yr</small></span>
-      <span class="muted small">${b.row ? esc(b.setup) + ' + ' + esc(hy.api.name) : esc(hy.api.name) + ' only'}</span><span class="muted small">${note}</span></div>`;
+    const allOwned = b.row && (b.pct >= 100 || b.apiMonthly * 12 < 1);
+    const tiny = b.row && !allOwned && !hy.material;
+    const note = tiny ? `API would take only ${TC.fmtShare(1 - b.share)} of tokens (${f.usdCompact(b.apiMonthly * 12)}/yr): too little to justify a hybrid` : !b.row ? 'best mix is all API: same as paying per token' : allOwned ? 'best mix is all owned: same as buying servers' : b.share >= 0.95 ? `${TC.fmtShare(b.share)} of tokens on owned GPUs; API takes rare bursts` : `${TC.fmtShare(b.share)} of tokens on owned GPUs`;
+    const value = tiny ? '<span class="value muted">Not worth it</span>' : (!b.row || allOwned) ? '<span class="value muted">Not needed</span>' : `<span class="value">${f.usdCompact(b.total * 12)}<small>/yr</small></span>`;
+    return `<div class="exec-tile jumpable ${tag ? 'tile-win' : ''}" data-jump="hybrid|" role="button" tabindex="0" title="Show where this number comes from"><span class="label">Hybrid (owned baseline + API)${tag || ''}</span>${value}
+      <span class="muted small">${b.row ? esc(b.setup) + (allOwned ? '' : ' + ' + esc(hy.api.name)) : esc(hy.api.name) + ' only'}</span><span class="muted small">${note}</span></div>`;
   }
 
   // Hybrid section body (filled after the summary is computed).
