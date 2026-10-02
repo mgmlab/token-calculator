@@ -50,7 +50,10 @@
     const lo = TC.computeAll(V.low, w), hi = TC.computeAll(V.high, w);
     const range = (pick, base) => {
       if (!base) return null;
-      const a = cheapest(pick(lo)), b = cheapest(pick(hi));
+      // The same option (same server or rental offer) under optimistic and pessimistic inputs, so the range
+      // belongs to the option named in the box rather than to whichever option happens to be cheapest then.
+      const same = rs => rs.find(r => r.id === base.id && r.feasible && isFinite(r.monthly)) || null;
+      const a = same(pick(lo)), b = same(pick(hi));
       const vals = [base.monthly, a && a.monthly, b && b.monthly].filter(x => x != null && isFinite(x));
       return { min: Math.min(...vals), max: Math.max(...vals) };
     };

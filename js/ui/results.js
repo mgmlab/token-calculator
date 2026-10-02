@@ -130,12 +130,12 @@
   }
 
   const money = r => r.feasible
-    ? `<td class="num">${f.usd(r.monthly)}</td><td class="num">${f.usd(r.total)}</td><td class="num strong">${f.perM(r.perM)}</td>`
-    : `<td class="num muted" colspan="3">${esc(r.reason || 'n/a')}</td>`;
+    ? `<td class="num">${f.usd(r.monthly)}</td><td class="num">${f.usd(r.monthly * 12)}</td><td class="num">${f.usd(r.total)}</td><td class="num strong">${f.perM(r.perM)}</td>`
+    : `<td class="num muted" colspan="4">${esc(r.reason || 'n/a')}</td>`;
   const utilCell = r => r.feasible
     ? `<td class="num" title="Average share of installed capacity in use${r.perMFull != null ? ' · fully utilized: ' + f.perM(r.perMFull) + ' per 1M tokens' : ''}">${f.num(r.util * 100, 1)}%</td>`
     : '<td></td>';
-  const moneyCols = [{ label: 'Monthly', num: true }, { label: 'Total over term', num: true }, { label: '$ / 1M tokens', num: true }];
+  const moneyCols = [{ label: 'Monthly', num: true }, { label: 'Per year', num: true }, { label: 'Total over term', num: true }, { label: '$ / 1M tokens', num: true }];
 
   TC.renderResults = function (el, res, w, data) {
     const wl = res.wl;

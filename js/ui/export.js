@@ -47,12 +47,13 @@
   }
 
   // ------------------------------------------------------------------ CSV
-  const HEAD = ['Category', 'Option', 'Detail', 'Configuration', 'Throughput basis', 'Avg utilization %', 'Monthly (USD)', 'Total over term (USD)', 'USD per 1M tokens', 'Placeholder values used', 'Warnings', 'Fits'];
+  const HEAD = ['Category', 'Option', 'Detail', 'Configuration', 'Throughput basis', 'Avg utilization %', 'Monthly (USD)', 'Per year (USD)', 'Total over term (USD)', 'USD per 1M tokens', 'Placeholder values used', 'Warnings', 'Fits'];
   function csvRow(r) {
     return [
       CAT[catOf(r)], r.name, r.sub, config(r), basis(r),
       r.feasible && r.util != null ? Math.round(r.util * 1000) / 10 : '',
       r.feasible ? Math.round(r.monthly * 100) / 100 : '',
+      r.feasible ? Math.round(r.monthly * 1200) / 100 : '',
       r.feasible ? Math.round(r.total * 100) / 100 : '',
       r.feasible ? Math.round(r.perM * 10000) / 10000 : '',
       uniqPlaceholders(r),
@@ -393,10 +394,10 @@
     });
     const present = cats.filter(c => bestBy[c]);
     const s3 = titled('Summary: lowest-cost option in each category', 'Under the current assumptions. Every option is listed on the following slides.');
-    s3.addTable([hdr(['Category', 'Lowest-cost option', 'Monthly', `Total (${w.term_years} yr)`, '$ / 1M tokens'])].concat(present.map(c => {
+    s3.addTable([hdr(['Category', 'Lowest-cost option', 'Monthly', 'Per year', `Total (${w.term_years} yr)`, '$ / 1M tokens'])].concat(present.map(c => {
       const r = bestBy[c];
-      return [CAT[c], `${r.name} — ${r.sub}`, f.usd(r.monthly), f.usd(r.total), { text: f.perM(r.perM), options: { bold: true } }];
-    })), tableOpts([2.6, 5.3, 1.4, 1.6, 1.43]));
+      return [CAT[c], `${r.name} — ${r.sub}`, f.usd(r.monthly), f.usd(r.monthly * 12), f.usd(r.total), { text: f.perM(r.perM), options: { bold: true } }];
+    })), tableOpts([2.4, 4.6, 1.3, 1.3, 1.43, 1.3]));
     if (present.length) {
       s3.addChart(pptx.ChartType.bar, [{ name: '$ per 1M tokens', labels: present.map(c => CAT[c]), values: present.map(c => Math.round(bestBy[c].perM * 1000) / 1000) }], {
         x: 0.5, y: 1.45 + 0.38 * (present.length + 1) + 0.25, w: 12.333, h: Math.max(2.2, 6.3 - (1.45 + 0.38 * (present.length + 1) + 0.25)),
@@ -426,26 +427,26 @@
     const on = sortRows(res.onprem).filter(r => r.feasible);
     const onHidden = res.onprem.length - on.length;
     paged('Buy servers (on-prem)', `${model ? model.name : ''} · one row per server SKU · sized in model replicas, rounded to whole nodes`,
-      ['Server', 'GPU', 'Layout', 'Throughput', 'Util', 'Monthly', `Total (${w.term_years} yr)`, '$ / 1M', '⚠'],
-      [1.95, 2.35, 2.1, 1.4, 0.7, 1.0, 1.2, 1.0, 0.633], on,
+      ['Server', 'GPU', 'Layout', 'Throughput', 'Util', 'Monthly', 'Per year', `Total (${w.term_years} yr)`, '$ / 1M', '⚠'],
+      [1.8, 2.1, 2.0, 1.3, 0.65, 0.95, 0.95, 1.15, 0.9, 0.533], on,
       r => [r.name, r.sub, `${r.cost.nodes} node(s) · ${r.cost.gpus} GPUs · ${r.sizing.best.replicas}×TP${r.sizing.best.tp}${r.sizing.best.pp > 1 ? '×PP' + r.sizing.best.pp : ''}`,
-        basis(r), f.num(r.util * 100, 1) + '%', f.usd(r.monthly), f.usd(r.total), { text: f.perM(r.perM), options: { bold: true } }, warnCell(r)],
+        basis(r), f.num(r.util * 100, 1) + '%', f.usd(r.monthly), f.usd(r.monthly * 12), f.usd(r.total), { text: f.perM(r.perM), options: { bold: true } }, warnCell(r)],
       `Util = average share of installed capacity in use. ⚠ = number of placeholder values (e.g. server price quotes) the row depends on.${onHidden ? ` ${onHidden} SKU(s) cannot fit this model and are omitted.` : ''} Monthly = total ÷ months, straight-line.`);
 
     const cl = sortRows(res.cloud).filter(r => r.feasible);
     paged('Rent GPUs (GPU cloud)', 'Same replica sizing, priced per GPU-hour · reserved billed 24/7 · on-demand uses active hours',
-      ['Provider', 'GPU / instance', 'Pricing', 'GPUs', 'Monthly', `Total (${w.term_years} yr)`, '$ / 1M', '⚠'],
-      [1.6, 3.4, 2.6, 0.7, 1.1, 1.3, 1.0, 0.633], cl,
-      r => [r.name, r.sub, r.pricing, String(r.cost.gpus), f.usd(r.monthly), f.usd(r.total), { text: f.perM(r.perM), options: { bold: true } }, warnCell(r)],
+      ['Provider', 'GPU / instance', 'Pricing', 'GPUs', 'Monthly', 'Per year', `Total (${w.term_years} yr)`, '$ / 1M', '⚠'],
+      [1.5, 3.0, 2.4, 0.6, 1.0, 1.0, 1.2, 1.0, 0.633], cl,
+      r => [r.name, r.sub, r.pricing, String(r.cost.gpus), f.usd(r.monthly), f.usd(r.monthly * 12), f.usd(r.total), { text: f.perM(r.perM), options: { bold: true } }, warnCell(r)],
       `On-demand assumes ${f.int(w.cloud_active_hours_per_month)} active hours/month. Excludes storage, egress and support plans.`);
 
-    const apiRow = r => [r.name, r.sub, `${f.price(v(r.price.input_per_m))} / ${f.price(v(r.price.output_per_m))}`, f.usd(r.monthly), f.usd(r.total), { text: f.perM(r.perM), options: { bold: true } }, warnCell(r)];
+    const apiRow = r => [r.name, r.sub, `${f.price(v(r.price.input_per_m))} / ${f.price(v(r.price.output_per_m))}`, f.usd(r.monthly), f.usd(r.monthly * 12), f.usd(r.total), { text: f.perM(r.perM), options: { bold: true } }, warnCell(r)];
     const apiFoot = `Cached-input share ${f.num(w.api_cache_hit_pct)}% · batch share ${f.num(w.api_batch_share_pct)}% · prices held flat over the term.`;
     paged('Pay per token (API) — same model', `${model ? model.name : ''} hosted by API providers · directly comparable with self-hosting`,
-      ['Provider', 'Model', 'In / out per 1M', 'Monthly', `Total (${w.term_years} yr)`, '$ / 1M', '⚠'], [2.3, 3.4, 2.0, 1.35, 1.55, 1.1, 0.633],
+      ['Provider', 'Model', 'In / out per 1M', 'Monthly', 'Per year', `Total (${w.term_years} yr)`, '$ / 1M', '⚠'], [2.1, 3.0, 1.8, 1.2, 1.2, 1.4, 1.0, 0.633],
       sortRows(res.api.filter(r => r.sameModel)), apiRow, apiFoot);
     paged('Pay per token (API) — closed models', 'Different models, shown for cost context only — not a like-for-like quality comparison',
-      ['Provider', 'Model', 'In / out per 1M', 'Monthly', `Total (${w.term_years} yr)`, '$ / 1M', '⚠'], [2.3, 3.4, 2.0, 1.35, 1.55, 1.1, 0.633],
+      ['Provider', 'Model', 'In / out per 1M', 'Monthly', 'Per year', `Total (${w.term_years} yr)`, '$ / 1M', '⚠'], [2.1, 3.0, 1.8, 1.2, 1.2, 1.4, 1.0, 0.633],
       sortRows(res.api.filter(r => !r.sameModel)), apiRow, apiFoot);
 
     // Breakeven chart
