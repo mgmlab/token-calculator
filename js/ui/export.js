@@ -106,6 +106,61 @@
     return toCsv(lines);
   };
 
+  // ------------------------------------------------------------------ one option, with specs and every calculation step
+  const plain = v => (v && typeof v === 'object' && 'value' in v) ? v.value : v;
+  const SPEC = { sku: 'Model / SKU', gpus_per_node: 'GPUs per node', price_mode: 'Price mode', price_usd: 'Price (USD)', base_price_usd: 'Base price (USD)', power_kw: 'Power (kW)', rack_units: 'Rack units',
+    memory_gb: 'Memory (GB)', mem_bandwidth_tbps: 'Memory bandwidth (TB/s)', dense_tflops_fp16: 'Dense TFLOPS (FP16)', dense_tflops_fp8: 'Dense TFLOPS (FP8)', dense_tflops_fp4: 'Dense TFLOPS (FP4)', street_price_usd: 'Street price (USD)',
+    input_per_m: 'Input (USD per 1M tokens)', output_per_m: 'Output (USD per 1M tokens)', cached_input_per_m: 'Cached input (USD per 1M tokens)', batch_discount_pct: 'Batch discount %' };
+  function specLines(title, obj, skip) {
+    if (!obj) return [];
+    const out = [[title, '']];
+    Object.keys(obj).forEach(k => {
+      if (skip.includes(k) || k.startsWith('_')) return;
+      const v = plain(obj[k]);
+      if (v == null || typeof v === 'object') return;
+      out.push([SPEC[k] || (k.charAt(0).toUpperCase() + k.slice(1)).replace(/_/g, ' '), v]);
+    });
+    return out.concat([[]]);
+  }
+  function stepLines(title, steps) {
+    if (!steps || !steps.length) return [];
+    return [[title], ['Step', 'Formula', 'Value', 'Unit', 'Note']]
+      .concat(steps.map(st => [st.label, st.formula, typeof st.value === 'number' && isFinite(st.value) ? Math.round(st.value * 10000) / 10000 : st.value, st.unit || '', st.note || '']), [[]]);
+  }
+  TC.buildRowCsv = function (id) {
+    const { w, data, res } = TC.lastResults;
+    const r = allRows(res).find(x => x.id === id);
+    if (!r) return null;
+    let lines = [['Option export', `${CAT[catOf(r)]}: ${r.name} · ${r.sub}`], []];
+    lines.push(HEAD, csvRow(r), []);
+    lines = lines.concat(specLines('Server specifications', r.server, ['id', 'gpu_id', 'feed']), specLines('GPU specifications', r.gpu, ['id', 'cloud', 'feed']));
+    if (r.price) lines = lines.concat(specLines('API price', r.price, ['feed']));
+    lines = lines.concat(workloadLines(w, res.wl, data), stepLines('Workload calculation', res.wl.steps));
+    if (r.sizing && r.sizing.best) {
+      const b = r.sizing.best;
+      lines = lines.concat(stepLines('Sizing: model memory', r.sizing.shared.steps), stepLines(`Sizing: chosen layout (TP ${b.tp}${b.pp > 1 ? ' × PP ' + b.pp : ''})`, b.steps));
+      if (r.sizing.candidates && r.sizing.candidates.length > 1) {
+        lines.push(['Layouts evaluated'], ['Layout', 'GPUs per replica', 'Max concurrent per replica', 'Basis', 'Aggregate tok/s', 'Replicas', 'Nodes', 'Result']);
+        r.sizing.candidates.forEach(c => lines.push([`TP ${c.tp}${c.pp > 1 ? ' × PP ' + c.pp : ''}`, c.gpusPerReplica, c.feasible ? Math.round(c.Crep) : '', c.feasible ? c.basis : '', c.feasible ? Math.round(c.aggTps) : '', c.feasible ? c.replicas : '', c.feasible ? c.nodes : '', c === r.sizing.best ? 'chosen' : (c.reason || '')]));
+        lines.push([]);
+      }
+    }
+    if (r.cost) lines = lines.concat(stepLines('Cost calculation', r.cost.steps));
+    const prov = [].concat(r.sizing ? r.sizing.prov.items : [], r.cost ? r.cost.prov.items : []);
+    if (prov.length) {
+      const seen = new Set();
+      lines.push(['Data values used'], ['Value', 'Amount', 'Status', 'Source', 'As of']);
+      prov.forEach(i => { if (seen.has(i.label)) return; seen.add(i.label); lines.push([i.label, i.value, i.status || '', i.source || '', i.as_of || '']); });
+    }
+    return { name: `${r.name} ${r.sub}`, csv: toCsv(lines) };
+  };
+  TC.exportRowCsv = function (id) {
+    const x = TC.buildRowCsv(id);
+    if (!x) return;
+    const slug = x.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
+    saveText(`token-calculator-${slug}-${TC.today()}.csv`, x.csv, 'text/csv;charset=utf-8');
+  };
+
   // ------------------------------------------------------------------ PowerPoint
   let libPromise = null;
   function loadLib() {

@@ -536,3 +536,5 @@ tr.row.jump-hl > td { animation: jumpRow 4s ease-out; }
 .back-summary:hover { background: var(--accent); color: #fff; }
 .back-summary[hidden] { display: none; }
 @media print { .back-summary { display: none; } }
+
+.detail-actions { display: flex; justify-content: flex-end; margin: 4px 0 -4px; }
