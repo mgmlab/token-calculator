@@ -4,7 +4,8 @@
   const esc = TC.esc;
   const KEY = 'tc.workload';
 
-  const DOC = 'docs/workload-guide.html';
+  // Carry the release stamp so a new deploy of the Input guide is never served from a stale browser cache.
+  const DOC = 'docs/workload-guide.html' + (((document.querySelector('script[src*="inputs.js"]') || {}).src || '').match(/\?v=\w+/) || [''])[0];
 
   // "What are you building?" presets — starting points only; every value can be changed.
   const PRESETS = {

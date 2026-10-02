@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Workload Input Guide</title>
   <link rel="icon" href="../assets/favicon.png">
-  <link rel="stylesheet" href="../css/styles.css?v=202610020013">
+  <link rel="stylesheet" href="../css/styles.css?v=202610021107">
   <style>
     /* Layout: sticky topic nav on the left, reference content on the right; one card per input. */
     .g-wrap { max-width: 1180px; margin: 0 auto; padding: 20px 24px 48px; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 28px; align-items: start; }
@@ -119,7 +119,7 @@
           <div class="g-ask">Who will use this, and what share will use it weekly?</div>
           <div class="g-chips"><span class="g-chip">Internal copilot: <b>30–60%</b> of eligible staff</span><span class="g-chip">Customer-facing: monthly active users</span></div>
           <p>Count people who actually use it in a typical month, not licensed seats. For batch work, think of “users” as sources or feeds.</p>
-          <span id="scenario_name"></span><span id="preset"></span>
+          <span data-anchor="scenario_name"></span><span data-anchor="preset"></span>
         </article>
 
         <article class="g-card" id="requests_per_user_per_day">
@@ -163,7 +163,7 @@
 seconds per request ≈ output tokens ÷ target tok/s + about 1 s
 peak concurrent ≈ peak requests/sec × seconds per request, plus a 99th-percentile burst allowance</pre>
           </details>
-          <span id="peak_concurrency_mode"></span><span id="busy_hour_share_pct"></span><span id="burst_percentile"></span>
+          <span data-anchor="peak_concurrency_mode"></span><span data-anchor="busy_hour_share_pct"></span><span data-anchor="burst_percentile"></span>
         </article>
 
         <article class="g-card" id="target_output_tps_per_request">
@@ -188,14 +188,14 @@ peak concurrent ≈ peak requests/sec × seconds per request, plus a 99th-percen
           <div class="g-ask">Which models are approved or preferred? What quality bar does the use case need?</div>
           <div class="g-chips"><span class="g-chip">Production <b>FP8</b></span><span class="g-chip">Memory-tight <b>INT4</b> after a quality test</span></div>
           <p>Model size drives cost more than anything else, so start from the smallest model that meets the bar. Leave the KV cache at FP16 unless the inference engine supports FP8 KV (vLLM and TensorRT-LLM do).</p>
-          <span id="precision"></span><span id="kv_precision"></span><span id="kv_sizing_basis"></span><span id="throughput_source"></span>
+          <span data-anchor="precision"></span><span data-anchor="kv_precision"></span><span data-anchor="kv_sizing_basis"></span><span data-anchor="throughput_source"></span>
         </article>
 
         <article class="g-card" id="headroom_pct">
           <h3>Headroom, N+1 and term <span class="g-where">Advanced</span></h3>
           <div class="g-ask">How fast will usage grow? Is it business-critical? Over how many years is hardware depreciated?</div>
           <div class="g-chips"><span class="g-chip">Headroom <b>20–30%</b></span><span class="g-chip">N+1 = one spare server if critical</span><span class="g-chip">Term <b>3</b> or <b>5</b> years</span></div>
-          <span id="n_plus_one"></span><span id="term_years"></span>
+          <span data-anchor="n_plus_one"></span><span data-anchor="term_years"></span>
         </article>
       </div>
 
@@ -213,14 +213,14 @@ peak concurrent ≈ peak requests/sec × seconds per request, plus a 99th-percen
           <div class="g-ask">Does a large part of each prompt repeat (instructions, tools, a shared document)? Can any work wait hours for results?</div>
           <div class="g-chips"><span class="g-chip">Cached input <b>30–60%</b> typical</span><span class="g-chip">Batch <b>0%</b> chat · up to <b>100%</b> overnight</span></div>
           <p>Example: a 1,500-token system prompt on a 2,500-token input means about 60% can be cached.</p>
-          <span id="api_batch_share_pct"></span>
+          <span data-anchor="api_batch_share_pct"></span>
         </article>
 
         <article class="g-card wide" id="api_excluded">
           <h3>API providers and closed models <span class="g-where">Advanced</span></h3>
           <div class="g-ask">Which API providers is the organization approved or willing to buy from? Are GPT, Claude or Gemini on the table?</div>
           <p>Untick providers that aren’t an option; it often changes the answer (see the “approved API providers” example). The closed-model tier picks whether the reference line shows budget, mid-size or flagship closed models.</p>
-          <span id="include_closed_models"></span><span id="closed_tier"></span>
+          <span data-anchor="include_closed_models"></span><span data-anchor="closed_tier"></span>
         </article>
       </div>
 
@@ -268,7 +268,7 @@ peak concurrent ≈ peak requests/sec × seconds per request, plus a 99th-percen
   </div>
 
   <footer class="site-footer" id="footer"></footer>
-  <script src="../js/config.js?v=202610020013"></script>
+  <script src="../js/config.js?v=202610021107"></script>
   <script>
     (function () {
       var c = window.TC && window.TC.config;
@@ -295,11 +295,13 @@ peak concurrent ≈ peak requests/sec × seconds per request, plus a 99th-percen
         });
         document.querySelectorAll('.g-nav > div').forEach(function (g) { g.classList.toggle('active-group', !!g.querySelector('a.active')); });
       }
-      // Several inputs share one card (e.g. busy-hour share lives in the Peak demand card) and their anchors are markers
-      // inside it. Whatever the link targets, bring its whole card to the top and highlight the card.
+      // Several inputs share one card (e.g. busy-hour share lives in the Peak demand card). Their markers are data-anchor
+      // attributes, not ids, so the browser never jumps to the bottom of the card; this brings the card to the top.
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
       function showTarget() {
         var id = decodeURIComponent(location.hash.slice(1));
-        var t = id && document.getElementById(id);
+        if (!id) return;
+        var t = document.getElementById(id) || document.querySelector('[data-anchor="' + id.replace(/"/g, '') + '"]');
         document.querySelectorAll('.g-card.is-target').forEach(function (c) { c.classList.remove('is-target'); });
         if (!t) return;
         var card = t.closest('.g-card') || t;
@@ -308,7 +310,12 @@ peak concurrent ≈ peak requests/sec × seconds per request, plus a 99th-percen
         spy();
       }
       window.addEventListener('hashchange', showTarget);
-      if (location.hash) { showTarget(); window.addEventListener('load', showTarget); }
+      if (location.hash) {
+        showTarget();
+        // Fonts and the footer can shift the layout after the first paint; settle on the card once more.
+        window.addEventListener('load', showTarget);
+        setTimeout(showTarget, 400);
+      }
       window.addEventListener('scroll', spy, { passive: true });
       window.addEventListener('resize', spy);
       spy();
