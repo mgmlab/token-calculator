@@ -327,22 +327,22 @@
     const tiles = [['Buy servers (on-prem)', onTile, X.onRange], ['Rent GPUs (GPU cloud)', X.cl, X.clRange], ['Pay per token (same model)', X.api, null], ['Hybrid (owned + API)', hyRow, null, hyText]];
     tiles.forEach(([lbl, r, rng, alt], i) => {
       const x0 = 0.5 + i * 3.1, win = i === winIdx;
-      se.addShape(pptx.ShapeType.roundRect, { x: x0, y: 2.25, w: 2.95, h: 1.9, rectRadius: 0.15, fill: { color: win ? P.white : 'F4ECFF' }, line: { color: win ? P.purple : 'F4ECFF', width: win ? 2 : 0.75 } });
+      se.addShape(pptx.ShapeType.roundRect, { x: x0, y: 2.25, w: 2.95, h: 2.4, rectRadius: 0.15, fill: { color: win ? P.white : 'F4ECFF' }, line: { color: win ? P.purple : 'F4ECFF', width: win ? 2 : 0.75 } });
       if (alt) {
         se.addText([
           { text: lbl, options: { fontSize: 13, color: P.ink2, breakLine: true } },
           { text: alt[0], options: { fontSize: 17, bold: true, color: P.muted, breakLine: true } },
           { text: alt[1], options: { fontSize: 11, color: P.ink2 } },
-        ], { x: x0 + 0.15, y: 2.35, w: 2.7, h: 1.7, fontFace: FONT, valign: 'top' });
+        ], { x: x0 + 0.15, y: 2.35, w: 2.7, h: 2.2, fontFace: FONT, valign: 'top', fit: 'shrink' });
         return;
       }
       se.addText([
-        { text: lbl + (win ? '  · Recommended' : ''), options: { fontSize: 13, color: win ? P.purple : P.ink2, bold: win, breakLine: true } },
+        { text: lbl + (win ? ' · Recommended' : ''), options: { fontSize: win ? 12 : 13, color: win ? P.purple : P.ink2, bold: win, breakLine: true } },
         { text: r ? f.usdCompact(r.monthly * 12) : '—', options: { fontSize: 19, bold: true, color: P.purple, breakLine: true } },
-        { text: r ? 'per year' + (TC.rangeNote(rng) ? ' · ' + TC.rangeNote(rng).replace(' with optimistic or pessimistic inputs', ' depending on inputs') : '') : '', options: { fontSize: 11, color: P.muted, breakLine: true } },
+        { text: r ? 'per year' + (TC.rangeNote(rng) ? ' · ' + TC.rangeNote(rng).replace(' with optimistic or pessimistic inputs', '') : '') : '', options: { fontSize: 11, color: P.muted, breakLine: true } },
         { text: r ? `${r.name} · ${r.sub}` : 'No option fits', options: { fontSize: 11, color: P.ink2, breakLine: true } },
         { text: r ? `${f.perM(r.perM)} per 1M tokens` : '', options: { fontSize: 11, color: P.muted } },
-      ], { x: x0 + 0.15, y: 2.35, w: 2.7, h: 1.7, fontFace: FONT, valign: 'top' });
+      ], { x: x0 + 0.15, y: 2.35, w: 2.7, h: 2.2, fontFace: FONT, valign: 'top', fit: 'shrink' });
     });
     const beText = X.multiple === 0 ? `Owning servers is already cheaper than ${X.altLabel} at today's volume.`
       : isFinite(X.multiple) ? `Owning servers becomes cheaper than ${X.altLabel} at about ${f.tokens(X.breakevenTokens)} tokens/month — ${f.num(X.multiple, X.multiple < 10 ? 1 : 0)}× today's usage.`
@@ -351,7 +351,7 @@
       { text: 'Breakeven: ', options: { bold: true, color: P.ink } }, { text: beText, options: { color: P.ink, breakLine: true, paraSpaceAfter: 10 } },
       { text: 'Why: ', options: { bold: true, color: P.ink } }, { text: X.why, options: { color: P.ink2, breakLine: true, paraSpaceAfter: 10 } },
       { text: `Confidence: ${X.level}. `, options: { bold: true, color: P.ink } }, { text: 'Ranges reflect uncertain throughput and placeholder prices — see the next slide.', options: { color: P.ink2 } },
-    ], { x: 0.5, y: 4.4, w: 12.3, h: 2.0, fontFace: FONT, fontSize: 15, valign: 'top' });
+    ], { x: 0.5, y: 4.85, w: 12.3, h: 1.95, fontFace: FONT, fontSize: 14, valign: 'top' });
 
     if (HY) {
       const sh = titled('Hybrid: own some servers, send the rest to an API', 'Yearly cost of each option: your servers plus API for the traffic they don\u2019t handle (' + HY.api.name + ')');
