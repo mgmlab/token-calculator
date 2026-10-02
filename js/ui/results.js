@@ -238,7 +238,7 @@
     const tag = '<span class="win-tag">Recommended</span>';
     const tile = (label, r, rng, note, desc, k) => r
       ? `<div class="exec-tile jumpable ${winKey === k ? 'tile-win' : ''}" ${jump(k, r)}><span class="label">${label}${winKey === k ? tag : ''}</span><span class="value">${f.usdCompact(r.monthly * 12)}<small>/yr</small></span>
-          ${TC.rangeNote(rng) ? `<button type="button" class="tile-range" data-range="${k}" aria-expanded="false" title="Show how this range is worked out">${TC.rangeNote(rng)} <span class="range-i">ⓘ</span></button>` : ''}
+          ${TC.rangeNote(rng) ? `<button type="button" class="tile-range" data-range="${k}" aria-expanded="false" title="Show how this range is worked out">${TC.rangeNote(rng)} <span class="range-i" aria-hidden="true">i</span></button>` : ''}
           <span class="muted small">${esc(desc || r.name + ' · ' + r.sub)}</span><span class="muted small">${f.perM(r.perM)} per 1M tokens${note ? ' · ' + note : ''}</span></div>`
       : `<div class="exec-tile"><span class="label">${label}</span><span class="value muted">—</span><span class="muted small">No option fits</span></div>`;
     let be;
