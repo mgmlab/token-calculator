@@ -1,9 +1,14 @@
 {
-  "checked_at": "2026-10-01T17:23Z",
-  "date": "2026-10-01",
-  "values_changed": 0,
-  "changed": [],
-  "needs_review": [],
+  "checked_at": "2026-10-02T16:38Z",
+  "date": "2026-10-02",
+  "values_changed": 1,
+  "changed": [
+    "Kimi K3 (MoE, MLA + linear attention) / OpenRouter / output $/1M: 10.0 → 13.5"
+  ],
+  "needs_review": [
+    "Kimi K3 (MoE, MLA + linear attention) / OpenRouter / input $/1M: 0.6635 → 2.7 (not applied; over 50% change)",
+    "Kimi K3 (MoE, MLA + linear attention) / OpenRouter / cached input $/1M: 0.6635 → 0.27 (not applied; over 50% change)"
+  ],
   "problems": [],
   "sources_failed": [],
   "manual_rows": [
@@ -12,6 +17,13 @@
     "GPU rental: NVIDIA B200 180GB / Lambda 8x B200 SXM6 (reserved rate only)"
   ],
   "sources": {
+    "OpenRouter": {
+      "ok": true,
+      "url": "https://openrouter.ai/api/v1/models",
+      "rows": 31,
+      "changed": 1,
+      "error": ""
+    },
     "Fireworks": {
       "ok": true,
       "url": "https://docs.fireworks.ai/serverless/pricing.md",
@@ -19,17 +31,10 @@
       "changed": 0,
       "error": ""
     },
-    "OpenRouter": {
-      "ok": true,
-      "url": "https://openrouter.ai/api/v1/models",
-      "rows": 20,
-      "changed": 0,
-      "error": ""
-    },
     "Azure AI Foundry": {
       "ok": true,
       "url": "https://prices.azure.com/api/retail/prices",
-      "rows": 2,
+      "rows": 4,
       "changed": 0,
       "error": ""
     },
