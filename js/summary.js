@@ -128,6 +128,12 @@
   };
 
   /** "$1.2M–$1.6M" style range, per year. */
+  /** "Range $106K–$150K/yr if uncertain inputs land better or worse", or '' when the range is negligible. */
+  TC.rangeNote = r => {
+    if (!r) return '';
+    const a = r.min * 12, b = r.max * 12;
+    return Math.abs(b - a) / Math.max(a, 1) < 0.03 ? '' : `Range ${f.usdCompact(a)}–${f.usdCompact(b)}/yr with optimistic or pessimistic inputs`;
+  };
   TC.fmtRangeYear = (r, point) => {
     if (!r) return f.usdCompact(point * 12);
     const a = r.min * 12, b = r.max * 12;

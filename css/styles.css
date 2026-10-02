@@ -538,3 +538,5 @@ tr.row.jump-hl > td { animation: jumpRow 4s ease-out; }
 @media print { .back-summary { display: none; } }
 
 .detail-actions { display: flex; justify-content: flex-end; margin: 4px 0 -4px; }
+
+.tile-range { color: var(--text-2); font-style: italic; }

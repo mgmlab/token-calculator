@@ -337,8 +337,8 @@
       }
       se.addText([
         { text: lbl + (win ? '  · Recommended' : ''), options: { fontSize: 13, color: win ? P.purple : P.ink2, bold: win, breakLine: true } },
-        { text: r ? TC.fmtRangeYear(rng, r.monthly) : '—', options: { fontSize: 19, bold: true, color: P.purple, breakLine: true } },
-        { text: r ? 'per year' : '', options: { fontSize: 11, color: P.muted, breakLine: true } },
+        { text: r ? f.usdCompact(r.monthly * 12) : '—', options: { fontSize: 19, bold: true, color: P.purple, breakLine: true } },
+        { text: r ? 'per year' + (TC.rangeNote(rng) ? ' · ' + TC.rangeNote(rng).replace(' with optimistic or pessimistic inputs', ' depending on inputs') : '') : '', options: { fontSize: 11, color: P.muted, breakLine: true } },
         { text: r ? `${r.name} · ${r.sub}` : 'No option fits', options: { fontSize: 11, color: P.ink2, breakLine: true } },
         { text: r ? `${f.perM(r.perM)} per 1M tokens` : '', options: { fontSize: 11, color: P.muted } },
       ], { x: x0 + 0.15, y: 2.35, w: 2.7, h: 1.7, fontFace: FONT, valign: 'top' });

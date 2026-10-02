@@ -237,7 +237,8 @@
     const winKey = { onprem: 'onprem', 'onprem-likely': 'onprem', cloud: 'cloud', api: 'api_same', near: 'api_same', hybrid: 'hybrid' }[x.verdict.key];
     const tag = '<span class="win-tag">Recommended</span>';
     const tile = (label, r, rng, note, desc, k) => r
-      ? `<div class="exec-tile jumpable ${winKey === k ? 'tile-win' : ''}" ${jump(k, r)}><span class="label">${label}${winKey === k ? tag : ''}</span><span class="value">${TC.fmtRangeYear(rng, r.monthly)}<small>/yr</small></span>
+      ? `<div class="exec-tile jumpable ${winKey === k ? 'tile-win' : ''}" ${jump(k, r)}><span class="label">${label}${winKey === k ? tag : ''}</span><span class="value">${f.usdCompact(r.monthly * 12)}<small>/yr</small></span>
+          ${TC.rangeNote(rng) ? `<span class="tile-range small" title="Same option, rerun with optimistic and pessimistic values for throughput, placeholder server prices and power load">${TC.rangeNote(rng)}</span>` : ''}
           <span class="muted small">${esc(desc || r.name + ' · ' + r.sub)}</span><span class="muted small">${f.perM(r.perM)} per 1M tokens${note ? ' · ' + note : ''}</span></div>`
       : `<div class="exec-tile"><span class="label">${label}</span><span class="value muted">—</span><span class="muted small">No option fits</span></div>`;
     let be;
@@ -246,7 +247,7 @@
     else be = `${x.altLabel.charAt(0).toUpperCase() + x.altLabel.slice(1)} stays cheaper than owning servers up to <strong>2,000×</strong> today's usage.`;
     const name = w.scenario_name ? `<span class="exec-scn">${esc(w.scenario_name)}</span>` : '';
     return `<section class="card exec" id="exec-card">
-      <div class="exec-head"><div><h2>Analysis summary ${name}</h2><p class="muted small">Lowest-cost option in each category over ${w.term_years} years, shown per year. Ranges reflect the uncertain inputs below.</p></div>
+      <div class="exec-head"><div><h2>Analysis summary ${name}</h2><p class="muted small">Lowest-cost option in each category over ${w.term_years} years, shown per year (the same figures as the tables). Ranges show how far each could move if the uncertain inputs below land better or worse.</p></div>
         <span class="verdict v-${x.verdict.tone}">${esc(x.verdict.label)}</span></div>
       <div class="exec-tiles">
         ${tile('Buy servers (on-prem)', x.on, x.onRange, x.on ? f.num(x.on.util * 100, x.on.util < 0.01 ? 1 : 0) + '% utilized' : '', x.onLabel, 'onprem')}
