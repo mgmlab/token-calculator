@@ -264,7 +264,8 @@
   function hybridTile(hy) {
     if (!hy) return `<div class="exec-tile"><span class="label">Hybrid (owned baseline + API)</span><span class="value muted">—</span><span class="muted small">Needs a same-model API price</span></div>`;
     const b = hy.best;
-    const note = !b.row ? 'best mix is all API' : b.pct >= 100 ? 'best mix is all owned' : b.share >= 0.95 ? `${TC.fmtShare(b.share)} of tokens on owned GPUs; API takes rare bursts` : `${TC.fmtShare(b.share)} of tokens on owned GPUs`;
+    const tiny = b.row && b.pct < 100 && !hy.material;
+    const note = tiny ? `API would take only ${TC.fmtShare(1 - b.share)} of tokens (${f.usdCompact(b.apiMonthly * 12)}/yr): too little to justify a hybrid` : !b.row ? 'best mix is all API' : b.pct >= 100 ? 'best mix is all owned' : b.share >= 0.95 ? `${TC.fmtShare(b.share)} of tokens on owned GPUs; API takes rare bursts` : `${TC.fmtShare(b.share)} of tokens on owned GPUs`;
     return `<div class="exec-tile jumpable ${hy.wins ? 'hy-win' : ''}" data-jump="hybrid|" role="button" tabindex="0" title="Show where this number comes from"><span class="label">Hybrid (owned baseline + API)</span><span class="value">${f.usdCompact(b.total * 12)}<small>/yr</small></span>
       <span class="muted small">${b.row ? esc(b.setup) + ' + ' + esc(hy.api.name) : esc(hy.api.name) + ' only'}</span><span class="muted small">${note}</span></div>`;
   }
@@ -312,6 +313,7 @@
           ? ` Even the smallest owned setup (${esc(o.setup)}) costs <strong>${f.usdCompact(o.ownedMonthly * 12)}/yr</strong> and already serves ${TC.fmtShare(o.share)} of demand, versus <strong>${f.usdCompact(hy.apiOnly * 12)}/yr</strong> for all API — which is why the line jumps and then stays flat.`
           : '');
       })()
+      : !hy.material ? `The lowest-cost mix (${esc(b.setup)}) would send only <strong>${TC.fmtShare(1 - b.share)} of tokens</strong> (about ${f.usd(b.apiMonthly * 12)}/yr) to ${esc(hy.api.name)}. That is too little to justify routing traffic between two platforms, so this is not counted as a hybrid. In practice it is owning that setup outright and accepting slower responses in rare spikes; compare it with the Buy servers options.`
       : b.pct >= 100 ? 'At this volume the lowest-cost mix is <strong>all owned</strong>: overflow to the API costs more than owning for the peak.'
       : `A mix at ${b.pct}% of peak is cheapest, but saves less than 5% versus the best single option.`;
     return `<p class="hy-verdict">${verdict}</p>${svg}${legend}${tbl}

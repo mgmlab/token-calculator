@@ -124,7 +124,9 @@
       const capMem = c.Crep > 0 ? slots * c.Crep : Infinity;
       // Same per-request speed limit on-prem sizing uses: each copy serves at most cStar requests at the target speed.
       const capSpeed = c.cStar > 0 ? slots * c.cStar : Infinity;
-      const cap = Math.min(capTput, capMem, capSpeed);
+      // Headroom is reserve, exactly as in on-prem sizing: it is not counted as capacity for serving the peak.
+      // (Otherwise a setup without its headroom would look like it "handles the full peak" and undercut on-prem.)
+      const cap = Math.min(capTput, capMem, capSpeed) / (1 + (w.headroom_pct || 0) / 100);
       const served = hourly.reduce((a, c) => a + c * TC.servedFraction(c, cap), 0);
       const share = demand > 0 ? served / demand : 1;
       const apiMonthly = api.monthly * (1 - share);
@@ -135,7 +137,10 @@
     const pureBest = Math.min(api.monthly, onOnly.monthly, cloud ? cloud.monthly : Infinity);
     // A real hybrid owns some capacity but less than the full peak (the API takes the rest, even if that is only rare bursts).
     const mixed = !!best.row && best.pct > 0 && best.pct < 100;
-    const wins = mixed && best.total < 0.95 * pureBest;
+    // ...and the API must carry a meaningful part of the work: a gateway and a second provider are not worth it
+    // for a sliver of tokens. Below 2% of tokens (or ~$1K/yr of API spend) the mix is treated as owning outright.
+    const material = (1 - best.share) >= 0.02 && best.apiMonthly * 12 >= 1000;
+    const wins = mixed && material && best.total < 0.95 * pureBest;
 
     const steps = [
       S('Traffic curve', `busiest hour carries ${f.num(busy * 100, 1)}% of daily requests; the other hours follow a bell curve around midday${busy <= 1 / 24 + 1e-9 ? ' (flat, 24/7)' : ''}`, Math.max(...hourly), 'requests', 'Peak-hour mean concurrency; bursts within each hour are modelled as random (Poisson) arrivals.'),
@@ -148,7 +153,7 @@
     ];
 
     return {
-      points, best, api, onOnly, cloud, wins, mixed, peak,
+      points, best, api, onOnly, cloud, wins, mixed, material, peak,
       apiOnly: api.monthly, onPremOnly: onOnly.monthly,
       savingsVsApi: api.monthly - best.total, savingsVsOnPrem: onOnly.monthly - best.total,
       savingsVsCloud: cloud ? cloud.monthly - best.total : null,
