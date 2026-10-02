@@ -27,7 +27,7 @@
     // ---- models
     'models.family': 'Model family or publisher (Meta Llama, Qwen, Mistral, OpenAI, Anthropic…). Informational.',
     'models.tier': 'Closed models only: budget (small/fast models such as mini, Flash, Haiku), mid (Sonnet-class) or frontier (flagship). Based on each vendor’s own product positioning. Used by the Closed-model tier filter so the reference line compares like with like.',
-    'models.self_hostable': 'Ticked = open weights you can run yourself, so it can be sized for on-prem and GPU cloud. Unticked = API-only (GPT, Claude, Gemini) — shown only in the "other models" API table.',
+    'models.self_hostable': 'Ticked = open weights you can run yourself, so it can be sized for on-prem and GPU cloud. Unticked = API-only (GPT, Claude, Gemini) — shown only in the "closed models" API table.',
     'models.architecture': 'dense = every parameter is used for every token. moe (mixture of experts) = only some "expert" parameters are active per token, so it is faster than its size suggests but still needs memory for all parameters.',
     'models.params_total_b': 'Total parameters in billions. Drives how much GPU memory the weights need: params × bytes per parameter (FP16 = 2, FP8 = 1, INT4 = 0.5).',
     'models.params_active_b': 'Parameters used per token, in billions. Same as total for dense models; much smaller for MoE. Drives compute per token and the theoretical speed estimate.',

@@ -205,7 +205,7 @@
       [{ label: 'Provider' }, { label: 'Model' }, { label: 'In / out per 1M' }, ...moneyCols, { label: '' }],
       same, apiCells, wl, 'api_same', keepApi);
     if (w.include_closed_models) {
-      h += table('Pay per token (API) — other models', 'Different models (GPT, Claude, Gemini…), shown for cost context only — not a like-for-like quality comparison.' + (w.closed_tier && w.closed_tier !== 'all' ? ` Showing the <strong>${esc(w.closed_tier)}</strong> tier only (Advanced settings).` : ' All tiers shown; the cheapest is usually a budget model.'),
+      h += table('Pay per token (API) — closed models', 'Different models (GPT, Claude, Gemini…), shown for cost context only — not a like-for-like quality comparison.' + (w.closed_tier && w.closed_tier !== 'all' ? ` Showing the <strong>${esc(w.closed_tier)}</strong> tier only (Advanced settings).` : ' All tiers shown; the cheapest is usually a budget model.'),
         [{ label: 'Provider' }, { label: 'Model' }, { label: 'In / out per 1M' }, ...moneyCols, { label: '' }],
         closed, apiCells, wl, 'api_closed', keepApi);
     }

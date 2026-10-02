@@ -10,7 +10,7 @@
     cloud_reserved: 'Rent GPUs — reserved',
     cloud_ondemand: 'Rent GPUs — on-demand',
     api_same: 'Pay per token — same model',
-    api_closed: 'Pay per token — other models',
+    api_closed: 'Pay per token — closed models',
   };
   function catOf(r) {
     if (r.category === 'api') return r.sameModel ? 'api_same' : 'api_closed';
@@ -444,7 +444,7 @@
     paged('Pay per token (API) — same model', `${model ? model.name : ''} hosted by API providers · directly comparable with self-hosting`,
       ['Provider', 'Model', 'In / out per 1M', 'Monthly', `Total (${w.term_years} yr)`, '$ / 1M', '⚠'], [2.3, 3.4, 2.0, 1.35, 1.55, 1.1, 0.633],
       sortRows(res.api.filter(r => r.sameModel)), apiRow, apiFoot);
-    paged('Pay per token (API) — other models', 'Different models, shown for cost context only — not a like-for-like quality comparison',
+    paged('Pay per token (API) — closed models', 'Different models, shown for cost context only — not a like-for-like quality comparison',
       ['Provider', 'Model', 'In / out per 1M', 'Monthly', `Total (${w.term_years} yr)`, '$ / 1M', '⚠'], [2.3, 3.4, 2.0, 1.35, 1.55, 1.1, 0.633],
       sortRows(res.api.filter(r => !r.sameModel)), apiRow, apiFoot);
 

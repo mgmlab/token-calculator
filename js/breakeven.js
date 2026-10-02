@@ -20,7 +20,7 @@
     { key: 'cloud_reserved', label: 'Rent GPUs — reserved', vs: 'renting reserved GPUs', pick: r => r.cloud.filter(x => x.category === 'cloud_reserved') },
     { key: 'cloud_ondemand', label: 'Rent GPUs — on-demand', vs: 'renting on-demand GPUs', pick: r => r.cloud.filter(x => x.category === 'cloud_ondemand') },
     { key: 'api_same', label: 'Pay per token — same model', vs: 'paying per token for the same model', pick: r => r.api.filter(x => x.sameModel) },
-    { key: 'api_closed', label: 'Pay per token — other models', vs: 'paying per token for other models (GPT, Claude, Gemini…)', pick: r => r.api.filter(x => !x.sameModel) },
+    { key: 'api_closed', label: 'Pay per token — closed models', vs: 'paying per token for closed models (GPT, Claude, Gemini…)', pick: r => r.api.filter(x => !x.sameModel) },
   ];
 
   function cheapest(rows) {

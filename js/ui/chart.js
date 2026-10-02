@@ -123,7 +123,7 @@
     svg += `<rect class="hit" x="${M.l}" y="${M.t}" width="${W - M.l - M.r}" height="${H - M.t - M.b}" fill="transparent"/>`;
     svg += '</svg>';
 
-    // Name the model behind the "other models" line at today's volume, and the tier filter if one is set.
+    // Name the model behind the "closed models" line at today's volume, and the tier filter if one is set.
     const nearNow = pts.reduce((a, p) => (Math.abs(Math.log(p.tokensMonth / be.currentTokens)) < Math.abs(Math.log(a.tokensMonth / be.currentTokens)) ? p : a), pts[0]);
     const closedNow = nearNow && nearNow.series.api_closed;
     const tierTxt = w.closed_tier && w.closed_tier !== 'all' ? w.closed_tier + ' tier' : 'all tiers';

@@ -122,6 +122,7 @@
     clearTimeout(hideTimer);
     tipEl.innerHTML = `<strong>${esc(fd.label)}</strong><p>${esc(fd.tip)}</p>` + (fd.noDoc ? '' : `<a href="${DOC}#${esc(fd.k)}" target="_blank" rel="noopener">How to estimate this for a client ↗</a>`);
     tipEl.hidden = false;
+    document.querySelectorAll('.tip-btn[aria-describedby]').forEach(b => { if (b !== btn) b.removeAttribute('aria-describedby'); });
     btn.setAttribute('aria-describedby', 'field-tip');
     const r = btn.getBoundingClientRect();
     const w = Math.min(320, window.innerWidth - 24);
@@ -134,6 +135,8 @@
   }
   function tipHide() {
     if (tipEl) tipEl.hidden = true;
+    // Clear the open-tip marker so the ? stops looking highlighted once its tip is closed.
+    document.querySelectorAll('.tip-btn[aria-describedby]').forEach(b => b.removeAttribute('aria-describedby'));
     pinned = null;
   }
   document.addEventListener('mouseover', e => {
