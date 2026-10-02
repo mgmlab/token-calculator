@@ -115,7 +115,7 @@
       const open = view.expanded.has(r.id);
       h += `<tr class="row ${r.feasible ? '' : 'infeasible'} ${open ? 'open' : ''}" data-id="${esc(r.id)}" tabindex="0" aria-expanded="${open}">
         <td class="chev">${open ? '▾' : '▸'}</td>${cellsFn(r)}</tr>`;
-      if (open) h += `<tr class="detail"><td></td><td colspan="${cols.length}">${r.feasible ? `<div class="detail-actions"><button type="button" class="btn ghost small" data-row-export="${esc(r.id)}" title="Download this option with its specs and every calculation step (opens in Excel)">Export this option (CSV)</button></div>` + TC.renderMath(r, wl) : renderInfeasible(r)}</td></tr>`;
+      if (open) h += `<tr class="detail"><td></td><td colspan="${cols.length}">${r.feasible ? `<div class="detail-actions"><button type="button" class="btn ghost small" data-row-export="${esc(r.id)}" title="Download an Excel workbook for this option: summary, specs, workload, sizing, cost and sources on separate tabs">Export this option (Excel)</button></div>` + TC.renderMath(r, wl) : renderInfeasible(r)}</td></tr>`;
     });
     return h + '</tbody></table></div></section>';
   }
@@ -434,7 +434,13 @@
       }
       if (ctl && ctl.dataset.view === 'clear-filters') { Object.keys(F).forEach(k => { F[k] = ''; }); saveFilters(); rerender(); return; }
       const rx = e.target.closest('[data-row-export]');
-      if (rx) { TC.track('export-row', 'Exported one option'); TC.exportRowCsv(rx.dataset.rowExport); return; }
+      if (rx) {
+        TC.track('export-row', 'Exported one option');
+        rx.disabled = true;
+        try { await TC.exportRowXlsx(rx.dataset.rowExport); } catch (err) { alert('Excel export failed: ' + err.message); }
+        rx.disabled = false;
+        return;
+      }
       if (e.target.closest('.detail')) return;
       const tr = e.target.closest('tr.row');
       if (!tr) return;

@@ -9,5 +9,6 @@
     requestFormUrl: 'https://forms.cloud.microsoft/r/XBxYVB3p4c',
     authors: 'Darren Livingston & Brad Ramsey',
     pptxLib: 'https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js',
+    xlsxLib: 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
   };
 })();

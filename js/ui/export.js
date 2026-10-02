@@ -127,38 +127,77 @@
     return [[title], ['Step', 'Formula', 'Value', 'Unit', 'Note']]
       .concat(steps.map(st => [st.label, st.formula, typeof st.value === 'number' && isFinite(st.value) ? Math.round(st.value * 10000) / 10000 : st.value, st.unit || '', st.note || '']), [[]]);
   }
-  TC.buildRowCsv = function (id) {
+  /** One option as workbook sheets: Summary, Specs, Workload, Sizing, Cost, Sources (sheets with nothing to show are left out). */
+  TC.buildRowSheets = function (id) {
     const { w, data, res } = TC.lastResults;
     const r = allRows(res).find(x => x.id === id);
     if (!r) return null;
-    let lines = [['Option export', `${CAT[catOf(r)]}: ${r.name} · ${r.sub}`], []];
-    lines.push(HEAD, csvRow(r), []);
-    lines = lines.concat(specLines('Server specifications', r.server, ['id', 'gpu_id', 'feed']), specLines('GPU specifications', r.gpu, ['id', 'cloud', 'feed']));
-    if (r.price) lines = lines.concat(specLines('API price', r.price, ['feed']));
-    lines = lines.concat(workloadLines(w, res.wl, data), stepLines('Workload calculation', res.wl.steps));
+    const row = csvRow(r);
+    const summary = [['Option export', `${CAT[catOf(r)]}: ${r.name} · ${r.sub}`], []]
+      .concat(HEAD.map((h, k) => [h, row[k]]), [[]], workloadLines(w, res.wl, data));
+    const specs = [].concat(specLines('Server specifications', r.server, ['id', 'gpu_id', 'feed']), specLines('GPU specifications', r.gpu, ['id', 'cloud', 'feed']),
+      r.price ? specLines('API price', r.price, ['feed']) : []);
+    let sizing = [];
     if (r.sizing && r.sizing.best) {
       const b = r.sizing.best;
-      lines = lines.concat(stepLines('Sizing: model memory', r.sizing.shared.steps), stepLines(`Sizing: chosen layout (TP ${b.tp}${b.pp > 1 ? ' × PP ' + b.pp : ''})`, b.steps));
+      sizing = sizing.concat(stepLines('Model memory', r.sizing.shared.steps), stepLines(`Chosen layout (TP ${b.tp}${b.pp > 1 ? ' × PP ' + b.pp : ''})`, b.steps));
       if (r.sizing.candidates && r.sizing.candidates.length > 1) {
-        lines.push(['Layouts evaluated'], ['Layout', 'GPUs per replica', 'Max concurrent per replica', 'Basis', 'Aggregate tok/s', 'Replicas', 'Nodes', 'Result']);
-        r.sizing.candidates.forEach(c => lines.push([`TP ${c.tp}${c.pp > 1 ? ' × PP ' + c.pp : ''}`, c.gpusPerReplica, c.feasible ? Math.round(c.Crep) : '', c.feasible ? c.basis : '', c.feasible ? Math.round(c.aggTps) : '', c.feasible ? c.replicas : '', c.feasible ? c.nodes : '', c === r.sizing.best ? 'chosen' : (c.reason || '')]));
-        lines.push([]);
+        sizing.push(['Layouts evaluated'], ['Layout', 'GPUs per replica', 'Max concurrent per replica', 'Basis', 'Aggregate tok/s', 'Replicas', 'Nodes', 'Result']);
+        r.sizing.candidates.forEach(c => sizing.push([`TP ${c.tp}${c.pp > 1 ? ' × PP ' + c.pp : ''}`, c.gpusPerReplica, c.feasible ? Math.round(c.Crep) : '', c.feasible ? c.basis : '', c.feasible ? Math.round(c.aggTps) : '', c.feasible ? c.replicas : '', c.feasible ? c.nodes : '', c === r.sizing.best ? 'chosen' : (c.reason || '')]));
       }
     }
-    if (r.cost) lines = lines.concat(stepLines('Cost calculation', r.cost.steps));
+    const sources = [];
     const prov = [].concat(r.sizing ? r.sizing.prov.items : [], r.cost ? r.cost.prov.items : []);
     if (prov.length) {
       const seen = new Set();
-      lines.push(['Data values used'], ['Value', 'Amount', 'Status', 'Source', 'As of']);
-      prov.forEach(i => { if (seen.has(i.label)) return; seen.add(i.label); lines.push([i.label, i.value, i.status || '', i.source || '', i.as_of || '']); });
+      sources.push(['Value', 'Amount', 'Status', 'Source', 'As of']);
+      prov.forEach(i => { if (seen.has(i.label)) return; seen.add(i.label); sources.push([i.label, i.value, i.status || '', i.source || '', i.as_of || '']); });
     }
-    return { name: `${r.name} ${r.sub}`, csv: toCsv(lines) };
+    const sheets = [
+      { name: 'Summary', rows: summary, cols: [34, 70] },
+      { name: 'Specs', rows: specs, cols: [34, 30] },
+      { name: 'Workload', rows: stepLines('Workload calculation', res.wl.steps), cols: [34, 60, 18, 12, 60] },
+      { name: 'Sizing', rows: sizing, cols: [34, 60, 18, 12, 60, 10, 8, 40] },
+      { name: 'Cost', rows: r.cost ? stepLines('Cost calculation', r.cost.steps) : [], cols: [34, 60, 18, 12, 60] },
+      { name: 'Sources', rows: sources, cols: [40, 16, 12, 90, 12] },
+    ].filter(sh => sh.rows.some(l => l && l.length));
+    return { name: `${r.name} ${r.sub}`, sheets };
   };
-  TC.exportRowCsv = function (id) {
-    const x = TC.buildRowCsv(id);
-    if (!x) return;
+  let xlsxPromise = null;
+  function loadXlsx() {
+    if (window.XLSX) return Promise.resolve();
+    if (!xlsxPromise) xlsxPromise = new Promise((resolve, reject) => {
+      const sc = document.createElement('script');
+      sc.src = TC.config.xlsxLib;
+      sc.onload = () => resolve();
+      sc.onerror = () => { xlsxPromise = null; reject(new Error('Could not load the Excel library. Check your internet connection.')); };
+      document.head.appendChild(sc);
+    });
+    return xlsxPromise;
+  }
+  /** Builds the workbook; returns a Blob, or downloads it unless { save: false }. */
+  TC.exportRowXlsx = async function (id, opts) {
+    const x = TC.buildRowSheets(id);
+    if (!x) return null;
+    await loadXlsx();
+    const wb = XLSX.utils.book_new();
+    x.sheets.forEach(sh => {
+      const ws = XLSX.utils.aoa_to_sheet(sh.rows);
+      ws['!cols'] = sh.cols.map(wch => ({ wch }));
+      XLSX.utils.book_append_sheet(wb, ws, sh.name);
+    });
+    wb.Props = { Title: 'AI Inference Economics Calculator: ' + x.name, Company: 'Pellera Technologies' };
+    const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    if (opts && opts.save === false) return blob;
     const slug = x.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
-    saveText(`token-calculator-${slug}-${TC.today()}.csv`, x.csv, 'text/csv;charset=utf-8');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `token-calculator-${slug}-${TC.today()}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+    return blob;
   };
 
   // ------------------------------------------------------------------ PowerPoint
