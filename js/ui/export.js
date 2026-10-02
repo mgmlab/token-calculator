@@ -276,12 +276,28 @@
     const HY = X.hybrid;
     const hyRow = HY ? { monthly: HY.best.total, name: HY.best.row ? HY.best.setup + ' + ' + HY.api.name : HY.api.name + ' only', sub: `${TC.fmtShare(HY.best.share)} of tokens owned`, perM: HY.best.total * 12 * w.term_years / (res.wl.tTerm / 1e6) } : null;
     const onTile = X.on ? Object.assign({}, X.on, { name: X.onLabel, sub: `${f.num(X.on.util * 100, X.on.util < 0.01 ? 1 : 0)}% utilized` }) : null;
-    const tiles = [['Buy servers (on-prem)', onTile, X.onRange], ['Rent GPUs (GPU cloud)', X.cl, X.clRange], ['Pay per token (same model)', X.api, null], ['Hybrid (owned + API)', hyRow, null]];
-    tiles.forEach(([lbl, r, rng], i) => {
-      const x0 = 0.5 + i * 3.1;
-      se.addShape(pptx.ShapeType.roundRect, { x: x0, y: 2.25, w: 2.95, h: 1.9, rectRadius: 0.15, fill: { color: 'F4ECFF' }, line: { color: 'F4ECFF' } });
+    // Same rules as the app: the verdict's box is marked Recommended; the hybrid box shows a price only for a real mix.
+    const winIdx = { onprem: 0, 'onprem-likely': 0, cloud: 1, api: 2, near: 2, hybrid: 3 }[X.verdict.key];
+    let hyText = null;
+    if (HY) {
+      const b = HY.best, allOwned = b.row && (b.pct >= 100 || b.apiMonthly * 12 < 1);
+      if (!b.row || allOwned) hyText = ['Not needed', !b.row ? 'Best mix is all API: same as paying per token' : 'Best mix is all owned: same as buying servers'];
+      else if (!HY.material) hyText = ['Not worth it', `API would take only ${TC.fmtShare(1 - b.share)} of tokens (${f.usdCompact(b.apiMonthly * 12)}/yr): too little to justify a hybrid`];
+    }
+    const tiles = [['Buy servers (on-prem)', onTile, X.onRange], ['Rent GPUs (GPU cloud)', X.cl, X.clRange], ['Pay per token (same model)', X.api, null], ['Hybrid (owned + API)', hyRow, null, hyText]];
+    tiles.forEach(([lbl, r, rng, alt], i) => {
+      const x0 = 0.5 + i * 3.1, win = i === winIdx;
+      se.addShape(pptx.ShapeType.roundRect, { x: x0, y: 2.25, w: 2.95, h: 1.9, rectRadius: 0.15, fill: { color: win ? P.white : 'F4ECFF' }, line: { color: win ? P.purple : 'F4ECFF', width: win ? 2 : 0.75 } });
+      if (alt) {
+        se.addText([
+          { text: lbl, options: { fontSize: 13, color: P.ink2, breakLine: true } },
+          { text: alt[0], options: { fontSize: 17, bold: true, color: P.muted, breakLine: true } },
+          { text: alt[1], options: { fontSize: 11, color: P.ink2 } },
+        ], { x: x0 + 0.15, y: 2.35, w: 2.7, h: 1.7, fontFace: FONT, valign: 'top' });
+        return;
+      }
       se.addText([
-        { text: lbl, options: { fontSize: 13, color: P.ink2, breakLine: true } },
+        { text: lbl + (win ? '  · Recommended' : ''), options: { fontSize: 13, color: win ? P.purple : P.ink2, bold: win, breakLine: true } },
         { text: r ? TC.fmtRangeYear(rng, r.monthly) : '—', options: { fontSize: 19, bold: true, color: P.purple, breakLine: true } },
         { text: r ? 'per year' : '', options: { fontSize: 11, color: P.muted, breakLine: true } },
         { text: r ? `${r.name} · ${r.sub}` : 'No option fits', options: { fontSize: 11, color: P.ink2, breakLine: true } },
