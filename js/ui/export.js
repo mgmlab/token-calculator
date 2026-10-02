@@ -410,7 +410,8 @@
     if (theory) note(s3, 'On-prem and GPU-cloud throughput uses the THEORETICAL bandwidth-based estimate where no measured benchmark exists — an optimistic upper bound.');
 
     // 4+. Result tables (paginated)
-    const PER = 11;
+    // Rows can wrap to two lines (long server or GPU names), so a page holds 9 to keep clear of the footnote.
+    const PER = 9;
     const paged = (title, sub, head, colW, rows, rowFn, foot) => {
       if (!rows.length) return;
       const pages = Math.ceil(rows.length / PER);
@@ -430,8 +431,8 @@
       ['Server', 'GPU', 'Layout', 'Throughput', 'Util', 'Monthly', 'Per year', `Total (${w.term_years} yr)`, '$ / 1M', '⚠'],
       [1.8, 2.1, 2.0, 1.3, 0.65, 0.95, 0.95, 1.15, 0.9, 0.533], on,
       r => [r.name, r.sub, `${r.cost.nodes} node(s) · ${r.cost.gpus} GPUs · ${r.sizing.best.replicas}×TP${r.sizing.best.tp}${r.sizing.best.pp > 1 ? '×PP' + r.sizing.best.pp : ''}`,
-        basis(r), f.num(r.util * 100, 1) + '%', f.usd(r.monthly), f.usd(r.monthly * 12), f.usd(r.total), { text: f.perM(r.perM), options: { bold: true } }, warnCell(r)],
-      `Util = average share of installed capacity in use. ⚠ = number of placeholder values (e.g. server price quotes) the row depends on.${onHidden ? ` ${onHidden} SKU(s) cannot fit this model and are omitted.` : ''} Monthly = total ÷ months, straight-line.`);
+        r.basis === 'theoretical' ? 'Estimate' : r.basis === 'benchmark' ? 'Measured' : basis(r), f.num(r.util * 100, 1) + '%', f.usd(r.monthly), f.usd(r.monthly * 12), f.usd(r.total), { text: f.perM(r.perM), options: { bold: true } }, warnCell(r)],
+      `Throughput: Estimate = theoretical estimate, Measured = benchmark. Util = average share of installed capacity in use. ⚠ = number of placeholder values (e.g. server price quotes) the row depends on.${onHidden ? ` ${onHidden} SKU(s) cannot fit this model and are omitted.` : ''} Monthly = total ÷ months, straight-line.`);
 
     const cl = sortRows(res.cloud).filter(r => r.feasible);
     paged('Rent GPUs (GPU cloud)', 'Same replica sizing, priced per GPU-hour · reserved billed 24/7 · on-demand uses active hours',
