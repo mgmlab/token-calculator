@@ -27,6 +27,11 @@
     return { key: 'api', label: 'API candidate', tone: 'cool' };
   };
 
+  /** The optimistic and pessimistic values behind every range (shown to users in the range breakdown). */
+  TC.RANGE_CASES = {
+    low: { bw: 85, mfu: 55, price: 0.85, load: 60 },
+    high: { bw: 55, mfu: 30, price: 1.2, load: 85 },
+  };
   /** Low/high cases: optimistic vs pessimistic values for the uncertain inputs (throughput efficiency, placeholder prices, load). */
   function variants(data) {
     const mk = (bw, mfu, priceMult, load) => {
@@ -37,7 +42,8 @@
       d.servers.servers.forEach(s => { if (s.price_usd && s.price_usd.status === 'placeholder') s.price_usd.value *= priceMult; });
       return d;
     };
-    return { low: mk(85, 55, 0.85, 60), high: mk(55, 30, 1.2, 85) };
+    const L = TC.RANGE_CASES.low, H = TC.RANGE_CASES.high;
+    return { low: mk(L.bw, L.mfu, L.price, L.load), high: mk(H.bw, H.mfu, H.price, H.load) };
   }
 
   TC.execSummary = function (data, w, res) {
@@ -55,7 +61,7 @@
       const same = rs => rs.find(r => r.id === base.id && r.feasible && isFinite(r.monthly)) || null;
       const a = same(pick(lo)), b = same(pick(hi));
       const vals = [base.monthly, a && a.monthly, b && b.monthly].filter(x => x != null && isFinite(x));
-      return { min: Math.min(...vals), max: Math.max(...vals) };
+      return { min: Math.min(...vals), max: Math.max(...vals), cases: { low: a, central: base, high: b } };
     };
     const onRange = range(r => r.onprem, on);
     const clRange = range(r => r.cloud, cl);

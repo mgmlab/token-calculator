@@ -238,7 +238,7 @@
     const tag = '<span class="win-tag">Recommended</span>';
     const tile = (label, r, rng, note, desc, k) => r
       ? `<div class="exec-tile jumpable ${winKey === k ? 'tile-win' : ''}" ${jump(k, r)}><span class="label">${label}${winKey === k ? tag : ''}</span><span class="value">${f.usdCompact(r.monthly * 12)}<small>/yr</small></span>
-          ${TC.rangeNote(rng) ? `<span class="tile-range small" title="Same option, rerun with optimistic and pessimistic values for throughput, placeholder server prices and power load">${TC.rangeNote(rng)}</span>` : ''}
+          ${TC.rangeNote(rng) ? `<button type="button" class="tile-range" data-range="${k}" aria-expanded="false" title="Show how this range is worked out">${TC.rangeNote(rng)} <span class="range-i">ⓘ</span></button>` : ''}
           <span class="muted small">${esc(desc || r.name + ' · ' + r.sub)}</span><span class="muted small">${f.perM(r.perM)} per 1M tokens${note ? ' · ' + note : ''}</span></div>`
       : `<div class="exec-tile"><span class="label">${label}</span><span class="value muted">—</span><span class="muted small">No option fits</span></div>`;
     let be;
@@ -255,6 +255,7 @@
         ${tile('Pay per token (same model)', x.api, null, '', null, 'api_same')}
         ${hybridTile(x.hybrid, winKey === 'hybrid' ? tag : '')}
       </div>
+      <div class="range-panel" id="range-panel" hidden></div>
       <p class="exec-be">${be}</p>
       <p class="exec-why"><strong>Why:</strong> ${esc(x.why)}</p>
       <details class="exec-conf"><summary>Confidence: <span class="conf conf-${x.level.toLowerCase()}">${x.level}</span> — ${x.level === 'High' ? 'key inputs are measured or current' : 'treat as directional until the ⚠ items are firmed up'}</summary>
@@ -263,6 +264,53 @@
         <p class="muted small">Ranges come from rerunning the calculation with optimistic and pessimistic values for throughput efficiency, placeholder server prices and power load. API prices are published list prices, so they carry no range.</p>
       </details>
     </section>`;
+  }
+
+  // "How this range is worked out": the same option under optimistic, central and pessimistic inputs, line by line.
+  function rangePanel(k) {
+    const x = TC.lastExec, rng = k === 'onprem' ? x.onRange : x.clRange;
+    if (!rng || !rng.cases) return '';
+    const { low, central, high } = rng.cases;
+    const a = TC.lastResults.data.assumptions, RC = TC.RANGE_CASES, yrs = TC.lastResults.w.term_years;
+    const cols = [low, central, high];
+    const usd = n => f.usd(n);
+    const theory = central.basis === 'theoretical';
+    const phPrice = k === 'onprem' && central.server && central.server.price_usd && central.server.price_usd.status === 'placeholder';
+    const phLoad = k === 'onprem' && a.power.load_factor_pct.status === 'placeholder';
+    const bw = TC.v(a.throughput.roofline_bandwidth_efficiency_pct), mfu = TC.v(a.throughput.roofline_compute_efficiency_pct);
+    const what = [
+      theory ? ['Server speed (theoretical estimate)', `${RC.low.bw}% / ${RC.low.mfu}%`, `${bw}% / ${mfu}%`, `${RC.high.bw}% / ${RC.high.mfu}%`] : null,
+      phPrice ? ['Server price (placeholder)', `${Math.round((1 - RC.low.price) * 100)}% under`, 'as entered', `${Math.round((RC.high.price - 1) * 100)}% over`] : null,
+      phLoad ? ['Power load (placeholder)', `${RC.low.load}%`, `${TC.v(a.power.load_factor_pct)}%`, `${RC.high.load}%`] : null,
+    ].filter(Boolean);
+    const OTHER = ['install', 'financing', 'colo', 'software', 'ops', 'residual'];
+    let rows;
+    if (k === 'onprem') {
+      const B = r => r.cost.breakdown;
+      rows = [
+        ['Servers needed', r => r.cost.nodes],
+        ['Price per server', r => usd(B(r).capexServers / r.cost.nodes)],
+        ['Server cost', r => usd(B(r).capexServers)],
+        ['Networking & storage', r => usd(B(r).net)],
+        ['Support', r => usd(B(r).support)],
+        ['Power', r => usd(B(r).power)],
+      ];
+      if (OTHER.some(n => B(central)[n])) rows.push(['Other (install, colo, software, staff…)', r => usd(OTHER.reduce((t, n) => t + (B(r)[n] || 0), 0))]);
+    } else {
+      rows = [['GPUs rented', r => r.cost.gpus], ['Monthly cost', r => usd(r.monthly)]];
+    }
+    rows.push([`Total over ${yrs} years`, r => usd(r.total)]);
+    const head = '<tr><th></th><th class="num">Optimistic</th><th class="num">Central (the table)</th><th class="num">Pessimistic</th></tr>';
+    const whatRows = what.map(r => `<tr class="rp-what"><th>${esc(r[0])}</th><td class="num">${esc(r[1])}</td><td class="num">${esc(r[2])}</td><td class="num">${esc(r[3])}</td></tr>`).join('');
+    const body = rows.map(([l, fn]) => `<tr><th>${esc(l)}</th>${cols.map(r => `<td class="num">${r ? fn(r) : '—'}</td>`).join('')}</tr>`).join('')
+      + `<tr class="rp-total"><th>Per year</th>${cols.map(r => `<td class="num">${r ? usd(r.monthly * 12) : '—'}</td>`).join('')}</tr>`;
+    const extra = k === 'cloud'
+      ? 'Rental prices are published list prices, so only the speed estimate varies: a slower GPU means renting more of them.'
+      : 'Price and power only vary while they are placeholders; a real quote or measured value removes that part of the range.';
+    const speedNote = theory ? ' Speed is a theoretical estimate (share of peak memory bandwidth / compute the GPU achieves); a measured benchmark for this GPU and model replaces it.' : '';
+    return `<div class="rp-head"><strong>How this range is worked out: ${esc(central.name)} · ${esc(central.sub)}</strong><button type="button" class="rp-close" data-range-close aria-label="Close">×</button></div>
+      <p class="muted small">The same option, recalculated with optimistic and pessimistic values for the inputs that are still uncertain. ${extra}${speedNote}</p>
+      <div class="table-wrap"><table class="results-table compact rp-table"><thead>${head}</thead><tbody>${whatRows ? `<tr class="rp-sec"><th colspan="4">What changes</th></tr>${whatRows}<tr class="rp-sec"><th colspan="4">Resulting cost</th></tr>` : ''}${body}</tbody></table></div>`;
   }
 
   function hybridTile(hy, tag) {
@@ -399,6 +447,22 @@
           catch (err) { if (st) st.textContent = ''; alert('PowerPoint export failed: ' + err.message); }
           ex.disabled = false;
         } else TC.exportCsv(ex.dataset.export);
+        return;
+      }
+      const rb2 = e.target.closest('[data-range]');
+      if (rb2) {
+        const panel = el.querySelector('#range-panel'), wasOpen = rb2.getAttribute('aria-expanded') === 'true';
+        el.querySelectorAll('[data-range]').forEach(b => b.setAttribute('aria-expanded', 'false'));
+        if (wasOpen) { panel.hidden = true; return; }
+        panel.innerHTML = rangePanel(rb2.dataset.range);
+        panel.hidden = !panel.innerHTML;
+        rb2.setAttribute('aria-expanded', 'true');
+        TC.track('range-explain', 'Opened a range breakdown');
+        return;
+      }
+      if (e.target.closest('[data-range-close]')) {
+        el.querySelector('#range-panel').hidden = true;
+        el.querySelectorAll('[data-range]').forEach(b => b.setAttribute('aria-expanded', 'false'));
         return;
       }
       const jb = e.target.closest('[data-jump]');
