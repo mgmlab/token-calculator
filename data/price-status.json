@@ -2,13 +2,8 @@
   "checked_at": "2026-10-02T16:38Z",
   "date": "2026-10-02",
   "values_changed": 1,
-  "changed": [
-    "Kimi K3 (MoE, MLA + linear attention) / OpenRouter / output $/1M: 10.0 → 13.5"
-  ],
-  "needs_review": [
-    "Kimi K3 (MoE, MLA + linear attention) / OpenRouter / input $/1M: 0.6635 → 2.7 (not applied; over 50% change)",
-    "Kimi K3 (MoE, MLA + linear attention) / OpenRouter / cached input $/1M: 0.6635 → 0.27 (not applied; over 50% change)"
-  ],
+  "changed": [],
+  "needs_review": [],
   "problems": [],
   "sources_failed": [],
   "manual_rows": [

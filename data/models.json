@@ -998,9 +998,9 @@
         {
           "provider": "OpenRouter",
           "input_per_m": {
-            "value": 0.6635,
+            "value": 2.7,
             "source": "openrouter.ai/api/v1/models (moonshotai/kimi-k3)",
-            "as_of": "2026-10-01",
+            "as_of": "2026-10-02",
             "status": "estimate"
           },
           "output_per_m": {
@@ -1010,9 +1010,9 @@
             "status": "estimate"
           },
           "cached_input_per_m": {
-            "value": 0.6635,
+            "value": 0.27,
             "source": "openrouter.ai/api/v1/models (moonshotai/kimi-k3)",
-            "as_of": "2026-10-01",
+            "as_of": "2026-10-02",
             "status": "estimate"
           },
           "batch_discount_pct": null,
