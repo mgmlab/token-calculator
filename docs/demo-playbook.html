@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<link rel="icon" href="../assets/favicon.png">
-<title>Inference Economics Demo Playbook</title>
+<link rel="icon" href="../assets/favicon-playbook.png">
+<title>Demo playbook: Inference Economics Calculator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@500&display=swap">
 <style>
@@ -92,12 +92,12 @@ code { font: 500 13.5px var(--mono); background: var(--accent-soft); padding: 1p
 <header class="stack">
   <span class="eyebrow">AI Inference Economics Calculator · Pellera AI team</span>
   <h1>Demo playbook: seven customers, seven different answers</h1>
-  <p class="lede">A talk track for showing the calculator to our team and to clients. Each scenario is a realistic customer story that lands on a different economic result, with a one-click link that loads it and one input to change live so the room sees the answer move. The same scenarios are built into the calculator under <b>Load an example</b>.</p>
+  <p class="lede">A talk track for showing the calculator to our team and to clients. Each scenario is a realistic customer story that lands on a different economic result, with a one-click link that loads it and one input to change live so the room sees the answer move. The same scenarios are built into the calculator under <b>Examples ▾</b> at the top of the Workload profile.</p>
 </header>
 
 <section class="note">
   <p><strong>How to position it.</strong> This is a conversation tool, not a quote. We use it to show a customer that the right answer depends on their usage, their constraints and who they are willing to buy from, and that we have looked at every option: buying servers, renting GPUs, paying per token and mixing them. Pellera isn’t trying to prove that on-prem wins; we’re working out where each workload belongs.</p>
-  <p class="small">Numbers below were taken from the live site on October 1, 2026. API and GPU rental prices refresh daily, so dollar figures drift; the calculator re-checks every scenario’s result each day and flags any that change. Server prices are placeholders until we have quotes, which is why every scenario shows <em>Confidence: Low</em> (see the questions section).</p>
+  <p class="small">Numbers below were taken from the live site on October 2, 2026. API and GPU rental prices refresh daily, so dollar figures drift; the calculator re-checks every scenario’s result each day and flags any that change. Server prices are placeholders until we have quotes, which is why every scenario shows <em>Confidence: Low</em> (see the questions section).</p>
 </section>
 
 <section class="stack">
@@ -109,6 +109,17 @@ code { font: 500 13.5px var(--mono); background: var(--accent-soft); padding: 1p
     <li><b>Present the cheapest option as the economic result, not the architecture decision.</b> Security, model quality, latency, data residency, resiliency and operations can override cost. The tool answers “which option looks best economically under these assumptions”, not “what should your company deploy”.</li>
     <li><b>Use one or two scenarios with a customer, not all seven.</b> Then move to their numbers.</li>
   </ol>
+</section>
+
+<section class="stack">
+  <h2>Moves that make the demo land</h2>
+  <ul>
+    <li><b>Point at the Recommended box.</b> The box behind the verdict is outlined and tagged <b>Recommended</b>; the big number in each box is the same yearly figure as that option’s row in the tables.</li>
+    <li><b>Click a box to show the math.</b> It opens the row behind the number and highlights the cost lines that add up to it. <b>↑ Back to summary</b> brings you back up.</li>
+    <li><b>Click the range (the small circled i).</b> It shows what was varied (placeholder price, power and the speed estimate) and how many servers each case needs. Good for “why could it cost $X?”.</li>
+    <li><b>Use the Try links.</b> After loading an example, the setting names in its <b>Try</b> line are links: click one and the calculator scrolls to that field and highlights it, ready to change.</li>
+    <li><b>Hand over one option.</b> Expand a server row and use <b>Export this option (Excel)</b> for a workbook with its specs, sizing, cost steps and sources, one tab each.</li>
+  </ul>
 </section>
 
 <section class="stack">
@@ -145,7 +156,7 @@ code { font: 500 13.5px var(--mono); background: var(--accent-soft); padding: 1p
     <div><span class="letter">SCENARIO A</span><h2>Pilot: employee copilot, 500 users</h2><span class="chip cool">API candidate</span></div>
     <a class="open" href="https://mgmlab.github.io/token-calculator/#z=XVFNbxshEP0rqzmTaG03ccK9PedeVaMxTA0yCxQGy9uq_71id90mvaDhzdd7835BNRyp-ISRJgYNn2805cB6ePMhiR54yiHNzINJuSNqeBrHoVUuFRTkwpUFNNzLcCsDBWuNfhpHBYV_NK5SMXPBnlgCSzPo_aiArmf0MTdBSReOFfRuaet4avI-8WnBjfgr9_514pSiOND73eNRQWa6oEnRtFI4mhmnZLsyy8Vf2YKCU6szutQKVkeFMRvpG3uiVOkTDUfxgUG_vv4_UPAupmtTIFTOLH9p5pXRVrPKm-jW-4VvAvqwPz6_KOikAnoLGkKgiR4Oj4eH43haj2p89SmChi9vL6DgcsWP4O55Rav_6eMZT1R9BQ0yZ28ogALhMuHM1B04KHBMtqQ0rVI7p4g5tIopMujvFCorEFdSO7suo6ZWTD_aiaNxE5ULiuPYn1RYtiUmpGZxM6Pf84Mbx0N3Kns0ZByj87Juv8MnEuPeO7DhfDOhWbagv35T4OPyQxNSZbt4GSpoKY0XAh0UzwU0UOik_rXHFoICS0Jr_PsP" target="_blank" rel="noopener">Open scenario ↗</a>
   </div>
-  <p class="setup">Setup: preset <b>Employee copilot</b>, 500 users, all API providers, Llama 3.3 70B, 3-year term. About 412 million tokens a month. Also under <b>Load an example</b> in the calculator.</p>
+  <p class="setup">Setup: preset <b>Employee copilot</b>, 500 users, all API providers, Llama 3.3 70B, 3-year term. About 412 million tokens a month. Also under <b>Examples ▾</b> in the calculator.</p>
   <div class="nums"><div class="num"><span class="k">Buy servers</span><span class="v">$22K/yr</span><span class="s">Smallest server (2× RTX PRO 6000), about 3% utilized</span></div><div class="num"><span class="k">Rent GPUs</span><span class="v">$109K/yr</span><span class="s">Nebius, on-demand</span></div><div class="num win"><span class="k">Pay per token</span><span class="v">$1K/yr</span><span class="s">OpenRouter, same model</span></div></div>
   <div class="cols">
     <div><span class="label">Talk track</span>
@@ -207,7 +218,7 @@ code { font: 500 13.5px var(--mono); background: var(--accent-soft); padding: 1p
       <p class="say">“This is where ‘just use an API’ gets expensive quickly, and where sizing hardware for the worst minute is also expensive. The mix is the answer.”</p>
     </div>
     <div><span class="label">Pull this lever live</span>
-      <div class="lever"><p>Change <b>Avg input tokens</b> from 6,000 to <b>2,000</b>.</p><p>Every option gets much cheaper: owning for the full peak drops to about $197K/yr and the hybrid to about $125K/yr. Context size is a cost driver worth discussing with the architects.</p></div>
+      <div class="lever"><p>Change <b>Avg input tokens</b> from 6,000 to <b>2,000</b>.</p><p>Every option gets much cheaper and the answer changes: owning for the full peak drops to about $197K/yr and paying per token to about $192K/yr, so the verdict becomes <b>Near breakeven</b>. Context size is a cost driver worth discussing with the architects.</p></div>
       <p class="small muted">Why it matters: technical choices (how much context each request carries) move the economics as much as user counts.</p>
     </div>
   </div>
@@ -225,7 +236,7 @@ code { font: 500 13.5px var(--mono); background: var(--accent-soft); padding: 1p
       <p class="say">“Utilization is the whole game. When work can be queued and spread out, owning wins decisively.”</p>
     </div>
     <div><span class="label">Pull this lever live</span>
-      <div class="lever"><p>Change <b>Busy-hour share</b> from 4.2% (flat) to <b>15%</b> (an interactive, office-hours peak).</p><p>Same monthly tokens, but owning for the peak now takes three servers (about $375K/yr), and a <b>Hybrid</b> mix wins at about $203K/yr.</p></div>
+      <div class="lever"><p>Change <b>Busy-hour share</b> from 4.2% (flat) to <b>15%</b> (an interactive, office-hours peak).</p><p>Same monthly tokens, but owning for the peak now takes three servers (about $375K/yr), and a <b>Hybrid</b> mix wins at about $232K/yr.</p></div>
       <p class="small muted">Why it matters: if a workload can be queued and spread across available capacity instead of arriving in a sharp interactive peak, that can change the economics more than a price negotiation.</p>
     </div>
   </div>
@@ -270,16 +281,16 @@ code { font: 500 13.5px var(--mono); background: var(--accent-soft); padding: 1p
 <section class="stack">
   <h2>Questions to expect, and how to answer them</h2>
   <div class="qa">
-    <div><b>“Confidence says Low. Should I trust this?”</b><p>Low confidence doesn’t mean the analysis is useless. It means the direction is preliminary: server prices are placeholders and throughput is a theoretical estimate. Replacing them with an actual quote and a measured benchmark from the Pellera lab is how we turn this into something suitable for an architecture decision.</p></div>
+    <div><b>“Confidence says Low. Should I trust this?”</b><p>Low confidence doesn’t mean the analysis is useless. It means the direction is preliminary: server prices are placeholders and throughput is a theoretical estimate. Click the range under the Buy servers box to show exactly which inputs are still estimates and how far they move the cost. Replacing them with an actual quote and a measured benchmark from the Pellera lab is how we turn this into something suitable for an architecture decision.</p></div>
     <div><b>“We get discounts from our cloud provider.”</b><p>We start with public pricing so we have a consistent baseline. If you give us your contracted cloud rate or an actual infrastructure quote, we can substitute those numbers right now in the Data editor and see whether the recommendation changes.</p></div>
     <div><b>“Why not just use GPT or Claude?”</b><p>Those are different models, so they’re shown for cost context only. Set Closed-model tier to Frontier and the Breakeven legend shows what a flagship model would cost (Scenario B: about $645K/yr against $98K for the hybrid). Whether a smaller open model is good enough is a question for our architects to test with you.</p></div>
     <div><b>“How current are these prices?”</b><p>API and GPU rental prices refresh every day from supported public sources. Hover “Prices checked” in the header. Server prices are updated by hand from quotes.</p></div>
-    <div><b>“Can I play with this myself?”</b><p>Yes. Copy the share link and send it: it opens the same inputs, any options you removed and any prices or specs you edited, so a link works as a saved copy of the analysis. Or export the PowerPoint for the meeting notes.</p></div>
+    <div><b>“Can I play with this myself?”</b><p>Yes. Copy the share link and send it: it opens the same inputs, any options you removed and any prices or specs you edited, so a link works as a saved copy of the analysis. Or export the PowerPoint for the meeting notes, or one option’s Excel workbook for their engineers.</p></div>
   </div>
 </section>
 
 <section class="note">
-  <p><strong>Closing the conversation.</strong> End on their numbers, not ours. Click <b>New analysis</b>, open “How to gather these inputs from a client”, and walk through users, requests a day, prompt size, speed and business hours together. Agree on the two or three constraints that matter (approved providers, data residency, existing data center, operations staff), and offer the next step: vendor quotes and a lab benchmark to raise confidence from Low to High.</p>
+  <p><strong>Closing the conversation.</strong> End on their numbers, not ours. Click <b>New analysis</b>, open the <b>Input guide</b>, and walk through users, requests a day, prompt size, speed and business hours together. Agree on the two or three constraints that matter (approved providers, data residency, existing data center, operations staff), and offer the next step: vendor quotes and a lab benchmark to raise confidence from Low to High.</p>
 </section>
 
 </div>
