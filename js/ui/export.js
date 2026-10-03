@@ -357,25 +357,33 @@
     if (HY) {
       const sh = titled('Hybrid: own some servers, send the rest to an API', 'Yearly cost of each option: your servers plus API for the traffic they don\u2019t handle (' + HY.api.name + ')');
       const OPTS = TC.hybridOptions(HY).slice().reverse(); // bar charts draw the first category at the bottom
-      const optLabel = p => TC.shortSetup(p) + (p.row ? (p.capPct >= 100 ? ' (full peak)' : ` (${p.capPct}% of peak)`) : '');
+      const optLabel = p => (p.best ? '\u25B6 LOWEST: ' : '') + TC.shortSetup(p) + (p.row ? (p.rightSized ? ' (right-sized)' : p.capPct >= 100 ? ' (full peak)' : ` (${p.capPct}% of peak)`) : '');
+      // Same figures as the Hybrid section: API spill plus routing, except a right-sized setup (overflow waits, no API).
+      const apiPart = p => (p.rightSized ? 0 : p.apiMonthly + (p.routingMonthly || 0)) * 12;
+      const labels = OPTS.map(optLabel);
+      // Four series so the lowest-cost option stands out in full colour and the others are muted.
       sh.addChart(pptx.ChartType.bar, [
-        { name: 'Your servers', labels: OPTS.map(optLabel), values: OPTS.map(p => Math.round(p.ownedMonthly * 12)) },
-        { name: 'API (' + HY.api.name + ')', labels: OPTS.map(optLabel), values: OPTS.map(p => Math.round(p.apiMonthly * 12)) },
+        { name: 'Your servers', labels, values: OPTS.map(p => (p.best ? 0 : Math.round(p.ownedMonthly * 12))) },
+        { name: 'API + routing', labels, values: OPTS.map(p => (p.best ? 0 : Math.round(apiPart(p)))) },
+        { name: 'Lowest cost: your servers', labels, values: OPTS.map(p => (p.best ? Math.round(p.ownedMonthly * 12) : 0)) },
+        { name: 'Lowest cost: API + routing', labels, values: OPTS.map(p => (p.best ? Math.round(apiPart(p)) : 0)) },
       ], {
-        x: 0.5, y: 1.45, w: 8.3, h: 4.9, barDir: 'bar', barGrouping: 'stacked', chartColors: [P.purple, 'C9C3D9'],
+        x: 0.5, y: 1.45, w: 8.3, h: 4.9, barDir: 'bar', barGrouping: 'stacked', chartColors: ['C9B3FF', 'E4E0EC', P.purple, '8E84A8'],
         valAxisLabelFormatCode: '$#,##0', valAxisLabelFontSize: 9, catAxisLabelFontSize: 9, valAxisTitle: 'Cost per year', showValAxisTitle: true, valAxisTitleFontSize: 10,
         valGridLine: { color: P.line, size: 0.5 }, catGridLine: { style: 'none' }, showLegend: true, legendPos: 'b', legendFontSize: 10, legendFontFace: FONT,
       });
       const b = HY.best;
-      const msg = HY.wins
+      const rsO = HY.rightSized && !HY.wins ? HY.rightSized : null;
+      const msg = rsO ? `Lowest cost: right-sized on-prem. Own ${rsO.setup}; in the busiest hour requests may wait up to ${TC.tolText(HY.tol)} (${TC.waitText(rsO.wait)}), so no API or routing is needed.`
+        : HY.wins
         ? `Lowest cost: own ${b.row ? b.setup : ''}, which covers ${TC.capText(b)}, and send the rest to ${HY.api.name}. ${TC.fmtShare(b.share)} of tokens run on owned GPUs.`
         : !b.row ? 'At this volume the lowest-cost mix is all API.' : b.pct >= 100 ? 'At this volume the lowest-cost mix is all owned.' : `A ${b.pct}% baseline is cheapest, but saves under 5% versus the best single option.`;
       sh.addText([
         { text: msg, options: { breakLine: true, paraSpaceAfter: 12, color: P.ink } },
-        { text: `Hybrid: ${f.usdCompact(b.total * 12)}/yr`, options: { bold: true, color: P.purple, breakLine: true } },
+        { text: rsO ? `Right-sized on-prem: ${f.usdCompact(rsO.ownedMonthly * 12)}/yr` : `Hybrid: ${f.usdCompact(b.total * 12)}/yr`, options: { bold: true, color: P.purple, breakLine: true } },
         { text: `All API: ${f.usdCompact(HY.apiOnly * 12)}/yr`, options: { color: P.ink2, breakLine: true } },
         { text: `All owned: ${f.usdCompact(HY.onPremOnly * 12)}/yr`, options: { color: P.ink2, breakLine: true, paraSpaceAfter: 12 } },
-        { text: 'Assumes requests can be routed to either owned GPUs or the API (e.g. via a gateway) and the same model runs on both.', options: { color: P.muted, fontSize: 10 } },
+        { text: `Assumes requests can be routed to either owned GPUs or the API through a gateway (about ${f.usdCompact(HY.routingMonthly * 12)}/yr to run, included in the bars) and the same model runs on both.`, options: { color: P.muted, fontSize: 10 } },
       ], { x: 9.1, y: 1.5, w: 3.73, h: 4.9, fontFace: FONT, fontSize: 13, valign: 'top' });
     }
 
@@ -411,14 +419,14 @@
     if (theory) note(s3, 'On-prem and GPU-cloud throughput uses the THEORETICAL bandwidth-based estimate where no measured benchmark exists — an optimistic upper bound.');
 
     // 4+. Result tables (paginated)
-    // Rows can wrap to two lines (long server or GPU names), so a page holds 9 to keep clear of the footnote.
-    const PER = 9;
+    // 11 rows per page; rows can wrap to two lines (long server or GPU names), so pages use a smaller font and tighter rows.
+    const PER = 11;
     const paged = (title, sub, head, colW, rows, rowFn, foot) => {
       if (!rows.length) return;
       const pages = Math.ceil(rows.length / PER);
       for (let p = 0; p < pages; p++) {
         const s = titled(title + (pages > 1 ? ` (${p + 1} of ${pages})` : ''), sub);
-        s.addTable([hdr(head)].concat(rows.slice(p * PER, (p + 1) * PER).map(rowFn)), tableOpts(colW));
+        s.addTable([hdr(head)].concat(rows.slice(p * PER, (p + 1) * PER).map(rowFn)), Object.assign(tableOpts(colW), { fontSize: 9.5, rowH: 0.33, margin: 0.03 }));
         if (foot) note(s, foot);
       }
     };

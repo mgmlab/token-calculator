@@ -37,6 +37,7 @@
     return TC.esc(s);
   }
 
+  let beToken = 0;
   TC.renderBreakeven = function (el, data, w) {
     const be = TC.breakeven(data, w, { kMax });
     const pts = be.points;
@@ -194,6 +195,9 @@
         <label class="small">Show usage up to <select data-act="range">${[20, 100, 500, 2000].map(k => `<option value="${k}" ${k === kMax ? 'selected' : ''}>${k}× today</option>`).join('')}</select></label></div></div>
       ${help}
       ${headline ? `<p class="be-headline">${headline}</p>` : ''}
+      <h3>Yearly cost at different usage levels</h3>
+      <div id="be-table"><p class="muted small">Working out each usage level…</p></div>
+      <h3>Monthly cost as usage grows</h3>
       <div class="legend">${legend}</div>
       <div class="chart-wrap">${svg}<div class="tooltip" hidden></div></div>
       <h3>Breakeven points</h3>
@@ -205,6 +209,26 @@
         <button class="btn ghost small" data-act="table">${showTable ? 'Hide' : 'Show'} data table</button>
         ${table}
       </details>`;
+
+    // Same rules as the Analysis summary (right-sized on-prem, hybrid only where it wins); a few seconds of work, so after paint.
+    const myTok = (beToken = (beToken || 0) + 1);
+    setTimeout(() => {
+      if (myTok !== beToken) return;
+      const host = el.querySelector('#be-table');
+      if (!host) return;
+      let rows;
+      try { rows = TC.breakevenTable(data, w); } catch (e) { console.error(e); host.innerHTML = ''; return; }
+      const NAMES = { onprem: 'Buy servers', cloud: 'Rent GPUs', api: 'Pay per token', hybrid: 'Hybrid' };
+      const cell = (r, key) => {
+        const v = r.cells[key];
+        const txt = v == null || !isFinite(v) ? '—' : f.usd(v) + (key === 'onprem' && r.rightSized ? ' *' : '');
+        return `<td class="num ${r.best === key ? 'be-best' : ''}">${txt}</td>`;
+      };
+      const tolS = Number(w.peak_wait_s == null ? 5 : w.peak_wait_s);
+      host.innerHTML = `<div class="table-wrap"><table class="results-table compact be-table"><thead><tr><th>Usage</th><th class="num">Tokens / month</th>${Object.values(NAMES).map(n => `<th class="num">${n} / yr</th>`).join('')}<th>Lowest cost</th></tr></thead><tbody>` +
+        rows.map(r => { const today = Math.abs(r.k - 1) < 1e-9; return `<tr class="${today ? 'be-today' : ''}"><td>${today ? '<strong>Today</strong>' : (r.k < 1 ? r.k : f.num(r.k, 0)) + '× today'}</td><td class="num">${f.tokens(r.tokensMonth)}</td>${Object.keys(NAMES).map(k => cell(r, k)).join('')}<td class="be-best">${r.best ? NAMES[r.best] : '—'}</td></tr>`; }).join('') +
+        `</tbody></table></div><p class="muted small">Uses the same rules as the Analysis summary.${rows.some(r => r.rightSized) ? ` * Right-sized on-prem: the smallest setup that keeps busiest-hour waits within ${TC.tolText(tolS)}.` : ''} Hybrid shows a cost only where it is the lowest-cost mix. The chart below sizes servers for the full peak at every level, so its on-prem line can sit above these figures.</p>`;
+    }, 30);
 
     const det = el.querySelector('.be-help');
     det.addEventListener('toggle', () => { showHelp = det.open; });

@@ -577,3 +577,7 @@ tr.row.jump-hl > td { animation: jumpRow 4s ease-out; }
 .exec-tile .label { font-size: 14px; font-weight: 700; color: var(--text); letter-spacing: .01em; }
 .exec-tile.tile-win .label { color: var(--accent); }
 .exec-tile .label .win-tag { vertical-align: 2px; }
+
+/* Breakeven tab: yearly cost by usage level */
+.be-table td.be-best { color: var(--accent); font-weight: 700; }
+.be-table tr.be-today td { background: var(--accent-soft); }
