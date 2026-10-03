@@ -135,7 +135,7 @@
   /** The acceptable-wait setting in words ("5 seconds"). */
   TC.tolText = t => ({ 5: '5 seconds', 30: '30 seconds', 120: '2 minutes', 600: '10 minutes' }[t] || `${t} seconds`);
   /** One line describing busiest-hour waiting for an owned setup, if overflow queues. */
-  TC.waitText = wt => (!wt ? '' : wt.unstable ? 'backlog never clears' : wt.pWait < 0.005 ? 'no waiting' : `${Math.round(wt.pWait * 100)}% wait · 95% start within ${TC.fmtWait(wt.p95)}`);
+  TC.waitText = wt => (!wt ? '' : wt.unstable ? 'backlog never clears' : wt.pWait < 0.005 ? 'no waiting' : `${wt.pWait >= 0.995 ? 'all wait' : Math.max(1, Math.round(wt.pWait * 100)) + '% wait'} · 95% start within ${TC.fmtWait(wt.p95)}`);
   /** "under a second", "12 s", "3 min" */
   TC.fmtWait = t => (!isFinite(t) ? 'never clears' : t < 1 ? 'under a second' : t < 90 ? `${Math.round(t)} s` : t < 5400 ? `${Math.round(t / 60)} min` : `${f.num(t / 3600, 1)} h`);
 

@@ -118,6 +118,7 @@ code { font: 500 13.5px var(--mono); background: var(--accent-soft); padding: 1p
     <li><b>Click a box to show the math.</b> It opens the row behind the number and highlights the cost lines that add up to it. <b>↑ Back to summary</b> brings you back up.</li>
     <li><b>Click the range (the small circled i).</b> It shows what was varied (placeholder price, power and the speed estimate) and how many servers each case needs. Good for “why could it cost $X?”.</li>
     <li><b>Use the Try links.</b> After loading an example, the setting names in its <b>Try</b> line are links: click one and the calculator scrolls to that field and highlights it, ready to change.</li>
+    <li><b>Ask “how long can people wait at the peak?”</b> Advanced settings → Sizing → <b>Acceptable wait</b>. Allowing a few seconds often lets one smaller server cover the busiest hour; the Hybrid table’s last column shows cost against waiting for every setup.</li>
     <li><b>Hand over one option.</b> Expand a server row and use <b>Export this option (Excel)</b> for a workbook with its specs, sizing, cost steps and sources, one tab each.</li>
   </ul>
 </section>
@@ -196,7 +197,7 @@ code { font: 500 13.5px var(--mono); background: var(--accent-soft); padding: 1p
   <div class="nums"><div class="num win"><span class="k">Buy servers</span><span class="v">$59K/yr</span><span class="s">One 8× L40S server, right-sized: carries 99.94% of tokens, 23% utilized</span></div><div class="num"><span class="k">Rent GPUs</span><span class="v">$126K/yr</span><span class="s">Nebius, on-demand</span></div><div class="num"><span class="k">Pay per token</span><span class="v">$85K/yr</span><span class="s">Azure AI Foundry</span></div><div class="num"><span class="k">Hybrid</span><span class="v">not needed</span><span class="s">One server already carries 99.94% of tokens</span></div></div>
   <div class="cols">
     <div><span class="label">Talk track</span>
-      <ul><li>A contact center runs every day, most hours. That steady load is what makes owning GPUs pay off.</li><li>One right-sized 8× L40S server costs about $26K a year less than paying per token. Buying for the full calculated peak would cost about $66K; the extra $7K buys capacity for a few busy minutes a day.</li><li>Point at the Hybrid box: “Not needed”. In the busiest minutes the last 0.06% of tokens wait a few seconds; a cloud fallback would cost about $45 a year in tokens, so adding one is a resilience choice, not a cost one.</li></ul>
+      <ul><li>A contact center runs every day, most hours. That steady load is what makes owning GPUs pay off.</li><li>One right-sized 8× L40S server costs about $26K a year less than paying per token. Buying for the full calculated peak would cost about $66K; the extra $7K buys capacity for a few busy minutes a day.</li><li>Point at the Hybrid box: “Not needed”. In the busiest hour about 6% of requests wait, and 95% start within a second; a cloud fallback would cost about $45 a year in tokens, so adding one is a resilience choice, not a cost one.</li></ul>
       <p class="say">“Steady, round-the-clock demand is what makes owning pay. One server covers it; whether you add a cloud fallback is a resilience decision, not a cost one.”</p>
     </div>
     <div><span class="label">Pull this lever live</span>
@@ -218,7 +219,7 @@ code { font: 500 13.5px var(--mono); background: var(--accent-soft); padding: 1p
       <p class="say">“This is where ‘just use an API’ gets expensive quickly, and where sizing hardware for the worst minute is also expensive. The mix is the answer.”</p>
     </div>
     <div><span class="label">Pull this lever live</span>
-      <div class="lever"><p>Change <b>Avg input tokens</b> from 6,000 to <b>2,000</b>.</p><p>Every option gets much cheaper and the answer changes to <b>Strong on-prem candidate</b>: one 8× MI300X server (about $125K/yr) carries 99.9% of tokens, versus about $192K/yr to pay per token. Buying for the full calculated peak would take more servers (about $197K/yr); the busiest minutes can simply wait a few seconds. Context size is a cost driver worth discussing with the architects.</p></div>
+      <div class="lever"><p>Change <b>Avg input tokens</b> from 6,000 to <b>2,000</b>.</p><p>Every option gets much cheaper and the answer changes to <b>Strong on-prem candidate</b>: one 8× MI300X server (about $125K/yr) covers the busiest hour if requests may wait a couple of seconds (about 23% wait, 95% within 2 s), versus about $192K/yr to pay per token.</p></div><div class="lever"><p>Then set <b>Acceptable wait</b> (Advanced settings → Sizing) to <b>No waiting</b>.</p><p>Buying so that nobody ever waits takes more servers (about $197K/yr) and the verdict becomes <b>Near breakeven</b>. That is the price of a zero-wait requirement: about $72K a year. The Hybrid table’s last column shows the full menu of cost against waiting.</p></div>
       <p class="small muted">Why it matters: technical choices (how much context each request carries) move the economics as much as user counts.</p>
     </div>
   </div>
