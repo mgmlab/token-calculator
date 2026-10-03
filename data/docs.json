@@ -1,0 +1,11 @@
+{
+  "_readme": "Documentation listed on the admin console's Documentation page. Internal guides stay on OneDrive (access is controlled there); paste each file's OneDrive share link in the console. Public pages link to the site.",
+  "docs": [
+    { "id": "admin-guide", "title": "Admin Guide", "format": "Word", "audience": "Internal", "description": "Maintaining the calculator: data files, price updates, the admin console, backups and rollback, moving to Azure.", "url": "" },
+    { "id": "admin-guide-pdf", "title": "Admin Guide (PDF)", "format": "PDF", "audience": "Internal", "description": "The same guide as a PDF for reading or printing.", "url": "" },
+    { "id": "user-guide", "title": "User Guide deck", "format": "PowerPoint", "audience": "Internal", "description": "What the calculator does and how to use it with customers, including the admin console.", "url": "" },
+    { "id": "workshop-playbook", "title": "Workshop Playbook", "format": "Web page", "audience": "Public", "description": "Facilitator's guide for the 90-minute customer workshop, with the seven reference patterns.", "url": "docs/workshop-playbook.html" },
+    { "id": "input-guide", "title": "Input guide", "format": "Web page", "audience": "Public", "description": "How to gather each workload input from a client.", "url": "docs/workload-guide.html" },
+    { "id": "readme", "title": "Developer README", "format": "GitHub", "audience": "Public", "description": "How the code and data are organized, running it locally, releases and price feeds.", "url": "https://github.com/mgmlab/token-calculator#readme" }
+  ]
+}

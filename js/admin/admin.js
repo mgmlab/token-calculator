@@ -14,6 +14,7 @@
     benchmarks: ['Benchmarks', 'Measured throughput that replaces the theoretical speed estimate, with when it was measured and recorded.'],
     defaults: ['Defaults & rules', 'What a new analysis starts with, the operating assumptions, and the rules the calculator applies.'],
     versions: ['Versions & backup', 'Every published version: restore data, roll the app back, mark known-good versions, download backups.'],
+    docs: ['Documentation', 'Guides for admins and sellers, and the public pages. Internal guides open from OneDrive, where access is controlled.'],
     activity: ['Activity', 'Every change to the calculator and its data, newest first.'],
     settings: ['Settings', 'Connect this browser so it can publish changes.'],
   };
@@ -59,6 +60,7 @@
     await TC.store.load();
     try { S.status = TC.repo.signedIn() ? await TC.repo.readJson('data/price-status.json') : await (await fetch('data/price-status.json', { cache: 'no-cache' })).json(); } catch (e) { S.status = null; }
     try { S.examples = (await (await fetch('data/examples.json', { cache: 'no-cache' })).json()).examples || []; } catch (e) { S.examples = []; }
+    try { S.docs = TC.repo.signedIn() ? await TC.repo.readJson('data/docs.json') : await (await fetch('data/docs.json', { cache: 'no-cache' })).json(); } catch (e) { S.docs = { docs: [] }; }
     counts();
   }
   function pendingItems() {
@@ -481,6 +483,39 @@
       pages.addmodel();
     };
   }
+
+  // ---------------------------------------------------------------- documentation
+  pages.docs = function () {
+    const docs = (S.docs && S.docs.docs) || [];
+    const isPublic = d => d.audience === 'Public';
+    const card = d => `<div class="card doc-card">
+        <div class="card-head"><h2>${esc(d.title)}</h2><span class="chip ${isPublic(d) ? 'info' : 'brand'}">${esc(d.audience)} · ${esc(d.format)}</span></div>
+        <p class="small muted" style="margin:0 0 12px">${esc(d.description)}</p>
+        ${d.url ? `<div class="row" style="gap:8px"><a class="btn primary small" href="${esc(d.url)}" target="_blank" rel="noopener">Open</a>${isPublic(d) ? '' : `<button class="btn small ghost" data-doc-edit="${esc(d.id)}">Change link</button>`}</div>`
+          : `<div class="small muted" style="margin-bottom:8px">No link yet.</div>`}
+        ${!isPublic(d) ? `<div class="row doc-edit" data-doc-form="${esc(d.id)}" ${d.url ? 'hidden' : ''} style="gap:8px;flex-wrap:nowrap;margin-top:8px">
+          <input type="url" placeholder="Paste the OneDrive share link" value="${esc(d.url)}" style="flex:1"><button class="btn small" data-doc-save="${esc(d.id)}">Save</button></div>` : ''}
+      </div>`;
+    view.innerHTML = `<div class="grid g2" style="gap:16px">${docs.map(card).join('')}</div>
+      <p class="small muted">Links to internal guides are stored in <code>data/docs.json</code>. Use a OneDrive link shared with “People in Pellera” (or specific people) so only signed-in colleagues can open it; the files themselves never go into the public repository. Updating a guide in place on OneDrive keeps the same link.</p>`;
+    view.querySelectorAll('[data-doc-edit]').forEach(b => b.onclick = () => { view.querySelector(`[data-doc-form="${b.dataset.docEdit}"]`).hidden = false; });
+    view.querySelectorAll('[data-doc-save]').forEach(b => b.onclick = () => {
+      if (needToken()) return;
+      const id = b.dataset.docSave, url = b.previousElementSibling.value.trim();
+      if (url && !/^https:\/\//i.test(url)) { toast('Paste the full https:// share link.', true); return; }
+      busy(b, async () => {
+        const r = await TC.repo.update(async read => {
+          const d = await read('data/docs.json'), doc = (d.docs || []).find(x => x.id === id);
+          if (!doc) throw new Error('That document is no longer listed; refresh the page.');
+          doc.url = url;
+          S.docs = d;
+          return [{ path: 'data/docs.json', json: d }];
+        }, `Documentation link: ${id} (admin console${S.me ? ', ' + S.me.login : ''})`);
+        pages.docs();
+        toast(`Link saved. <a href="${esc(r.url)}" target="_blank" rel="noopener">View change</a>`);
+      });
+    });
+  };
 
   // ---------------------------------------------------------------- defaults & rules
   pages.defaults = function () {
