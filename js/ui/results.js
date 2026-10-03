@@ -341,7 +341,7 @@
     // One bar per ownership option (servers you could buy), split into what you pay for your servers and for the API.
     const Y12 = v => v * 12;
     const opts = TC.hybridOptions(hy);
-    const W = 860, rowH = 34, M = { l: 250, r: 110, t: 8, b: 30 }, H = M.t + opts.length * rowH + M.b;
+    const W = 860, rowH = 34, M = { l: 330, r: 110, t: 8, b: 30 }, H = M.t + opts.length * rowH + M.b;
     const maxV = Math.max(...opts.map(p => Y12(p.total))) * 1.02;
     const raw = maxV / 4, pw = Math.pow(10, Math.floor(Math.log10(raw)));
     const step = [1, 2, 2.5, 5, 10].map(m => m * pw).find(x => x >= raw);
@@ -352,9 +352,9 @@
     opts.forEach((p, k) => {
       const y = M.t + k * rowH + 6, h = rowH - 12;
       const own = Y12(p.ownedMonthly), api = p.rightSized ? 0 : Y12(p.apiMonthly + (p.routingMonthly || 0));
-      const label = TC.shortSetup(p);
+      const full = TC.shortSetup(p), label = full.length > 48 ? full.slice(0, 46) + "…" : full;
       const cover = p.row ? (p.capPct >= 100 ? 'handles the full peak' : `handles ${p.capPct}% of peak`) : 'no servers';
-      svg += `<text class="${p.best ? 'hy-best' : 'tick'}" x="${M.l - 10}" y="${y + h / 2 - 2}" text-anchor="end">${esc(label)}</text>`;
+      svg += `<text class="${p.best ? 'hy-best' : 'tick'}" x="${M.l - 10}" y="${y + h / 2 - 2}" text-anchor="end"><title>${esc(full)}</title>${esc(label)}</text>`;
       svg += `<text class="tick" x="${M.l - 10}" y="${y + h / 2 + 11}" text-anchor="end">${cover}</text>`;
       if (own > 0) svg += `<rect x="${X(0)}" y="${y}" width="${Math.max(1, X(own) - X(0))}" height="${h}" rx="3" fill="var(--accent)"/>`;
       if (api > 0) svg += `<rect x="${X(own)}" y="${y}" width="${Math.max(1, X(own + api) - X(own))}" height="${h}" rx="3" fill="var(--muted)" opacity="0.45"/>`;

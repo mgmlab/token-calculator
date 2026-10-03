@@ -10,6 +10,7 @@
     quotes: ['Server quotes', 'Replace placeholder server prices with real quotes. Each one is queued as a pending change.'],
     pending: ['Pending changes', 'Edits waiting to be published to everyone, from this console or the calculator’s Data editor.'],
     examples: ['Worked examples', 'Re-run the seven reference patterns and check each still lands on its expected result.'],
+    addmodel: ['Add a model', 'Type a model name: specs come from its Hugging Face config and prices from OpenRouter. Review, then queue it as a pending change.'],
     benchmarks: ['Benchmarks', 'Measured throughput that replaces the theoretical speed estimate, with when it was measured and recorded.'],
     defaults: ['Defaults & rules', 'What a new analysis starts with, the operating assumptions, and the rules the calculator applies.'],
     versions: ['Versions & backup', 'Every published version: restore data, roll the app back, mark known-good versions, download backups.'],
@@ -396,6 +397,89 @@
       TC.store.setOverride('benchmarks', d2); pages.benchmarks();
     });
   };
+
+  // ---------------------------------------------------------------- add a model by name
+  const AM = { q: '', res: null, draft: null };
+  pages.addmodel = function () {
+    const r = AM.res;
+    const fmtDl = n => n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : n >= 1e3 ? Math.round(n / 1e3) + 'K' : String(n);
+    view.innerHTML = `<div class="card"><div class="card-head"><h2>Find a model</h2></div>
+        <div class="row" style="flex-wrap:nowrap;gap:10px"><input type="text" id="am-q" placeholder="e.g. deepseek, qwen3 coder, llama 4, claude" value="${esc(AM.q)}" style="flex:1"><button class="btn primary" id="am-go">Search</button></div>
+        <p class="small muted" style="margin:10px 0 0">Open-weight models come from Hugging Face (specs for on-prem sizing). API-only models (GPT, Claude, Gemini…) come from OpenRouter as closed-model references. Nothing is changed until you review the draft and add it.</p></div>
+      ${r ? `<div class="grid g2" style="gap:16px">
+        <div class="card"><div class="card-head"><h2>Open weights <span class="chip info">Hugging Face</span></h2></div>
+          ${r.hf.length ? `<div class="am-list">${r.hf.map(m => `<button class="am-hit" data-hf="${esc(m.id)}"><b>${esc(m.id)}</b><span class="small muted">${fmtDl(m.downloads)} downloads${m.gated ? ' · gated' : ''}</span></button>`).join('')}</div>` : '<div class="empty">No text-generation repos matched.</div>'}</div>
+        <div class="card"><div class="card-head"><h2>API models <span class="chip info">OpenRouter</span></h2></div>
+          ${r.or.length ? `<div class="am-list">${r.or.map(m => `<button class="am-hit" ${m.hf ? `data-hf="${esc(m.hf)}"` : `data-or="${esc(m.id)}"`}><b>${esc(m.name)}</b><span class="small muted">${esc(m.id)}${m.hf ? ' · open weights: uses Hugging Face specs' : ' · API only'}</span></button>`).join('')}</div>` : '<div class="empty">No OpenRouter models matched.</div>'}</div>
+      </div>` : ''}
+      <div id="am-draft"></div>`;
+    const run = () => busy($('#am-go'), async () => { AM.q = $('#am-q').value; AM.res = await TC.modelLookup.search(AM.q); AM.draft = null; pages.addmodel(); });
+    $('#am-go').onclick = run;
+    $('#am-q').onkeydown = e => { if (e.key === 'Enter') run(); };
+    view.querySelectorAll('.am-hit').forEach(b => b.onclick = () => busy(b, async () => {
+      try { AM.draft = b.dataset.hf ? await TC.modelLookup.draftOpen(b.dataset.hf) : await TC.modelLookup.draftClosed(b.dataset.or); }
+      catch (e) { if (e.gated) throw new Error(e.message + ' Its specs cannot be read without accepting the licence on Hugging Face; add it in the Data editor instead, or pick an ungated copy.'); throw e; }
+      drawDraft();
+      $('#am-draft').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }));
+    if (AM.draft) drawDraft();
+  };
+
+  function drawDraft() {
+    const { model: m, warnings, offers } = AM.draft, open = m.self_hostable;
+    const existing = ((TC.store.get('models') || {}).models || []).find(x => x.id === m.id);
+    const num = (k, label, step) => `<label class="f">${label}<input type="number" step="${step || 'any'}" data-w="${k}" value="${m[k] && m[k].value != null ? m[k].value : ''}"><span class="small muted am-src">${esc(m[k] ? m[k].source : '')}</span></label>`;
+    const kv = m.kv_layout, kvTxt = !kv ? 'Standard attention: 2 × layers × KV heads × head size per token'
+      : kv.type === 'mla' ? `Latent attention (MLA): ${kv.elems_per_token_per_layer} values per token per layer`
+      : `Sliding window: ${kv.full_layers} full + ${kv.sliding_layers} sliding layers (${kv.window}-token window)`;
+    $('#am-draft').innerHTML = `<div class="card"><div class="card-head"><h2>Review the draft</h2>${existing ? '<span class="chip warn">Replaces the existing entry with this id</span>' : '<span class="chip good">New model</span>'}</div>
+      ${warnings.length ? `<div class="am-warn">${warnings.map(w => `<div>• ${esc(w)}</div>`).join('')}</div>` : ''}
+      <div class="grid g4" style="gap:12px">
+        <label class="f">Name<input type="text" id="am-name" value="${esc(m.name)}"></label>
+        <label class="f">Id (unique)<input type="text" id="am-id" value="${esc(m.id)}"></label>
+        <label class="f">Family<input type="text" id="am-fam" value="${esc(m.family)}"></label>
+        ${open ? `<label class="f">Architecture<select id="am-arch"><option value="dense" ${m.architecture === 'dense' ? 'selected' : ''}>Dense</option><option value="moe" ${m.architecture === 'moe' ? 'selected' : ''}>Mixture of experts</option></select></label>`
+          : `<label class="f">Tier<select id="am-tier">${['budget', 'mid', 'frontier'].map(t => `<option ${m.tier === t ? 'selected' : ''}>${t}</option>`).join('')}</select></label>`}
+        ${open ? num('params_total_b', 'Total parameters (B)') + num('params_active_b', 'Active parameters (B)') + num('layers', 'Layers', 1) + num('attention_heads', 'Attention heads', 1)
+          + num('kv_heads', 'KV heads', 1) + num('head_dim', 'Head size', 1) + num('max_context', 'Max context (tokens)', 1) : ''}
+      </div>
+      ${open ? `<p class="small" style="margin:12px 0 0"><b>KV cache:</b> ${esc(kvTxt)}${m.native_precision ? ` · <b>Published weights:</b> ${esc(m.native_precision)}` : ''}</p>` : ''}
+      <h3 class="am-h">API prices <span class="small muted">USD per 1M tokens · refreshed daily by the price check</span></h3>
+      ${offers.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th></th><th>Provider</th><th class="num">Input</th><th class="num">Output</th><th class="num">Cached input</th></tr></thead><tbody>
+        ${offers.map((o, i) => `<tr><td><input type="checkbox" data-off="${i}" ${o.on ? 'checked' : ''}></td><td>${esc(o.label)}</td>
+          <td class="num">$${f.num(v(o.row.input_per_m), 2)}</td><td class="num">$${f.num(v(o.row.output_per_m), 2)}</td><td class="num">${o.row.cached_input_per_m ? '$' + f.num(v(o.row.cached_input_per_m), 2) : '—'}</td></tr>`).join('')}</tbody></table></div>
+        <p class="small muted" style="margin:8px 0 0">The four cheapest direct providers are pre-ticked. OpenRouter is excluded from comparisons by default in the calculator, so keep at least one direct provider.</p>`
+        : '<div class="empty">No API prices found.</div>'}
+      <div class="row end" style="margin-top:14px;gap:10px"><button class="btn" id="am-cancel">Discard</button><button class="btn primary" id="am-add">${existing ? 'Replace model' : 'Add model'}</button></div></div>`;
+    $('#am-cancel').onclick = () => { AM.draft = null; $('#am-draft').innerHTML = ''; };
+    $('#am-add').onclick = async () => {
+      const out = TC.clone(m);
+      out.name = $('#am-name').value.trim(); out.id = $('#am-id').value.trim(); out.family = $('#am-fam').value.trim();
+      if (!out.name || !out.id) { toast('Name and id are required.', true); return; }
+      if (open) {
+        out.architecture = $('#am-arch').value;
+        let bad = '';
+        $('#am-draft').querySelectorAll('[data-w]').forEach(i => {
+          const k = i.dataset.w, x = i.value === '' ? null : Number(i.value);
+          if (!(x > 0)) { bad = bad || i.closest('label').firstChild.textContent; return; }
+          if (x !== out[k].value) out[k] = { value: x, source: 'Entered in admin console' + (S.me ? ' by ' + S.me.login : ''), as_of: TC.today(), status: 'override' };
+        });
+        if (bad) { toast(`Fill in ${esc(bad)} (a positive number) before adding.`, true); return; }
+        if (out.architecture === 'dense') out.params_active_b = TC.clone(out.params_total_b);
+        if (out.params_active_b.value > out.params_total_b.value) { toast('Active parameters cannot exceed total parameters.', true); return; }
+      } else out.tier = $('#am-tier').value;
+      out.api_prices = offers.filter((o, i) => $(`[data-off="${i}"]`).checked).map(o => TC.clone(o.row));
+      if (!open && !out.api_prices.length) { toast('An API-only model needs at least one price.', true); return; }
+      if (out.api_prices.length && out.api_prices.every(r => r.provider === 'OpenRouter') && !(await confirmBox('Only OpenRouter is ticked', '<p>OpenRouter is excluded from API comparisons by default, so this model will show no same-model API price unless a user re-includes it. Add it anyway?</p>', 'Add anyway'))) return;
+      const d2 = TC.clone(TC.store.get('models')), at = d2.models.findIndex(x => x.id === out.id);
+      if (at >= 0 && !(await confirmBox('Replace this model?', `<p><b>${esc(d2.models[at].name)}</b> already uses the id <code>${esc(out.id)}</code>. Replacing it overwrites its specs and API prices when you publish.</p>`, 'Replace'))) return;
+      if (at >= 0) d2.models[at] = out; else d2.models.push(out);
+      TC.store.setOverride('models', d2);
+      AM.draft = null;
+      toast(`${at >= 0 ? 'Replaced' : 'Added'} <b>${esc(out.name)}</b>. <a href="#pending">Review and publish</a>`);
+      pages.addmodel();
+    };
+  }
 
   // ---------------------------------------------------------------- defaults & rules
   pages.defaults = function () {
