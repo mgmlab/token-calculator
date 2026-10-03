@@ -6,29 +6,11 @@
     "Kimi K2.6 (MoE, MLA) / OpenRouter / input $/1M: 0.43415 → 0.95 (accepted in the admin console)",
     "Kimi K2.6 (MoE, MLA) / OpenRouter / output $/1M: 1.828 → 4 (accepted in the admin console)",
     "Kimi K2.6 (MoE, MLA) / OpenRouter / cached input $/1M: 0.07312 → 0.16 (accepted in the admin console)",
-    "Kimi K3 (MoE, MLA + linear attention) / OpenRouter / input $/1M: 2.7 → 0.74 (accepted in the admin console)"
+    "Kimi K3 (MoE, MLA + linear attention) / OpenRouter / input $/1M: 2.7 → 0.74 (accepted in the admin console)",
+    "Kimi K3 (MoE, MLA + linear attention) / OpenRouter / cached input $/1M: 0.27 → 0.7 (accepted in the admin console)"
   ],
-  "needs_review": [
-    "Kimi K3 (MoE, MLA + linear attention) / OpenRouter / cached input $/1M: 0.27 → 0.7 (not applied; over 50% change)"
-  ],
-  "review_items": [
-    {
-      "text": "Kimi K3 (MoE, MLA + linear attention) / OpenRouter / cached input $/1M",
-      "loc": {
-        "dataset": "models",
-        "id": "kimi-k3",
-        "list": "api_prices",
-        "match": {
-          "provider": "OpenRouter"
-        }
-      },
-      "key": "cached_input_per_m",
-      "old": 0.27,
-      "new": 0.7,
-      "source": "openrouter.ai/api/v1/models (moonshotai/kimi-k3)",
-      "status": "estimate"
-    }
-  ],
+  "needs_review": [],
+  "review_items": [],
   "problems": [],
   "sources_failed": [],
   "manual_rows": [
