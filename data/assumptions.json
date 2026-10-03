@@ -135,6 +135,36 @@
       "status": "placeholder"
     }
   },
+  "rules": {
+    "_note": "Calculation and price-check rules, editable in the admin console (Defaults & rules). Plain numbers, not sourced values.",
+    "hybrid_min_api_share_pct": 2,
+    "hybrid_min_api_usd_per_year": 1000,
+    "hybrid_min_savings_pct": 5,
+    "range_optimistic": {
+      "bandwidth_efficiency_pct": 85,
+      "compute_efficiency_pct": 55,
+      "load_factor_pct": 60
+    },
+    "range_pessimistic": {
+      "bandwidth_efficiency_pct": 55,
+      "compute_efficiency_pct": 30,
+      "load_factor_pct": 85
+    },
+    "breakeven_usage_levels": [
+      0.25,
+      0.5,
+      1,
+      2,
+      5,
+      10,
+      25,
+      50
+    ],
+    "price_hold_threshold_pct": 50,
+    "price_auto_accept_providers": [
+      "OpenRouter"
+    ]
+  },
   "workload_defaults": {
     "scenario_name": "",
     "preset": "employee_copilot",

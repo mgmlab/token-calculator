@@ -197,8 +197,12 @@
     const mixed = !!best.row && best.pct > 0 && best.pct < 100;
     // ...and the API must carry a meaningful part of the work: a gateway and a second provider are not worth it
     // for a sliver of tokens. Below 2% of tokens (or ~$1K/yr of API spend) the mix is treated as owning outright.
-    const material = (1 - best.share) >= 0.02 && best.apiMonthly * 12 >= 1000;
-    const wins = mixed && material && best.total < 0.95 * pureBest;
+    const rules = data.assumptions.rules || {};
+    const minShare = (rules.hybrid_min_api_share_pct != null ? rules.hybrid_min_api_share_pct : 2) / 100;
+    const minUsd = rules.hybrid_min_api_usd_per_year != null ? rules.hybrid_min_api_usd_per_year : 1000;
+    const minSave = (rules.hybrid_min_savings_pct != null ? rules.hybrid_min_savings_pct : 5) / 100;
+    const material = (1 - best.share) >= minShare && best.apiMonthly * 12 >= minUsd;
+    const wins = mixed && material && best.total < (1 - minSave) * pureBest;
 
     // Right-sized on-prem: the cheapest owned setup whose busiest-hour wait stays within what the customer accepts
     // (95% of requests start within peak_wait_s seconds), when overflow queues on the same servers instead of going elsewhere.

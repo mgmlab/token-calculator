@@ -101,6 +101,56 @@
       await api(`${R()}/actions/workflows/${CFG.workflow}/dispatches`, { method: 'POST', body: { ref: CFG.branch, inputs: { force: !!force } } });
     },
 
+    /**
+     * Restore an earlier version as a NEW commit (history is never rewritten, so a restore can itself be undone).
+     *   mode 'data' → only the data/ folder goes back to that version.
+     *   mode 'all'  → everything goes back, except the admin console and the scheduled price job, which stay current
+     *                 so you can always roll forward again (and no extra token permission is needed for workflows).
+     */
+    async restore(sha, mode, message) {
+      const KEEP = p => p === 'admin.html' || p === 'css/admin.css' || p.startsWith('js/admin/') || p.startsWith('.github/');
+      const ref = await api(`${R()}/git/ref/heads/${CFG.branch}`);
+      const head = await api(`${R()}/git/commits/${ref.object.sha}`);
+      const target = await api(`${R()}/git/commits/${sha}`);
+      const list = async t => (await api(`${R()}/git/trees/${t}?recursive=1`)).tree.filter(e => e.type === 'blob');
+      const [now, then] = await Promise.all([list(head.tree.sha), list(target.tree.sha)]);
+      const pick = mode === 'data' ? (p => p.startsWith('data/')) : KEEP;
+      const nowBy = new Map(now.map(e => [e.path, e])), thenBy = new Map(then.map(e => [e.path, e]));
+      let base, entries = [];
+      if (mode === 'data') {
+        base = head.tree.sha;  // start from today, put the data folder back
+        then.filter(e => pick(e.path)).forEach(e => entries.push({ path: e.path, mode: e.mode, type: 'blob', sha: e.sha }));
+        now.filter(e => pick(e.path) && !thenBy.has(e.path)).forEach(e => entries.push({ path: e.path, mode: e.mode, type: 'blob', sha: null }));
+      } else {
+        base = target.tree.sha;  // start from then, keep today's console and price job
+        now.filter(e => KEEP(e.path)).forEach(e => entries.push({ path: e.path, mode: e.mode, type: 'blob', sha: e.sha }));
+        then.filter(e => KEEP(e.path) && !nowBy.has(e.path)).forEach(e => entries.push({ path: e.path, mode: e.mode, type: 'blob', sha: null }));
+      }
+      const tree = await api(`${R()}/git/trees`, { method: 'POST', body: { base_tree: base, tree: entries } });
+      if (tree.sha === head.tree.sha) return { sha: null, url: null, unchanged: true };
+      const commit = await api(`${R()}/git/commits`, { method: 'POST', body: { message, tree: tree.sha, parents: [ref.object.sha] } });
+      await api(`${R()}/git/refs/heads/${CFG.branch}`, { method: 'PATCH', body: { sha: commit.sha } });
+      api(`${R()}/pages/builds`, { method: 'POST' }).catch(() => {});
+      return { sha: commit.sha, url: `https://github.com/${CFG.owner}/${CFG.repo}/commit/${commit.sha}` };
+    },
+
+    /** Named "known-good" versions (git tags). */
+    async tags() {
+      const list = await api(`${R()}/tags?per_page=20`);
+      return Promise.all(list.map(async t => {
+        let date = null;
+        try { date = (await api(`${R()}/commits/${t.commit.sha}`)).commit.author.date; } catch (e) { /* ignore */ }
+        return { name: t.name, sha: t.commit.sha, date };
+      }));
+    },
+    async createTag(name, sha) {
+      if (!sha) sha = (await api(`${R()}/git/ref/heads/${CFG.branch}`)).object.sha;
+      await api(`${R()}/git/refs`, { method: 'POST', body: { ref: 'refs/tags/' + name, sha } });
+      return sha;
+    },
+    /** A complete copy of the app and data at any version, as a zip download. */
+    zipUrl: ref => `https://github.com/${CFG.owner}/${CFG.repo}/archive/${ref || CFG.branch}.zip`,
+
     async priceRuns(n) {
       const r = await api(`${R()}/actions/workflows/${CFG.workflow}/runs?per_page=${n || 5}`);
       return (r.workflow_runs || []).map(x => ({ id: x.id, status: x.status, conclusion: x.conclusion, created: x.created_at, event: x.event, url: x.html_url }));

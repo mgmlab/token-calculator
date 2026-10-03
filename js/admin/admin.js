@@ -10,6 +10,9 @@
     quotes: ['Server quotes', 'Replace placeholder server prices with real quotes. Each one is queued as a pending change.'],
     pending: ['Pending changes', 'Edits waiting to be published to everyone, from this console or the calculator’s Data editor.'],
     examples: ['Worked examples', 'Re-run the seven reference patterns and check each still lands on its expected result.'],
+    benchmarks: ['Benchmarks', 'Measured throughput that replaces the theoretical speed estimate, with when it was measured and recorded.'],
+    defaults: ['Defaults & rules', 'What a new analysis starts with, the operating assumptions, and the rules the calculator applies.'],
+    versions: ['Versions & backup', 'Every published version: restore data, roll the app back, mark known-good versions, download backups.'],
     activity: ['Activity', 'Every change to the calculator and its data, newest first.'],
     settings: ['Settings', 'Connect this browser so it can publish changes.'],
   };
@@ -332,6 +335,188 @@
     const so = $('#signout');
     if (so) so.onclick = () => { TC.repo.signOut(); S.me = null; renderWho(); pages.settings(); toast('Disconnected. The token was removed from this browser.'); };
   };
+
+  // ---------------------------------------------------------------- benchmarks
+  pages.benchmarks = function () {
+    const ds = TC.store.get('benchmarks') || { benchmarks: [] };
+    const gpus = ((TC.store.get('gpus') || {}).gpus || []), models = ((TC.store.get('models') || {}).models || []).filter(m => m.self_hostable);
+    const gName = id => (gpus.find(g => g.id === id) || {}).name || id, mName = id => (models.find(m => m.id === id) || {}).name || id;
+    const rows = ds.benchmarks.map((b, i) => ({ b, i })).filter(x => typeof v(x.b.aggregate_output_tps) === 'number');
+    const opt = (list, val, lbl) => list.map(x => `<option value="${esc(x.id)}" ${x.id === val ? 'selected' : ''}>${esc(lbl(x))}</option>`).join('');
+    view.innerHTML = `<div class="card"><div class="card-head"><h2>Saved benchmarks <span class="chip ${rows.length ? 'good' : 'warn'}">${rows.length}</span></h2></div>
+      ${rows.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>GPU · model</th><th>Layout</th><th class="num">Total tok/s</th><th class="num">Per request</th><th>Measured</th><th>Recorded</th><th></th></tr></thead><tbody>
+        ${rows.map(({ b, i }) => `<tr><td><div class="t">${esc(gName(b.gpu_id))}</div><div class="small muted">${esc(mName(b.model_id))} · ${esc(b.precision)} · ${esc(b.engine || '')} ${esc(b.engine_version || '')}</div></td>
+          <td class="small">TP ${b.tp}${b.pp > 1 ? ' × PP ' + b.pp : ''}<br><span class="muted">in ${f.int(b.input_len || 0)} / out ${f.int(b.output_len || 0)} · conc ${f.int(b.concurrency || 0)}</span></td>
+          <td class="num">${f.int(v(b.aggregate_output_tps))}</td><td class="num">${v(b.per_request_output_tps) != null ? f.num(v(b.per_request_output_tps), 1) : '—'}</td>
+          <td class="small">${esc(b.aggregate_output_tps.as_of || '—')}<br><span class="chip ${b.source_type === 'pellera_lab' ? 'brand' : 'info'}">${b.source_type === 'pellera_lab' ? 'Pellera lab' : 'External'}</span></td>
+          <td class="small">${b.recorded_at ? esc(when(b.recorded_at)) : '—'}${b.recorded_by ? `<br><span class="muted">${esc(b.recorded_by)}</span>` : ''}</td>
+          <td class="num"><button class="btn small bad" data-bdel="${i}">Remove</button></td></tr>`).join('')}</tbody></table></div>`
+        : '<div class="empty">No measured benchmarks yet. Every server uses the theoretical speed estimate until one is added below.</div>'}
+      <p class="small muted" style="margin:10px 0 0">A benchmark is used when GPU, model, precision and TP (and PP) match exactly. Once a GPU has one, only benchmarked layouts are considered for it.</p></div>
+      <div class="card"><div class="card-head"><h2>Add a benchmark</h2></div>
+        <div class="grid g4" style="gap:12px">
+          <label class="f">GPU<select id="b-gpu">${opt(gpus, '', g => g.name)}</select></label>
+          <label class="f">Model<select id="b-model">${opt(models, 'llama-3.3-70b', m => m.name)}</select></label>
+          <label class="f">Precision<select id="b-prec"><option>FP8</option><option>FP16</option><option>INT4</option></select></label>
+          <label class="f">Layout<div class="row" style="flex-wrap:nowrap"><select id="b-tp">${[1, 2, 4, 8].map(n => `<option value="${n}">TP ${n}</option>`).join('')}</select><select id="b-pp"><option value="1">PP 1</option><option value="2">PP 2</option></select></div></label>
+          <label class="f">Engine<input type="text" id="b-eng" placeholder="vLLM"></label>
+          <label class="f">Engine version<input type="text" id="b-ver" placeholder="0.8.4"></label>
+          <label class="f">Input / output tokens<div class="row" style="flex-wrap:nowrap"><input type="number" id="b-in" placeholder="1500"><input type="number" id="b-out" placeholder="400"></div></label>
+          <label class="f">Concurrency<input type="number" id="b-conc" placeholder="64"></label>
+          <label class="f">Total output tok/s (one copy)<input type="number" id="b-tps" step="any"></label>
+          <label class="f">Per-request tok/s<input type="number" id="b-prt" step="any"></label>
+          <label class="f">Measured on<input type="date" id="b-date" value="${TC.today()}"></label>
+          <label class="f">Source type<select id="b-src"><option value="pellera_lab">Pellera lab (validated)</option><option value="external">External / published</option></select></label>
+        </div>
+        <label class="f" style="margin-top:12px">Source and notes<input type="text" id="b-note" placeholder="e.g. Pellera lab run 2026-10-02, vLLM benchmark_serving, ShareGPT prompts"></label>
+        <div class="row end" style="margin-top:12px"><button class="btn primary" id="b-save">Save benchmark</button></div></div>`;
+    $('#b-save').onclick = () => {
+      const num = id => { const x = Number($(id).value); return $(id).value === '' || !isFinite(x) ? null : x; };
+      const tps = num('#b-tps'), note = $('#b-note').value.trim();
+      if (!(tps > 0)) { toast('Enter the measured total output tokens per second for one copy of the model.', true); return; }
+      if (!note) { toast('Add the source (who ran it, tool, date) so the number can be trusted later.', true); return; }
+      const date = $('#b-date').value || TC.today(), src = note + ($('#b-src').value === 'pellera_lab' ? ' (Pellera lab)' : '');
+      const row = { gpu_id: $('#b-gpu').value, model_id: $('#b-model').value, precision: $('#b-prec').value, tp: Number($('#b-tp').value), pp: Number($('#b-pp').value),
+        engine: $('#b-eng').value.trim() || 'vLLM', engine_version: $('#b-ver').value.trim(), input_len: num('#b-in'), output_len: num('#b-out'), concurrency: num('#b-conc'),
+        source_type: $('#b-src').value,
+        aggregate_output_tps: { value: tps, source: src, as_of: date, status: 'measured' },
+        per_request_output_tps: { value: num('#b-prt'), source: src, as_of: date, status: num('#b-prt') != null ? 'measured' : 'placeholder' },
+        recorded_at: new Date().toISOString(), recorded_by: S.me ? S.me.login : '' };
+      const d2 = TC.clone(TC.store.get('benchmarks'));
+      const same = r => r.gpu_id === row.gpu_id && r.model_id === row.model_id && r.precision === row.precision && r.tp === row.tp && (r.pp || 1) === row.pp && (r.engine || '') === row.engine;
+      const at = d2.benchmarks.findIndex(same);
+      if (at >= 0) d2.benchmarks[at] = row; else d2.benchmarks.push(row);
+      TC.store.setOverride('benchmarks', d2);
+      toast(`${at >= 0 ? 'Replaced' : 'Saved'} the ${esc(gName(row.gpu_id))} benchmark. <a href="#pending">Review and publish</a>`);
+      pages.benchmarks();
+    };
+    view.querySelectorAll('[data-bdel]').forEach(b => b.onclick = async () => {
+      if (!(await confirmBox('Remove this benchmark?', '<p>It is removed when you publish; the server goes back to the theoretical speed estimate.</p>', 'Remove'))) return;
+      const d2 = TC.clone(TC.store.get('benchmarks')); d2.benchmarks.splice(Number(b.dataset.bdel), 1);
+      TC.store.setOverride('benchmarks', d2); pages.benchmarks();
+    });
+  };
+
+  // ---------------------------------------------------------------- defaults & rules
+  pages.defaults = function () {
+    const a = TC.store.get('assumptions') || {}, wd = a.workload_defaults || {}, rules = a.rules || {};
+    const models = ((TC.store.get('models') || {}).models || []);
+    const providers = [...new Set(models.flatMap(m => (m.api_prices || []).map(p => p.provider)))].sort((x, y) => x.localeCompare(y));
+    const sel = (id, opts, val) => `<select id="${id}">${opts.map(([k, l]) => `<option value="${esc(k)}" ${String(k) === String(val) ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
+    const numF = (id, lbl, val, step) => `<label class="f">${lbl}<input type="number" id="${id}" value="${val == null ? '' : esc(val)}" step="${step || 'any'}"></label>`;
+    const checks = (name, chosen) => `<div class="prov-grid">${providers.map(p => `<label class="row small"><input type="checkbox" data-${name}="${esc(p)}" ${chosen.includes(p) ? 'checked' : ''}> ${esc(p)}</label>`).join('')}</div>`;
+    // Operating assumptions: every sourced value in these sections
+    const SECTIONS = [['power', 'Power'], ['onprem', 'Owning servers'], ['cloud', 'Renting GPUs'], ['hybrid', 'Hybrid routing'], ['throughput', 'Speed estimate']];
+    const opRows = SECTIONS.flatMap(([sec, lbl]) => Object.keys(a[sec] || {}).filter(k => TC.isWrapped(a[sec][k]) && typeof a[sec][k].value === 'number').map(k => ({ sec, lbl, k, w: a[sec][k] })));
+    const nice = k => k.replace(/_usd/g, ' ($)').replace(/_pct/g, ' %').replace(/_per_/g, ' per ').replace(/_/g, ' ');
+    view.innerHTML = `
+      <div class="card"><div class="card-head"><h2>New-analysis defaults</h2><button class="btn primary" data-dsave="wd">Save defaults</button></div>
+        <p class="small muted" style="margin:0 0 12px">What every new analysis starts with (New analysis, first visit). Presets still fill in their own usage values, and existing saved scenarios keep theirs.</p>
+        <div class="grid g4" style="gap:12px">
+          <label class="f">Model${sel('wd-model', models.filter(m => m.self_hostable).map(m => [m.id, m.name]), wd.model_id)}</label>
+          <label class="f">Comparison term${sel('wd-term', [[3, '3 years'], [5, '5 years']], wd.term_years)}</label>
+          <label class="f">Acceptable wait in the busiest hour${sel('wd-wait', [[0, 'No waiting'], [5, 'Up to 5 seconds'], [30, 'Up to 30 seconds'], [120, 'Up to 2 minutes'], [600, 'Up to 10 minutes']], wd.peak_wait_s)}</label>
+          <label class="f">Closed-model tier${sel('wd-tier', [['all', 'All tiers'], ['budget', 'Budget'], ['mid', 'Mid'], ['frontier', 'Frontier']], wd.closed_tier)}</label>
+          ${numF('wd-head', 'Headroom %', wd.headroom_pct)}${numF('wd-busy', 'Busy-hour share %', wd.busy_hour_share_pct)}${numF('wd-tps', 'Target tok/s per request', wd.target_output_tps_per_request)}${numF('wd-hours', 'On-demand hours / month', wd.cloud_active_hours_per_month)}
+          ${numF('wd-cache', 'API cached-input share %', wd.api_cache_hit_pct)}${numF('wd-batch', 'API batch share %', wd.api_batch_share_pct)}
+          <label class="row small"><input type="checkbox" id="wd-n1" ${wd.n_plus_one ? 'checked' : ''}> Add a spare server (N+1)</label>
+          <label class="row small"><input type="checkbox" id="wd-closed" ${wd.include_closed_models ? 'checked' : ''}> Show closed-model API reference</label>
+        </div>
+        <h3 style="font-size:15px;margin:16px 0 8px">API providers compared by default <span class="muted small" style="font-weight:400">(unticked = excluded)</span></h3>
+        ${checks('incl', providers.filter(p => !(wd.api_excluded || []).includes(p)))}
+      </div>
+      <div class="card"><div class="card-head"><h2>Operating assumptions</h2><button class="btn primary" data-dsave="op">Save assumptions</button></div>
+        <p class="small muted" style="margin:0 0 12px">Untick <b>placeholder</b> once a value has been reviewed: the confidence rating counts power load, support % and networking % as placeholders until then.</p>
+        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Area</th><th>Setting</th><th style="width:150px">Value</th><th>Placeholder</th><th>Source</th></tr></thead><tbody>
+        ${opRows.map((r, i) => `<tr><td class="small muted">${esc(r.lbl)}</td><td>${esc(nice(r.k))}</td><td><input type="number" step="any" data-op="${i}" value="${esc(r.w.value)}"></td><td><input type="checkbox" data-oph="${i}" ${r.w.status === 'placeholder' ? 'checked' : ''}></td><td class="small muted">${esc((r.w.source || '').slice(0, 110))}</td></tr>`).join('')}
+        </tbody></table></div></div>
+      <div class="card"><div class="card-head"><h2>Calculation and price-check rules</h2><button class="btn primary" data-dsave="ru">Save rules</button></div>
+        <div class="grid g4" style="gap:12px">
+          ${numF('ru-share', 'Hybrid: API share at least (%)', rules.hybrid_min_api_share_pct)}${numF('ru-usd', 'Hybrid: API spend at least ($/yr)', rules.hybrid_min_api_usd_per_year)}${numF('ru-save', 'Hybrid: must save at least (%)', rules.hybrid_min_savings_pct)}${numF('ru-hold', 'Hold price moves over (%)', rules.price_hold_threshold_pct)}
+          ${numF('ru-obw', 'Range, optimistic: bandwidth eff. %', (rules.range_optimistic || {}).bandwidth_efficiency_pct)}${numF('ru-omfu', 'Range, optimistic: compute eff. %', (rules.range_optimistic || {}).compute_efficiency_pct)}${numF('ru-old', 'Range, optimistic: power load %', (rules.range_optimistic || {}).load_factor_pct)}
+          ${numF('ru-pbw', 'Range, pessimistic: bandwidth eff. %', (rules.range_pessimistic || {}).bandwidth_efficiency_pct)}${numF('ru-pmfu', 'Range, pessimistic: compute eff. %', (rules.range_pessimistic || {}).compute_efficiency_pct)}${numF('ru-pld', 'Range, pessimistic: power load %', (rules.range_pessimistic || {}).load_factor_pct)}
+          <label class="f">Breakeven table usage levels (× today)<input type="text" id="ru-levels" value="${esc((rules.breakeven_usage_levels || []).join(', '))}"></label>
+        </div>
+        <h3 style="font-size:15px;margin:16px 0 8px">Always accept price moves from <span class="muted small" style="font-weight:400">(never held for review)</span></h3>
+        ${checks('auto', rules.price_auto_accept_providers || [])}
+      </div>`;
+    view.querySelectorAll('[data-dsave]').forEach(b => b.onclick = () => {
+      const d2 = TC.clone(TC.store.get('assumptions')), kind = b.dataset.dsave, n = id => { const x = $(id).value; return x === '' ? null : Number(x); };
+      if (kind === 'wd') {
+        const w2 = d2.workload_defaults;
+        Object.assign(w2, { model_id: $('#wd-model').value, term_years: Number($('#wd-term').value), peak_wait_s: Number($('#wd-wait').value), closed_tier: $('#wd-tier').value,
+          headroom_pct: n('#wd-head'), busy_hour_share_pct: n('#wd-busy'), target_output_tps_per_request: n('#wd-tps'), cloud_active_hours_per_month: n('#wd-hours'),
+          api_cache_hit_pct: n('#wd-cache'), api_batch_share_pct: n('#wd-batch'), n_plus_one: $('#wd-n1').checked, include_closed_models: $('#wd-closed').checked,
+          api_excluded: providers.filter(p => !view.querySelector(`[data-incl="${CSS.escape(p)}"]`).checked) });
+      } else if (kind === 'op') {
+        opRows.forEach((r, i) => {
+          const cur = d2[r.sec][r.k], val = Number(view.querySelector(`[data-op="${i}"]`).value), ph = view.querySelector(`[data-oph="${i}"]`).checked;
+          if (!isFinite(val)) return;
+          if (val !== cur.value || (cur.status === 'placeholder') !== ph) {
+            d2[r.sec][r.k] = Object.assign({}, cur, { value: val, status: ph ? 'placeholder' : 'estimate', as_of: TC.today(),
+              source: val !== cur.value ? `Set in the admin console${S.me ? ' by ' + S.me.login : ''} (was ${cur.value})` : (cur.source || '') + (ph ? '' : ' · reviewed in the admin console') });
+          }
+        });
+      } else {
+        const lv = $('#ru-levels').value.split(/[,\s]+/).map(Number).filter(x => x > 0).sort((x, y) => x - y);
+        if (!lv.includes(1)) lv.push(1), lv.sort((x, y) => x - y);
+        Object.assign(d2.rules, { hybrid_min_api_share_pct: n('#ru-share'), hybrid_min_api_usd_per_year: n('#ru-usd'), hybrid_min_savings_pct: n('#ru-save'), price_hold_threshold_pct: n('#ru-hold'),
+          range_optimistic: { bandwidth_efficiency_pct: n('#ru-obw'), compute_efficiency_pct: n('#ru-omfu'), load_factor_pct: n('#ru-old') },
+          range_pessimistic: { bandwidth_efficiency_pct: n('#ru-pbw'), compute_efficiency_pct: n('#ru-pmfu'), load_factor_pct: n('#ru-pld') },
+          breakeven_usage_levels: lv, price_auto_accept_providers: providers.filter(p => view.querySelector(`[data-auto="${CSS.escape(p)}"]`).checked) });
+      }
+      TC.store.setOverride('assumptions', d2);
+      toast('Saved as a pending change. Check <a href="#examples">Worked examples</a>, then <a href="#pending">publish</a>.');
+    });
+  };
+
+  // ---------------------------------------------------------------- versions & backup
+  pages.versions = function () {
+    view.innerHTML = `<div class="grid g2">
+      <div class="card"><div class="card-head"><h2>Known-good versions</h2></div>
+        <div class="row" style="flex-wrap:nowrap"><input type="text" id="tag-name" placeholder="Name, e.g. before-workshop-oct"><button class="btn primary" id="tag-make">Mark current as known-good</button></div>
+        <div id="tags" style="margin-top:12px"><div class="skel"></div></div></div>
+      <div class="card"><h2 style="margin-bottom:8px">How backups work</h2>
+        <ul class="steps small">
+          <li><b>Every publish is a saved version.</b> Nothing is ever overwritten: each change, by you, the price bot or a developer, is kept in the history below.</li>
+          <li><b>Restore data</b> puts only the data (prices, servers, models, assumptions, benchmarks) back to a version. <b>Roll back app</b> puts everything back, except this console and the daily price job, so you can always roll forward again.</li>
+          <li>A restore or rollback is itself a new version, so it can be undone the same way.</li>
+          <li><b>Download</b> gives a complete copy (app and data) of any version as a zip, for an offline backup or to hand to IT. The project folder also syncs to OneDrive.</li>
+        </ul>
+        <div class="row" style="margin-top:12px"><a class="btn" href="${esc(TC.repo.zipUrl())}">⬇ Download current version</a></div></div>
+    </div>
+    <div class="card"><div class="card-head"><h2>Versions</h2><div class="row"><button class="btn small" data-vh="">Everything</button><button class="btn small" data-vh="data">Data changes</button></div></div><div id="vers"><div class="skel"></div></div></div>`;
+    const loadTags = () => TC.repo.tags().then(ts => {
+      $('#tags').innerHTML = ts.length ? `<div class="list">${ts.map(t => `<div class="item"><span class="chip good">✓</span><div class="grow"><div class="t">${esc(t.name)}</div><div class="m">${t.date ? esc(when(t.date)) : ''} · ${esc(t.sha.slice(0, 7))}</div></div>
+        <div class="row" style="flex-wrap:nowrap"><a class="btn small" href="${esc(TC.repo.zipUrl(t.name))}">⬇</a><button class="btn small" data-rb="${t.sha}" data-rbl="${esc(t.name)}">Roll back to this</button></div></div>`).join('')}</div>`
+        : '<div class="empty">No known-good versions yet. Mark one before a big change or a customer workshop.</div>';
+    }).catch(e => { $('#tags').innerHTML = `<p class="muted small">${esc(e.message)}</p>`; });
+    const loadVers = path => { $('#vers').innerHTML = '<div class="skel"></div>'; TC.repo.history(30, path).then(list => {
+      $('#vers').innerHTML = `<div class="list">${list.map((c, i) => `<div class="item">${c.avatar ? `<img class="avatar" src="${esc(c.avatar)}" alt="">` : '<span class="avatar"></span>'}
+        <div class="grow"><div class="t">${esc(c.message.split('\n')[0])}</div><div class="m">${esc(c.author)} · ${esc(when(c.date))} · <a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.sha.slice(0, 7))}</a>${i === 0 && !path ? ' · <b>current</b>' : ''}</div></div>
+        ${i === 0 && !path ? '' : `<div class="row" style="flex-wrap:nowrap"><button class="btn small" data-rd="${c.sha}" data-rbl="${esc(c.message.split('\n')[0].slice(0, 60))}">Restore data</button><button class="btn small" data-rb="${c.sha}" data-rbl="${esc(c.message.split('\n')[0].slice(0, 60))}">Roll back app</button><a class="btn small" href="${esc(TC.repo.zipUrl(c.sha))}" title="Download this version">⬇</a></div>`}</div>`).join('')}</div>`;
+    }).catch(e => { $('#vers').innerHTML = `<p class="muted">${esc(e.message)}</p>`; }); };
+    loadTags(); loadVers('');
+    view.querySelectorAll('[data-vh]').forEach(b => b.onclick = () => loadVers(b.dataset.vh));
+    $('#tag-make').onclick = e => { if (needToken()) return; const nm = $('#tag-name').value.trim().toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^-|-$/g, '');
+      if (!nm) { toast('Give the version a short name.', true); return; }
+      busy(e.currentTarget, async () => { await TC.repo.createTag(`good-${TC.today()}-${nm}`); toast('Marked as known-good.'); $('#tag-name').value = ''; loadTags(); }); };
+  };
+  // Restore / roll back buttons (attached once; the Versions page re-renders inside #view).
+  view.addEventListener('click', async e => {
+      if (S.page !== 'versions') return;
+      const b = e.target.closest('[data-rd],[data-rb]'); if (!b || needToken()) return;
+      const data = !!b.dataset.rd, sha = b.dataset.rd || b.dataset.rb;
+      const ok = await confirmBox(data ? 'Restore the data to this version?' : 'Roll the app back to this version?',
+        `<p><b>${esc(b.dataset.rbl)}</b> (${esc(sha.slice(0, 7))})</p><p class="small">${data ? 'Prices, servers, models, assumptions and benchmarks go back to how they were at this version. The app itself is unchanged.' : 'The calculator, guides and data go back to this version. This console and the daily price job stay current.'} This is saved as a new version, so you can undo it from this page. Unpublished changes in this browser are not affected.</p>`, data ? 'Restore data' : 'Roll back');
+      if (!ok) return;
+      busy(b, async () => {
+        const r = await TC.repo.restore(sha, data ? 'data' : 'all', `${data ? 'Restore data to' : 'Roll back app to'} ${sha.slice(0, 7)}: ${b.dataset.rbl} (admin console${S.me ? ', ' + S.me.login : ''})`);
+        if (r.unchanged) { toast('Nothing to change: that version matches what is live.'); return; }
+        await loadAll(); pages.versions();
+        toast(`${data ? 'Data restored' : 'App rolled back'}. The site updates within a few minutes. <a href="${esc(r.url)}" target="_blank" rel="noopener">View change</a>`);
+      });
+  });
 
   function renderWho() {
     const el = $('#who');

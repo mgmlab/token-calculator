@@ -33,6 +33,12 @@
     low: { bw: 85, mfu: 55, load: 60 },
     high: { bw: 55, mfu: 30, load: 85 },
   };
+  /** Range cases from the data's rules (admin console → Defaults & rules), else the built-in values above. */
+  TC.rangeCases = function (data) {
+    const r = (data && data.assumptions && data.assumptions.rules) || {}, o = r.range_optimistic, p = r.range_pessimistic;
+    if (!o || !p) return TC.RANGE_CASES;
+    return { low: { bw: o.bandwidth_efficiency_pct, mfu: o.compute_efficiency_pct, load: o.load_factor_pct }, high: { bw: p.bandwidth_efficiency_pct, mfu: p.compute_efficiency_pct, load: p.load_factor_pct } };
+  };
   /** Low/high cases: optimistic vs pessimistic values for the uncertain inputs (throughput efficiency, placeholder power load). */
   function variants(data) {
     const mk = (bw, mfu, load) => {
@@ -42,7 +48,7 @@
       if (d.assumptions.power.load_factor_pct.status === 'placeholder') d.assumptions.power.load_factor_pct.value = load;
       return d;
     };
-    const L = TC.RANGE_CASES.low, H = TC.RANGE_CASES.high;
+    const RC = TC.rangeCases(data), L = RC.low, H = RC.high;
     return { low: mk(L.bw, L.mfu, L.load), high: mk(H.bw, H.mfu, H.load) };
   }
 

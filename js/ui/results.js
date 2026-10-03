@@ -276,7 +276,7 @@
     const x = TC.lastExec, rng = k === 'onprem' ? x.onRange : x.clRange;
     if (!rng || !rng.cases) return '';
     const { low, central, high } = rng.cases;
-    const a = TC.lastResults.data.assumptions, RC = TC.RANGE_CASES, yrs = TC.lastResults.w.term_years;
+    const a = TC.lastResults.data.assumptions, RC = TC.rangeCases(TC.lastResults.data), yrs = TC.lastResults.w.term_years;
     const cols = [low, central, high];
     const usd = n => f.usd(n);
     const theory = central.basis === 'theoretical';

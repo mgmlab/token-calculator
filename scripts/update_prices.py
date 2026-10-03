@@ -404,6 +404,13 @@ def main():
     now = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%MZ')
 
     models = json.load(open(os.path.join(DATA, 'models.json'), encoding='utf-8'))
+    try:
+        rules = json.load(open(os.path.join(DATA, 'assumptions.json'), encoding='utf-8')).get('rules', {})
+    except (OSError, ValueError):
+        rules = {}
+    max_change = (rules.get('price_hold_threshold_pct') or MAX_CHANGE * 100) / 100
+    # Providers whose moves are always applied (OpenRouter's routed price swings daily, so holding it is noise).
+    auto_accept = set(rules.get('price_auto_accept_providers', []))
     gpus = json.load(open(os.path.join(DATA, 'gpus.json'), encoding='utf-8'))
 
     loaded, status = {}, {}
@@ -440,10 +447,11 @@ def main():
             if old == val:
                 continue
             name = f'{label} / {NICE.get(key, key)}'
-            if isinstance(old, (int, float)) and old > 0 and abs(val - old) / old > MAX_CHANGE and not force:
+            auto = bool(loc) and (loc.get('match') or {}).get('provider') in auto_accept
+            if isinstance(old, (int, float)) and old > 0 and abs(val - old) / old > max_change and not force and not auto:
                 if (json.dumps(loc, sort_keys=True), key, val) in rej:
                     continue  # rejected before in the admin console
-                review.append(f'{name}: {old} → {val} (not applied; over {int(MAX_CHANGE * 100)}% change)')
+                review.append(f'{name}: {old} → {val} (not applied; over {int(max_change * 100)}% change)')
                 review_items.append({'text': name, 'loc': loc, 'key': key, 'old': old, 'new': val,
                                      'source': src_text, 'status': extra_status or 'estimate'})
                 continue

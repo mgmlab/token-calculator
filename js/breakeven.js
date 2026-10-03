@@ -35,7 +35,8 @@
    */
   TC.breakevenTable = function (data, w, mults) {
     const cheap = rows => rows.filter(r => r.feasible && isFinite(r.monthly)).sort((a, b) => a.monthly - b.monthly)[0] || null;
-    return (mults || [0.25, 0.5, 1, 2, 5, 10, 25, 50]).map(k => {
+    const lv = data.assumptions && data.assumptions.rules && data.assumptions.rules.breakeven_usage_levels;
+    return (mults || (Array.isArray(lv) && lv.length ? lv : [0.25, 0.5, 1, 2, 5, 10, 25, 50])).map(k => {
       const wk = Object.assign({}, w, { users: w.users * k });
       if (w.peak_concurrency_mode !== 'derived') wk.peak_concurrent_requests = Math.max(1, Math.ceil(w.peak_concurrent_requests * k));
       const r = TC.computeAll(data, wk);
