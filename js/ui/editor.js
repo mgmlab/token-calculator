@@ -68,6 +68,20 @@
     return recs ? recs[st.sel] : st.work;
   }
 
+  // A quiet confirmation after each edit, so you don't have to scroll up to the banner to know it stuck.
+  let toastEl = null, toastTimer = null;
+  function savedToast() {
+    if (!toastEl) {
+      toastEl = document.createElement('div');
+      toastEl.className = 'save-toast';
+      toastEl.setAttribute('role', 'status');
+      document.body.appendChild(toastEl);
+    }
+    toastEl.innerHTML = '✓ Saved in this browser <span>· only you see it until the file is exported</span>';
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2200);
+  }
   const tracked = new Set();
   function save() {
     if (!tracked.has(st.name)) { tracked.add(st.name); TC.track('edit-' + st.name, 'Edited ' + st.name + ' in Data editor'); }
@@ -360,6 +374,7 @@
         else parent[key] = t.value;
         if (t.classList.contains('st-sel')) t.className = 'st-sel st-' + t.value;
         if (save()) pendingHeader = true;
+        savedToast();
       });
       // Refresh the header (override notice, tab dot) once the first edit is committed.
       el.addEventListener('change', e => { if (pendingHeader || (st.name === 'benchmarks' && e.target.dataset.path)) { pendingHeader = false; render(el); } });

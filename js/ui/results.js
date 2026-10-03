@@ -137,6 +137,10 @@
     : '<td></td>';
   const moneyCols = [{ label: 'Monthly', num: true }, { label: 'Per year', num: true }, { label: 'Total over term', num: true }, { label: '$ / 1M tokens', num: true }];
 
+  // "Try" text marks fields as [[label|key]] (a Workload profile input) or [[label|@dataset:path]] (Data editor);
+  // each becomes a link that takes you to that field.
+  const tryHtml = t => esc(t).replace(/\[\[([^|\]]+)\|([^\]]+)\]\]/g, (m, label, key) => `<button type="button" class="try-link" data-goto="${key}" title="Go to this setting">${label}</button>`);
+
   TC.renderResults = function (el, res, w, data) {
     const wl = res.wl;
     const model = data.models.models.find(m => m.id === w.model_id);
@@ -151,7 +155,7 @@
       notes.push("<strong>Utilization:</strong> " + esc(`Self-hosted capacity is only ${f.num(bestOn.util * 100, 1)}% utilized on average (sized for peak concurrency of ${f.int(w.peak_concurrent_requests)}). Fully utilized, the lowest-cost on-prem option would be ${f.perM(bestOn.perMFull)} per 1M tokens instead of ${f.perM(bestOn.perM)}. Utilization — not hardware price — is usually what decides on-prem vs API.`));
     }
     const exm = TC.activeExample && TC.activeExample();
-    let h = exm ? `<div class="ex-note" role="note"><div><strong>Example: ${esc(exm.name)}.</strong> ${esc(exm.note)} <span class="ex-try"><b>Try:</b> ${esc(exm.try)}</span></div>
+    let h = exm ? `<div class="ex-note" role="note"><div><strong>Example: ${esc(exm.name)}.</strong> ${esc(exm.note)} <span class="ex-try"><b>Try:</b> ${tryHtml(exm.try)}</span></div>
       <button type="button" class="ex-close" data-ex-dismiss aria-label="Hide this explanation">×</button></div>` : '';
     h += execCard(data, w, res, notes);
 
@@ -309,7 +313,7 @@
       : 'Price and power only vary while they are placeholders; a real quote or measured value removes that part of the range.';
     const speedNote = theory ? ' Speed is a theoretical estimate (share of peak memory bandwidth / compute the GPU achieves); a measured benchmark for this GPU and model replaces it.' : '';
     return `<div class="rp-head"><strong>How this range is worked out: ${esc(central.name)} · ${esc(central.sub)}</strong><button type="button" class="rp-close" data-range-close aria-label="Close">×</button></div>
-      <p class="muted small">The same option, recalculated with optimistic and pessimistic values for the inputs that are still uncertain. ${extra}${speedNote}</p>
+      <p class="muted small">The same option, recalculated with optimistic and pessimistic values for the inputs that are still uncertain, so the range is how far this one option's cost could move, not a cheaper option. ${extra}${speedNote}</p>
       <div class="table-wrap"><table class="results-table compact rp-table"><thead>${head}</thead><tbody>${whatRows ? `<tr class="rp-sec"><th colspan="4">What changes</th></tr>${whatRows}<tr class="rp-sec"><th colspan="4">Resulting cost</th></tr>` : ''}${body}</tbody></table></div>`;
   }
 
@@ -468,6 +472,8 @@
       const jb = e.target.closest('[data-jump]');
       if (jb) { jumpTo(el, rerender, ...jb.dataset.jump.split('|')); return; }
       if (e.target.closest('[data-ex-dismiss]')) { TC.dismissExample(); return; }
+      const go = e.target.closest('[data-goto]');
+      if (go) { TC.track('try-link', 'Followed a Try link'); TC.gotoField(go.dataset.goto); return; }
       const ed = e.target.closest('[data-edit]');
       if (ed) {
         const [ds, id, path] = ed.dataset.edit.split('|');

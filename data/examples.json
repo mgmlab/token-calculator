@@ -6,7 +6,7 @@
       "name": "Pilot: employee copilot, 500 users",
       "summary": "Low volume: owned GPUs would sit about 1% busy.",
       "note": "A pilot this size cannot keep even one server busy, and owned hardware is paid for around the clock whether it is used or not. Paying per token follows actual usage.",
-      "try": "Raise Users to 20,000. It still favors the API: office-hours traffic leaves owned GPUs idle overnight and on weekends.",
+      "try": "Raise [[Users|users]] to 20,000. It still favors the API: office-hours traffic leaves owned GPUs idle overnight and on weekends.",
       "workload": {
         "preset": "employee_copilot",
         "users": 500,
@@ -28,7 +28,7 @@
       "name": "Company-wide copilot, approved API providers only",
       "summary": "20,000 users; only providers the customer has approved are compared.",
       "note": "Leaving out the lowest-cost routed provider raises the per-token price enough that owning a baseline for the steady daytime load and sending busy-hour overflow to an approved API becomes cheapest.",
-      "try": "Under Advanced settings → API providers to compare, tick OpenRouter back on. The answer flips to paying per token.",
+      "try": "Under Advanced settings → [[API providers to compare|api_excluded]], tick OpenRouter back on. The answer flips to paying per token.",
       "workload": {
         "preset": "employee_copilot",
         "users": 20000,
@@ -52,7 +52,7 @@
       "name": "24/7 contact center, 2,000 agents",
       "summary": "Steady traffic every day of the month keeps owned GPUs busy.",
       "note": "With demand spread across every day and most hours, owned servers stay busy enough to beat paying per token. The Hybrid box shows a mix would send only a sliver of tokens to an API, too little to be worth running two platforms.",
-      "try": "Set Active days per month to 21.7 and Busy-hour share to 15% (office hours only). Utilization drops and paying per token becomes cheaper.",
+      "try": "Set [[Active days per month|active_days_per_month]] to 21.7 and [[Busy-hour share|busy_hour_share_pct]] to 15% (office hours only). Utilization drops and paying per token becomes cheaper.",
       "workload": {
         "preset": "contact_center",
         "users": 2000,
@@ -76,7 +76,7 @@
       "name": "Software development assistant, 5,000 developers",
       "summary": "Long prompts (6,000 tokens) and fast responses (40 tokens/sec) raise the hardware needed.",
       "note": "GPU memory for long contexts, not raw speed, sets how many servers are needed. Owning most of the capacity and sending the overflow to an API is cheapest.",
-      "try": "Lower Avg input tokens to 2,000 (smaller context per request). Far fewer servers are needed for the same users, and every option gets much cheaper.",
+      "try": "Lower [[Avg input tokens|avg_input_tokens]] to 2,000 (smaller context per request). Far fewer servers are needed for the same users, and every option gets much cheaper.",
       "workload": {
         "preset": "coding_assistant",
         "users": 5000,
@@ -100,7 +100,7 @@
       "name": "Continuous document processing (schedulable batch)",
       "summary": "Queued work spread evenly across 24 hours keeps GPUs about half busy.",
       "note": "Work that is not latency-sensitive can be queued and spread across available capacity instead of arriving in an interactive peak. High, steady utilization makes owning cheapest even against discounted batch API pricing.",
-      "try": "Set Busy-hour share to 15% (an interactive, office-hours peak). Owning for that peak gets expensive and a hybrid mix wins.",
+      "try": "Set [[Busy-hour share|busy_hour_share_pct]] to 15% (an interactive, office-hours peak). Owning for that peak gets expensive and a hybrid mix wins.",
       "workload": {
         "preset": "batch_inference",
         "users": 5000,
@@ -124,7 +124,7 @@
       "name": "Small batch workload that will grow",
       "summary": "The same queued work at a much smaller volume: paying per token is slightly cheaper today.",
       "note": "Even the smallest server would be lightly used at this volume, so paying per token edges it out. Owning catches up at a few times today's volume; the Breakeven tab shows where the lines cross.",
-      "try": "Raise Users to 400 (about 2.5× today) and watch the result cross over to owning.",
+      "try": "Raise [[Users|users]] to 400 (about 2.5× today) and watch the result cross over to owning.",
       "workload": {
         "preset": "batch_inference",
         "users": 150,
@@ -148,7 +148,7 @@
       "name": "Dedicated GPUs, no data center",
       "summary": "Dedicated GPUs required; owning includes colocation and operations staff.",
       "note": "Every API provider is left out because the model must run on dedicated GPUs. Owning adds colocation and half an engineer. Rented GPUs still need about a quarter of an engineer for model serving, drivers and monitoring, but no facility or hardware lifecycle.",
-      "try": "In Data editor → Assumptions, set onprem ops_fte to 0 and untick colo_enabled (the customer already has a data center and a team). Owning becomes cheaper.",
+      "try": "In Data editor → Assumptions, set [[onprem ops_fte|@assumptions:onprem.ops_fte]] to 0 and untick [[colo_enabled|@assumptions:onprem.colo_enabled]] (the customer already has a data center and a team). Owning becomes cheaper.",
       "workload": {
         "preset": "employee_copilot",
         "users": 20000,

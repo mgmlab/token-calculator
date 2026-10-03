@@ -141,7 +141,7 @@
   TC.rangeNote = r => {
     if (!r) return '';
     const a = r.min * 12, b = r.max * 12;
-    return Math.abs(b - a) / Math.max(a, 1) < 0.03 ? '' : `Range ${f.usdCompact(a)}–${f.usdCompact(b)}/yr with optimistic or pessimistic inputs`;
+    return Math.abs(b - a) / Math.max(a, 1) < 0.03 ? '' : `Range ${f.usdCompact(a)}–${f.usdCompact(b)}/yr`;
   };
   TC.fmtRangeYear = (r, point) => {
     if (!r) return f.usdCompact(point * 12);

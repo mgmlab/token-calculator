@@ -104,6 +104,24 @@
   const FIELDS = {};
   GROUPS.forEach(g => g.fields.forEach(fd => { FIELDS[fd.k] = fd; }));
   let tipEl = null, pinned = null, hideTimer = null;
+  /** Scrolls to a Workload profile input (opening Advanced settings if needed) and highlights it; "@ds:path" opens the Data editor. */
+  TC.gotoField = function (key) {
+    if (key.charAt(0) === '@') {
+      const [ds, path] = key.slice(1).split(':');
+      TC.showTab('data');
+      TC.editor.open(ds, null, path);
+      return;
+    }
+    TC.showTab('compare');
+    const f = document.querySelector(`.inputs [data-field="${key}"]`);
+    if (!f) return;
+    const adv = f.closest('details');
+    if (adv && !adv.open) adv.open = true;
+    f.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    f.classList.remove('field-flash'); void f.offsetWidth; f.classList.add('field-flash');
+    const ctl = f.querySelector('input:not([type=checkbox]), select') || f.querySelector('input');
+    if (ctl) setTimeout(() => ctl.focus({ preventScroll: true }), 350);
+  };
   TC.inputTip = k => (FIELDS[k] ? FIELDS[k].tip : null);
   function tipShow(btn) {
     // Data editor fields carry data-help-key; workload inputs carry data-tip.
@@ -217,13 +235,13 @@
         const val = w[fd.k];
         let ctl;
         if (fd.type === 'checkbox') {
-          return `<div class="field check"><input type="checkbox" id="${id}" data-k="${fd.k}" ${val ? 'checked' : ''}><label for="${id}">${esc(fd.label)}</label>${tipBtn(fd)}</div>`;
+          return `<div class="field check" data-field="${fd.k}"><input type="checkbox" id="${id}" data-k="${fd.k}" ${val ? 'checked' : ''}><label for="${id}">${esc(fd.label)}</label>${tipBtn(fd)}</div>`;
         }
         if (fd.type === 'providers') {
           const md = (TC.store.get('models') || { models: [] }).models;
           const provs = [...new Set(md.flatMap(m => (m.api_prices || []).map(p => p.provider)))].sort((a, b) => a.localeCompare(b));
           const ex = new Set(val || []);
-          return `<div class="field"><div class="field-label"><label>${esc(fd.label)}</label>${tipBtn(fd)}</div>
+          return `<div class="field" data-field="${fd.k}"><div class="field-label"><label>${esc(fd.label)}</label>${tipBtn(fd)}</div>
             <div class="prov-list">${provs.map(p => `<label class="check"><input type="checkbox" data-provider="${esc(p)}" ${ex.has(p) ? '' : 'checked'}> ${esc(p)}</label>`).join('')}</div>
             <small>${ex.size ? `${ex.size} excluded · <button type="button" class="linkish" data-act="prov-all">include all</button>` : 'All providers included'}</small></div>`;
         }
@@ -248,7 +266,7 @@
           ctl = `<input type="number" id="${id}" data-k="${fd.k}" value="${esc(val)}" ${fd.min != null ? `min="${fd.min}"` : ''} ${fd.max != null ? `max="${fd.max}"` : ''} step="${fd.step || 1}" ${locked ? 'readonly class="derived" title="Calculated from the traffic pattern — switch Peak concurrency to manual to edit"' : ''}>`;
         }
         if (fd.only && w.peak_concurrency_mode !== fd.only) return '';
-        return `<div class="field"><div class="field-label"><label for="${id}">${esc(fd.label)}</label>${tipBtn(fd)}</div>${ctl}${fd.hint ? `<small>${esc(fd.hint)}</small>` : ''}</div>`;
+        return `<div class="field" data-field="${fd.k}"><div class="field-label"><label for="${id}">${esc(fd.label)}</label>${tipBtn(fd)}</div>${ctl}${fd.hint ? `<small>${esc(fd.hint)}</small>` : ''}</div>`;
       };
 
       el.innerHTML = `<form class="inputs-form" onsubmit="return false">
