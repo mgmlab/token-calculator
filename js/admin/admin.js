@@ -18,7 +18,6 @@
     settings: ['Settings', 'Connect this browser so it can publish changes.'],
   };
   const NAMES = ['models', 'gpus', 'servers', 'benchmarks', 'assumptions'];
-  const LIST = { models: 'models', gpus: 'gpus', servers: 'servers', benchmarks: 'benchmarks' };
   const S = { status: null, me: null, page: 'overview', examples: [] };
 
   // ---------------------------------------------------------------- helpers
@@ -180,28 +179,31 @@
       `<p><b>${esc(it.text)}</b></p><p>${esc(it.old)} → <b>${esc(it.new)}</b></p><p class="small">${accept ? 'The new price is applied for everyone and the calculator republishes in a minute or two.' : 'The current price stays. The daily check won’t hold this same change again.'}</p>`, accept ? 'Accept and publish' : 'Reject');
     if (!ok) return;
     await busy(btn, async () => {
-      const files = [];
-      const status = await TC.repo.readJson('data/price-status.json');
-      const same = x => x.text === it.text && x.key === it.key && x.new === it.new;
-      status.review_items = (status.review_items || []).filter(x => !same(x));
-      status.needs_review = (status.needs_review || []).filter(t => !t.startsWith(it.text + ':'));
-      if (accept) {
-        const path = `data/${it.loc.dataset}.json`, data = await TC.repo.readJson(path);
-        const rec = (data[it.loc.dataset] || []).find(r => r.id === it.loc.id);
-        const row = rec && (rec[it.loc.list] || []).find(r => Object.entries(it.loc.match).every(([k, val]) => r[k] === val));
-        if (!row) throw new Error('Could not find that price in the data any more; run a price check again.');
-        const ks = it.key.split('.'); let p = row;
-        ks.slice(0, -1).forEach(k => { p = p[k] = p[k] || {}; });
-        p[ks[ks.length - 1]] = { value: it.new, source: it.source, as_of: TC.today(), status: it.status || 'estimate' };
-        files.push({ path, json: data });
-        status.changed = (status.changed || []).concat([`${it.text}: ${it.old} → ${it.new} (accepted in the admin console)`]);
-      } else {
-        const dec = await TC.repo.readJson('data/price-review-decisions.json').catch(() => ({ rejected: [] }));
-        dec.rejected = (dec.rejected || []).concat([{ text: it.text, loc: it.loc, key: it.key, old: it.old, new: it.new, date: TC.today(), by: S.me ? S.me.login : '' }]);
-        files.push({ path: 'data/price-review-decisions.json', json: dec });
-      }
-      files.push({ path: 'data/price-status.json', json: status });
-      const r = await TC.repo.commit(files, `${accept ? 'Accept' : 'Reject'} held price: ${it.text} ${it.old} → ${it.new} (admin console${S.me ? ', ' + S.me.login : ''})`);
+      let status;
+      const r = await TC.repo.update(async read => {
+        const files = [];
+        status = await read('data/price-status.json');
+        const same = x => x.text === it.text && x.key === it.key && x.new === it.new;
+        status.review_items = (status.review_items || []).filter(x => !same(x));
+        status.needs_review = (status.needs_review || []).filter(t => !t.startsWith(it.text + ':'));
+        if (accept) {
+          const path = `data/${it.loc.dataset}.json`, data = await read(path);
+          const rec = (data[it.loc.dataset] || []).find(r => r.id === it.loc.id);
+          const row = rec && (rec[it.loc.list] || []).find(r => Object.entries(it.loc.match).every(([k, val]) => r[k] === val));
+          if (!row) throw new Error('Could not find that price in the data any more; run a price check again.');
+          const ks = it.key.split('.'); let p = row;
+          ks.slice(0, -1).forEach(k => { p = p[k] = p[k] || {}; });
+          p[ks[ks.length - 1]] = { value: it.new, source: it.source, as_of: TC.today(), status: it.status || 'estimate' };
+          files.push({ path, json: data });
+          status.changed = (status.changed || []).concat([`${it.text}: ${it.old} → ${it.new} (accepted in the admin console)`]);
+        } else {
+          const dec = await read('data/price-review-decisions.json').catch(() => ({ rejected: [] }));
+          dec.rejected = (dec.rejected || []).concat([{ text: it.text, loc: it.loc, key: it.key, old: it.old, new: it.new, date: TC.today(), by: S.me ? S.me.login : '' }]);
+          files.push({ path: 'data/price-review-decisions.json', json: dec });
+        }
+        files.push({ path: 'data/price-status.json', json: status });
+        return files;
+      }, `${accept ? 'Accept' : 'Reject'} held price: ${it.text} ${it.old} → ${it.new} (admin console${S.me ? ', ' + S.me.login : ''})`);
       S.status = status; counts(); pages.prices();
       toast(`${accept ? 'Accepted' : 'Rejected'}. <a href="${esc(r.url)}" target="_blank" rel="noopener">View change</a>`);
     });
@@ -262,12 +264,11 @@
     await busy(btn, async () => {
       const patch = TC.store.dataPatch();
       if (!patch) { toast('Nothing to publish.'); return; }
-      const files = [];
-      for (const n of Object.keys(patch)) {
-        const latest = await TC.repo.readJson(`data/${n}.json`);  // merge onto the newest shared copy, not the one this browser loaded
-        files.push({ path: `data/${n}.json`, json: clean(TC.patchDataset(n, latest, patch[n])) });
-      }
-      const r = await TC.repo.commit(files, `${note} (admin console${S.me ? ', ' + S.me.login : ''})`);
+      // Only the values edited in this browser are written, merged onto the newest shared copy, so anything the
+      // price job changed since this page loaded (even in the same record) is kept.
+      const r = await TC.repo.update(read => Promise.all(Object.keys(patch).map(async n => ({
+        path: `data/${n}.json`, json: clean(TC.merge3(TC.store.defaults[n], TC.store.get(n), await read(`data/${n}.json`))),
+      }))), `${note} (admin console${S.me ? ', ' + S.me.login : ''})`);
       Object.keys(patch).forEach(n => TC.store.reset(n));
       await loadAll(); pages.pending();
       toast(`Published. The calculator updates within a few minutes. <a href="${esc(r.url)}" target="_blank" rel="noopener">View change</a>`);

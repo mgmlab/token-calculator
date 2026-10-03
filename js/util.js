@@ -37,6 +37,7 @@
   };
 
   TC.BYTES_PER_PARAM = { FP16: 2, BF16: 2, FP8: 1, INT4: 0.5 };
+  TC.HOURS_PER_MONTH = 730;  // 8,760 h ÷ 12: an always-on month
 
   TC.ceil = Math.ceil;
   TC.clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));

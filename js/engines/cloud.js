@@ -33,7 +33,7 @@
     const model = data.models.models.find(m => m.id === w.model_id);
     const rows = [];
     if (!model || !model.self_hostable) return rows;
-    const hpm = data.assumptions.cloud.hours_per_month || 730;
+    const hpm = data.assumptions.cloud.hours_per_month || TC.HOURS_PER_MONTH;
     const months = 12 * w.term_years;
 
     data.gpus.gpus.forEach(gpu => {
@@ -69,9 +69,9 @@
           const perM = total / (wl.tTerm / 1e6);
           steps.push(S('$ per million tokens', `${f.usd(total)} ÷ ${f.tokens(wl.tTerm)} tokens × 1M`, perM, 'USD/M'));
           const u = TC.utilization(c, gpi, wl);
-          if (kind === 'ondemand') u.util = Math.min(1, u.util * 730 / Math.max(hours, 1));
+          if (kind === 'ondemand') u.util = Math.min(1, u.util * TC.HOURS_PER_MONTH / Math.max(hours, 1));
           u.steps.forEach(s => steps.push(s));
-          if (kind === 'ondemand') steps.push(S('Utilization while running', `× 730 ÷ ${f.num(hours)} active hours`, u.util * 100, '%'));
+          if (kind === 'ondemand') steps.push(S('Utilization while running', `× ${TC.HOURS_PER_MONTH} ÷ ${f.num(hours)} active hours`, u.util * 100, '%'));
           const flags = [...sizing.flags, ...c.flags];
           if (kind === 'ondemand') flags.push('On-demand capacity for high-end GPUs is not guaranteed; excludes storage, egress and data-transfer charges.');
           if (kind === 'reserved') flags.push(...rsv.flags);

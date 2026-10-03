@@ -47,6 +47,7 @@
 
   function pricePopover() {
     const esc = TC.esc, ps = TC.priceStatus;
+    const hold = TC.v(((TC.store.get('assumptions') || {}).rules || {}).price_hold_threshold_pct) || 50;
     const list = (title, items, cls) => items && items.length
       ? `<section class="ovr-ds"><strong>${title}</strong><ul class="ovr-list ${cls || ''}">${items.slice(0, 12).map(x => `<li>${esc(x)}</li>`).join('')}${items.length > 12 ? `<li class="muted">and ${items.length - 12} more</li>` : ''}</ul></section>` : '';
     const src = Object.entries(ps.sources || {}).map(([n, v]) =>
@@ -55,11 +56,11 @@
         <span class="muted small">API and GPU rental prices are refreshed every day from supported public pricing sources. Last check: ${esc(new Date(ps.checked_at.replace('Z', ':00Z')).toLocaleString())}. Server and GPU purchase prices are updated by hand.</span></div>
       <section class="ovr-ds"><strong>Sources</strong><ul class="ovr-list">${src}</ul></section>
       ${list('Changed in the last check', ps.changed)}
-      ${list('Held for review (moved more than 50%)', ps.needs_review)}
+      ${list(`Held for review (moved more than ${hold}%)`, ps.needs_review)}
       ${list('Could not be read (left unchanged)', [...(ps.sources_failed || []), ...(ps.problems || [])])}
       ${list('Manual rows (no automatic source)', ps.manual_rows)}
       ${list('Worked examples whose result changed (update data/examples.json and the workshop playbook)', ((ps.examples && ps.examples.mismatches) || []).map(m => `${m.name}: expected ${m.expected}, now ${m.got}`))}
-      ${ps.needs_review && ps.needs_review.length ? '<p class="muted small">To accept held changes: GitHub → Actions → Update prices (daily) → Run workflow, with "force" ticked.</p>' : ''}`;
+      ${ps.needs_review && ps.needs_review.length ? '<p class="muted small">Held changes are accepted or rejected in the admin console (Prices page).</p>' : ''}`;
   }
 
   function wirePopover(wrap, render) {

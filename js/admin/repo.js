@@ -8,6 +8,8 @@
  *   TC.repo.whoami()              -> { login, name, avatar, canWrite }
  *   TC.repo.readJson(path)        -> latest committed JSON (not the possibly-cached published copy)
  *   TC.repo.commit(files, msg)    -> one commit with every file in [{ path, json }]
+ *   TC.repo.update(build, msg)    -> read-modify-write as one commit: build(read) returns the files, where read(path)
+ *                                    reads the version the commit is based on; retried if someone else commits first
  *   TC.repo.history(n, path)      -> recent changes [{ sha, message, author, date, url }]
  *   TC.repo.runPriceCheck()       -> start the daily price job now
  *   TC.repo.priceRuns(n)          -> recent price-job runs [{ status, conclusion, created, url }]
@@ -45,6 +47,7 @@
       const msg = (json && json.message) || res.statusText;
       const err = new Error(res.status === 401 ? 'The access token was rejected (expired or mistyped). Paste a new one under Settings.'
         : res.status === 403 && /rate limit/i.test(msg) ? 'GitHub’s hourly limit for unsigned requests was reached. Add your access token under Settings.'
+        : res.status === 422 && /fast.?forward/i.test(msg) ? 'Someone else published a change at the same moment. Refresh and try again.'
         : res.status === 403 || res.status === 404 ? `GitHub refused the request (${msg}). Check the token has access to ${CFG.owner}/${CFG.repo} with Contents and Actions set to “Read and write”.`
         : `GitHub error ${res.status}: ${msg}`);
       err.status = res.status;
@@ -68,25 +71,40 @@
       return { login: u.login, name: u.name || u.login, avatar: u.avatar_url, canWrite: !!(r.permissions && (r.permissions.push || r.permissions.admin)) };
     },
 
-    async readJson(path) {
-      const f = await api(`${R()}/contents/${path}?ref=${CFG.branch}`);
+    async readJson(path, ref) {
+      const f = await api(`${R()}/contents/${path}?ref=${ref || CFG.branch}`);
       return JSON.parse(b64decode(f.content));
     },
 
-    /** One commit containing every file, so a publish is all-or-nothing and appears as a single entry in the history. */
-    async commit(files, message) {
-      const ref = await api(`${R()}/git/ref/heads/${CFG.branch}`);
-      const head = await api(`${R()}/git/commits/${ref.object.sha}`);
-      const tree = await api(`${R()}/git/trees`, { method: 'POST', body: {
-        base_tree: head.tree.sha,
-        tree: files.map(f => ({ path: f.path, mode: '100644', type: 'blob', content: typeof f.json === 'string' ? f.json : JSON.stringify(f.json, null, 2) + '\n' })),
-      } });
-      const commit = await api(`${R()}/git/commits`, { method: 'POST', body: { message, tree: tree.sha, parents: [ref.object.sha] } });
-      await api(`${R()}/git/refs/heads/${CFG.branch}`, { method: 'PATCH', body: { sha: commit.sha } });
-      // Publishing to Pages from a token-made commit can lag; ask for a build (ignored if not allowed).
-      api(`${R()}/pages/builds`, { method: 'POST' }).catch(() => {});
-      return { sha: commit.sha, url: `https://github.com/${CFG.owner}/${CFG.repo}/commit/${commit.sha}` };
+    /**
+     * Read-modify-write as one commit, so a publish is all-or-nothing and appears as a single entry in the history.
+     * The files are built from the exact version the commit sits on top of. If someone else (usually the daily price
+     * job) commits in between, GitHub refuses the branch update as not a fast-forward; the files are then rebuilt
+     * from the newer version and the commit is retried, so their change is never overwritten.
+     */
+    async update(build, message) {
+      for (let attempt = 1; ; attempt++) {
+        const ref = await api(`${R()}/git/ref/heads/${CFG.branch}`), parent = ref.object.sha;
+        const files = await build(path => TC.repo.readJson(path, parent));
+        const head = await api(`${R()}/git/commits/${parent}`);
+        const tree = await api(`${R()}/git/trees`, { method: 'POST', body: {
+          base_tree: head.tree.sha,
+          tree: files.map(f => ({ path: f.path, mode: '100644', type: 'blob', content: typeof f.json === 'string' ? f.json : JSON.stringify(f.json, null, 2) + '\n' })),
+        } });
+        const commit = await api(`${R()}/git/commits`, { method: 'POST', body: { message, tree: tree.sha, parents: [parent] } });
+        try {
+          await api(`${R()}/git/refs/heads/${CFG.branch}`, { method: 'PATCH', body: { sha: commit.sha, force: false } });
+        } catch (e) {
+          if (e.status === 422 && attempt < 3) continue;  // the branch moved: rebuild on top of the newer version
+          throw e;
+        }
+        // Publishing to Pages from a token-made commit can lag; ask for a build (ignored if not allowed).
+        api(`${R()}/pages/builds`, { method: 'POST' }).catch(() => {});
+        return { sha: commit.sha, url: `https://github.com/${CFG.owner}/${CFG.repo}/commit/${commit.sha}` };
+      }
     },
+    /** One commit with fixed file contents. */
+    commit(files, message) { return TC.repo.update(async () => files, message); },
 
     async history(n, path) {
       const list = await api(`${R()}/commits?sha=${CFG.branch}&per_page=${n || 20}${path ? '&path=' + encodeURIComponent(path) : ''}`);

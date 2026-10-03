@@ -9,9 +9,45 @@
   const NAMES = ['models', 'gpus', 'servers', 'benchmarks', 'assumptions'];
   const KEY_OVR = n => 'tc.override.' + n;
   const KEY_CACHE = n => 'tc.cache.' + n;
+  const KEY_BASE = n => 'tc.base.' + n;   // the shared data an override was made against (for rebasing)
   const LIST = { models: 'models', gpus: 'gpus', servers: 'servers', benchmarks: 'benchmarks' };
   // Records are matched by id; benchmark rows have none, so they are matched by what they measured.
   const recKey = (n, r) => r.id || [r.gpu_id, r.model_id, r.precision, r.tp, r.pp, r.engine].join('|');
+  /**
+   * Three-way merge: the user's edits (mine, made against base) carried onto newer shared data (theirs).
+   * A value the user did not change follows the shared data; a value they changed keeps their edit. Sourced values
+   * {value, source, as_of, status} count as one value; records in lists are matched by id (or provider, or what a
+   * benchmark measured), so a price the daily job updates is not frozen by an unrelated edit to the same dataset.
+   */
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const isObj = x => x && typeof x === 'object' && !Array.isArray(x) && !TC.isWrapped(x);
+  const itemKey = r => (r && typeof r === 'object' ? r.id || r.provider || (r.gpu_id && recKey('benchmarks', r)) || null : null);
+  function merge3(base, mine, theirs) {
+    if (same(mine, base)) return theirs;
+    if (same(theirs, base) || base === undefined) return mine;
+    if (isObj(base) && isObj(mine) && isObj(theirs)) {
+      const out = {};
+      new Set([...Object.keys(theirs), ...Object.keys(mine)]).forEach(k => {
+        const x = merge3(base[k], mine[k], theirs[k]);
+        if (x !== undefined) out[k] = x;
+      });
+      return out;
+    }
+    if ([base, mine, theirs].every(a => Array.isArray(a) && a.every(itemKey))) {
+      const by = a => new Map(a.map(r => [itemKey(r), r]));
+      const B = by(base), M = by(mine), T = by(theirs), out = [];
+      theirs.forEach(r => {
+        const k = itemKey(r);
+        if (!M.has(k)) { if (!B.has(k) || !same(B.get(k), r)) out.push(r); return; }  // the user removed it, unless it changed since
+        out.push(merge3(B.get(k), M.get(k), r));
+      });
+      mine.forEach(r => { const k = itemKey(r); if (!T.has(k) && !B.has(k)) out.push(r); });  // the user's additions
+      return out;
+    }
+    return mine;  // both changed the same value: the user's edit wins
+  }
+  TC.merge3 = merge3;
+
   /** One dataset with a share-link/example patch applied (pure; used by links, examples and the example check). */
   TC.patchDataset = function (n, base, p) {
     const obj = TC.clone(base), lk = LIST[n];
@@ -31,6 +67,7 @@
 
   const store = (TC.store = {
     NAMES,
+    LIST,
     defaults: {},
     source: {},        // name -> 'file' | 'cache' | 'missing'
     listeners: [],
@@ -56,6 +93,7 @@
           const res = await fetch('data/' + n + '.json', { cache: 'no-cache' });
           if (!res.ok) throw new Error(res.status);
           const json = await res.json();
+          this.rebase(n, json);
           this.defaults[n] = json;
           this.source[n] = 'file';
           TC.storage.set(KEY_CACHE(n), json);
@@ -66,12 +104,29 @@
       }));
     },
 
+    /**
+     * Carry this browser's edits onto freshly loaded shared data. Overrides saved before rebasing existed have no
+     * recorded base; the copy cached at the previous load is the closest stand-in.
+     */
+    rebase(n, fresh) {
+      const mine = TC.storage.get(KEY_OVR(n));
+      if (!mine) return;
+      const base = TC.storage.get(KEY_BASE(n)) || TC.storage.get(KEY_CACHE(n));
+      if (!base || same(base, fresh)) { if (!TC.storage.get(KEY_BASE(n))) TC.storage.set(KEY_BASE(n), fresh); return; }
+      const merged = merge3(base, mine, fresh);
+      if (same(merged, fresh)) { TC.storage.remove(KEY_OVR(n)); TC.storage.remove(KEY_BASE(n)); return; }
+      TC.storage.set(KEY_OVR(n), merged);
+      TC.storage.set(KEY_BASE(n), fresh);
+    },
+
     setOverride(name, obj) {
       TC.storage.set(KEY_OVR(name), obj);
+      if (this.defaults[name]) TC.storage.set(KEY_BASE(name), this.defaults[name]);
       this.emit();
     },
     reset(name) {
       TC.storage.remove(KEY_OVR(name));
+      TC.storage.remove(KEY_BASE(name));
       this.emit();
     },
     /**
@@ -112,8 +167,9 @@
     applyDataPatch(patch) {
       NAMES.forEach(n => {
         const p = patch && patch[n], base = this.defaults[n];
-        if (!p || !base) { TC.storage.remove(KEY_OVR(n)); return; }
+        if (!p || !base) { TC.storage.remove(KEY_OVR(n)); TC.storage.remove(KEY_BASE(n)); return; }
         TC.storage.set(KEY_OVR(n), TC.patchDataset(n, base, p));
+        TC.storage.set(KEY_BASE(n), base);
       });
       this.emit();
     },
@@ -127,7 +183,7 @@
     patchSize(patch) { return patch ? Object.keys(patch).length : 0; },
     resetAll() {
       TC.track('clear-all-changes', 'Cleared all browser edits');
-      NAMES.forEach(n => TC.storage.remove(KEY_OVR(n)));
+      NAMES.forEach(n => { TC.storage.remove(KEY_OVR(n)); TC.storage.remove(KEY_BASE(n)); });
       this.emit();
     },
     onChange(fn) { this.listeners.push(fn); },
@@ -148,7 +204,7 @@
 
     validate(name, obj) {
       const errs = [];
-      const listKey = { models: 'models', gpus: 'gpus', servers: 'servers', benchmarks: 'benchmarks' }[name];
+      const listKey = LIST[name];
       if (listKey) {
         if (!Array.isArray(obj[listKey])) errs.push(`"${listKey}" must be an array`);
         else {
@@ -235,14 +291,15 @@
           walk(a[k], b[k], path ? path + '.' + k : String(k), label ? label + ' › ' + part : part, out);
         });
       };
-      const listKey = { models: 'models', gpus: 'gpus', servers: 'servers', benchmarks: 'benchmarks' }[name];
+      const listKey = LIST[name];
       if (!listKey) {
         const out = [];
         walk(base, ovr, '', '', out);
         return out.length ? [{ kind: 'changed', label: 'Global assumptions', index: null, changes: out }] : [];
       }
-      const keyOf = r => r.id || [r.gpu_id, r.model_id, r.precision, 'TP' + r.tp, r.pp > 1 ? 'PP' + r.pp : ''].filter(Boolean).join(' · ');
-      const labelOf = r => (name === 'servers' ? `${r.vendor} ${r.sku} (${r.gpu_id})` : r.name || keyOf(r));
+      const keyOf = r => recKey(name, r);  // same matching as share links and publishing
+      const labelOf = r => (name === 'servers' ? `${r.vendor} ${r.sku} (${r.gpu_id})`
+        : r.name || [r.gpu_id, r.model_id, r.precision, 'TP' + r.tp, r.pp > 1 ? 'PP' + r.pp : '', r.engine].filter(Boolean).join(' · '));
       const baseBy = new Map((base[listKey] || []).map(r => [keyOf(r), r]));
       const seen = new Set();
       const items = [];

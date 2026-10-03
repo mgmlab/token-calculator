@@ -375,7 +375,7 @@
   TC.utilization = function (c, gpn, wl) {
     const slots = c.pp === 1 ? Math.floor(gpn / c.tp) * c.nodes : c.replicas;
     const capacity = slots * c.aggTps;
-    const demand = wl.tOutMo / (730 * 3600);
+    const demand = wl.tOutMo / (TC.HOURS_PER_MONTH * 3600);
     const util = Math.min(1, demand / Math.max(capacity, 1e-9));
     return {
       util, capacity, demand,

@@ -234,11 +234,36 @@
     if (b.unstable || !(b.p95 > 60 && isFinite(b.p95))) throw new Error('busy-hour overload should give a finite, long wait');
   });
 
+  // ---------- browser edits carried onto newer shared data (three-way merge)
+  test('merge: unedited values follow the shared data, edited values are kept', () => {
+    const base = { models: [{ id: 'a', note: 'x', api_prices: [{ provider: 'P', input_per_m: E(1) }] }, { id: 'b', note: 'y' }] };
+    const mine = TC.clone(base); mine.models[1].note = 'my edit';
+    const theirs = TC.clone(base); theirs.models[0].api_prices[0].input_per_m = E(1.5);
+    const m = TC.merge3(base, mine, theirs);
+    eq(m.models[0].api_prices[0].input_per_m.value, 1.5, 'price updated by the daily job');
+    eq(m.models[1].note, 'my edit', 'user edit');
+  });
+  test('merge: same record, different fields; conflicts keep the user value', () => {
+    const base = { id: 'a', note: 'x', api_prices: [{ provider: 'P', input_per_m: E(1), output_per_m: E(2) }] };
+    const mine = TC.clone(base); mine.api_prices[0].output_per_m = E(3);
+    const theirs = TC.clone(base); theirs.api_prices[0].input_per_m = E(1.2); theirs.api_prices[0].output_per_m = E(2.5);
+    const m = TC.merge3(base, mine, theirs);
+    eq(m.api_prices[0].input_per_m.value, 1.2, 'their change');
+    eq(m.api_prices[0].output_per_m.value, 3, 'user value wins a conflict');
+  });
+  test('merge: additions and removals on both sides', () => {
+    const base = { servers: [{ id: 's1' }, { id: 's2' }] };
+    const mine = { servers: [{ id: 's1' }, { id: 'mine' }] };          // user removed s2, added one
+    const theirs = { servers: [{ id: 's1' }, { id: 's2' }, { id: 'new' }] }; // shared data added one
+    eq(TC.merge3(base, mine, theirs).servers.map(r => r.id).join(','), 's1,new,mine', 'ids');
+  });
+
   // ---------- render
   const ok = results.filter(r => r.ok).length;
+  window.TC_TEST_RESULTS = results;
+  if (typeof document === 'undefined') return;  // run by scripts/run_tests.js in Node
   document.getElementById('summary').textContent = `${ok} / ${results.length} passed`;
   document.getElementById('summary').className = ok === results.length ? 'pass' : 'fail';
   document.getElementById('list').innerHTML = results.map(r =>
     `<li class="${r.ok ? 'pass' : 'fail'}">${r.ok ? '✓' : '✗'} ${TC.esc(r.name)}${r.msg ? ' — ' + TC.esc(r.msg) : ''}</li>`).join('');
-  window.TC_TEST_RESULTS = results;
 })();
