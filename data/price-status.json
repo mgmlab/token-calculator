@@ -1,14 +1,8 @@
 {
-  "checked_at": "2026-10-03T18:52Z",
+  "checked_at": "2026-10-03T18:54Z",
   "date": "2026-10-03",
   "values_changed": 0,
-  "changed": [
-    "Kimi K2.6 (MoE, MLA) / OpenRouter / input $/1M: 0.43415 → 0.95 (accepted in the admin console)",
-    "Kimi K2.6 (MoE, MLA) / OpenRouter / output $/1M: 1.828 → 4 (accepted in the admin console)",
-    "Kimi K2.6 (MoE, MLA) / OpenRouter / cached input $/1M: 0.07312 → 0.16 (accepted in the admin console)",
-    "Kimi K3 (MoE, MLA + linear attention) / OpenRouter / input $/1M: 2.7 → 0.74 (accepted in the admin console)",
-    "Kimi K3 (MoE, MLA + linear attention) / OpenRouter / cached input $/1M: 0.27 → 0.7 (accepted in the admin console)"
-  ],
+  "changed": [],
   "needs_review": [],
   "review_items": [],
   "problems": [],
