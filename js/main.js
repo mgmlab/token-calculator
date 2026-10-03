@@ -58,7 +58,7 @@
       ${list('Held for review (moved more than 50%)', ps.needs_review)}
       ${list('Could not be read (left unchanged)', [...(ps.sources_failed || []), ...(ps.problems || [])])}
       ${list('Manual rows (no automatic source)', ps.manual_rows)}
-      ${list('Worked examples whose result changed (update data/examples.json and the demo playbook)', ((ps.examples && ps.examples.mismatches) || []).map(m => `${m.name}: expected ${m.expected}, now ${m.got}`))}
+      ${list('Worked examples whose result changed (update data/examples.json and the workshop playbook)', ((ps.examples && ps.examples.mismatches) || []).map(m => `${m.name}: expected ${m.expected}, now ${m.got}`))}
       ${ps.needs_review && ps.needs_review.length ? '<p class="muted small">To accept held changes: GitHub → Actions → Update prices (daily) → Run workflow, with "force" ticked.</p>' : ''}`;
   }
 

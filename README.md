@@ -86,7 +86,7 @@ A scenario is the workload inputs **plus** any options removed from the analysis
 
 ### Worked examples
 
-**Load an example ▾** (Workload profile header) loads one of seven worked examples from [`data/examples.json`](data/examples.json), each leading to a different result, with a note explaining what drives it and one input to change live. Loading one replaces the inputs, removed options and data edits, like a share link. Each example stores its expected verdict; after the daily price update, `scripts/check_examples.js` (Node) re-runs them and records any change in `data/price-status.json`, which the header's price pill flags as "example(s) to review". The /tests/ page runs the same check. The [demo playbook](docs/demo-playbook.html) is built on these examples.
+**Load an example ▾** (Workload profile header) loads one of seven worked examples from [`data/examples.json`](data/examples.json), each leading to a different result, with a note explaining what drives it and one input to change live. Loading one replaces the inputs, removed options and data edits, like a share link. Each example stores its expected verdict; after the daily price update, `scripts/check_examples.js` (Node) re-runs them and records any change in `data/price-status.json`, which the header's price pill flags as "example(s) to review". The /tests/ page runs the same check. The [workshop playbook](docs/workshop-playbook.html), a facilitator's guide for running the calculator as a working session with a customer, uses these examples as reference patterns.
 
 ### The verdict
 
@@ -264,7 +264,7 @@ js/examples.js          worked examples: build inputs, check verdicts
 data/examples.json      the worked examples (inputs, expected verdict, note, lever)
 scripts/check_examples.js  daily re-check of the worked examples (Node)
 docs/workload-guide.html  how to gather workload inputs from a client
-docs/demo-playbook.html   demo scenarios and talk track (https://mgmlab.github.io/token-calculator/docs/demo-playbook.html)
+docs/workshop-playbook.html   customer workshop guide: agenda, facilitation, reference patterns, worksheet (https://mgmlab.github.io/token-calculator/docs/workshop-playbook.html; docs/demo-playbook.html redirects here)
 assets/                 Pellera logo and favicon
 data/*.json             tunable data (edit these)
 tests/                  browser-run engine tests

@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="../assets/favicon-playbook.png">
+<title>Workshop playbook: Inference Economics Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: one reading column; a scenario index up top, then one "card" per customer story with a verdict chip, the numbers, the talk track and the live lever. */
+:root {
+  --bg: #fbfaff; --surface: #ffffff; --ink: #1d1530; --ink-2: #4e4663; --muted: #7a7290; --line: #e6e1f2;
+  --accent: #7a17ff; --accent-soft: #f1e9ff; --accent-ink: #5a10c4;
+  --good-bg: #e3f4ea; --good-ink: #16603a; --mid-bg: #fff1d6; --mid-ink: #7a4b00; --cool-bg: #e6ecfb; --cool-ink: #1f3f8f;
+  --display: "Sora", "Segoe UI", system-ui, sans-serif; --body: "Source Sans 3", "Segoe UI", system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #13101c; --surface: #1b1727; --ink: #eee9fa; --ink-2: #c2bad6; --muted: #958caa; --line: #2f2842;
+  --accent: #b18cff; --accent-soft: #2a2140; --accent-ink: #cdb4ff;
+  --good-bg: #173427; --good-ink: #8fe0b1; --mid-bg: #3a2c12; --mid-ink: #f3c979; --cool-bg: #1d2a4a; --cool-ink: #a9c1ff; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #13101c; --surface: #1b1727; --ink: #eee9fa; --ink-2: #c2bad6; --muted: #958caa; --line: #2f2842;
+  --accent: #b18cff; --accent-soft: #2a2140; --accent-ink: #cdb4ff;
+  --good-bg: #173427; --good-ink: #8fe0b1; --mid-bg: #3a2c12; --mid-ink: #f3c979; --cool-bg: #1d2a4a; --cool-ink: #a9c1ff; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 17px/1.6 var(--body); margin: 0; }
+.wrap { max-width: 880px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 80px; display: flex; flex-direction: column; gap: 36px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(30px, 5vw, 42px); line-height: 1.12; }
+h2 { font-size: 24px; line-height: 1.25; }
+h3 { font-size: 18px; }
+p { margin: 0; }
+a { color: var(--accent-ink); }
+.eyebrow { font: 600 12px/1 var(--body); text-transform: uppercase; letter-spacing: .12em; color: var(--accent-ink); }
+.lede { font-size: 19px; color: var(--ink-2); max-width: 64ch; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.muted { color: var(--muted); }
+.small { font-size: 14.5px; }
+.note { background: var(--accent-soft); border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; }
+.note strong { color: var(--accent-ink); }
+ul, ol { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px; }
+
+/* index */
+.index { width: 100%; border-collapse: collapse; font-size: 15.5px; }
+.index th { text-align: left; font: 600 12px/1 var(--body); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 0 10px 10px 0; border-bottom: 1px solid var(--line); }
+.index td { padding: 11px 10px 11px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.index td:first-child { font: 600 15px var(--mono); color: var(--accent-ink); width: 2.2em; }
+.index a { text-decoration: none; }
+.index a:hover { text-decoration: underline; }
+.tablewrap { overflow-x: auto; }
+
+.chip { display: inline-block; font: 600 13px/1 var(--body); padding: 6px 10px; border-radius: 999px; white-space: nowrap; }
+.good { background: var(--good-bg); color: var(--good-ink); }
+.mid { background: var(--mid-bg); color: var(--mid-ink); }
+.cool { background: var(--cool-bg); color: var(--cool-ink); }
+
+/* scenario cards */
+.scn { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 18px; scroll-margin-top: 16px; }
+.scn-head { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: flex-start; justify-content: space-between; }
+.scn-head > div { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.letter { font: 700 13px var(--mono); color: var(--accent-ink); }
+.nums { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.num { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.num.win { border-color: var(--accent); background: var(--accent-soft); }
+.num .k { font-size: 12.5px; color: var(--muted); }
+.num .v { font: 600 20px var(--display); font-variant-numeric: tabular-nums; }
+.num .s { font-size: 12.5px; color: var(--ink-2); }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.cols > div { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.label { font: 600 12px/1 var(--body); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.say { border-left: 3px solid var(--accent); padding-left: 14px; font-style: italic; color: var(--ink-2); }
+.lever { background: var(--bg); border: 1px dashed var(--line); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+.lever b { color: var(--accent-ink); }
+.open { display: inline-flex; align-items: center; gap: 6px; background: var(--accent); color: #fff; text-decoration: none; font: 600 14px var(--body); padding: 9px 14px; border-radius: 10px; white-space: nowrap; }
+:root[data-theme="dark"] .open { color: #1a1030; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .open { color: #1a1030; } }
+.open:focus-visible, .index a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.setup { font-size: 14.5px; color: var(--ink-2); }
+code { font: 500 13.5px var(--mono); background: var(--accent-soft); padding: 1px 5px; border-radius: 5px; }
+.qa { display: grid; grid-template-columns: 1fr; gap: 14px; }
+.qa div { display: flex; flex-direction: column; gap: 4px; }
+.qa b { font-family: var(--display); font-weight: 600; font-size: 16px; }
+@media (max-width: 640px) { .cols { grid-template-columns: 1fr; } .scn { padding: 18px; } body { font-size: 16px; } }
+
+/* workshop additions */
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.two > div { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.block { border-left: 3px solid var(--accent); padding-left: 18px; scroll-margin-top: 16px; }
+.block h2 { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.bn { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: #fff; font: 700 15px var(--display); flex: none; transform: translateY(-2px); }
+.t { font: 600 13px var(--body); color: var(--muted); }
+.capture { background: var(--surface); border: 1px dashed var(--line); border-radius: 10px; padding: 10px 14px; font-size: 15px; }
+.ask { font-style: italic; color: var(--ink-2); border-left: 3px solid var(--accent); padding-left: 12px; }
+.fits { font-size: 15.5px; }
+.take { font-size: 15px; color: var(--ink-2); }
+.agenda td:first-child, .agenda th:first-child { width: 6.5em; font: 600 14px var(--mono); }
+.levers td:first-child, .sheet td:first-child { font: 600 15px/1.45 var(--body); color: var(--ink); }
+.levers td:first-child { width: 32%; }
+.levers td, .sheet td { font-size: 15px; }
+.sheet td:first-child { width: 34%; font-weight: 600; }
+.sheet td { height: 34px; }
+.scn h3 { font-size: 20px; }
+@media (max-width: 640px) { .two { grid-template-columns: 1fr; } }
+@media print { .open { display: none; } .scn, .block { break-inside: avoid; } body { background: #fff; } }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+
+<header class="stack">
+  <span class="eyebrow">AI Inference Economics Calculator · Pellera AI team</span>
+  <h1>Workshop playbook: where should your AI workloads run?</h1>
+  <p class="lede">A facilitator’s guide for a 90-minute working session with a customer. Together we describe their workload in the calculator, test the constraints that matter to them, and leave with a shared view of the economics: buy servers, rent GPUs, pay per token, or a mix, and what would change the answer.</p>
+</header>
+
+<section class="note">
+  <p><strong>This is a workshop, not a demo.</strong> The customer’s numbers drive the session, not ours. The calculator is the shared whiteboard: we fill it in with them, change it with them and read it with them. Pellera isn’t trying to prove that on-prem wins; we’re working out where each workload belongs. The result is an economic view under stated assumptions, not a quote and not an architecture decision on its own: security, model quality, latency, data residency, resiliency and operations can override cost.</p>
+  <p class="small">Figures in the reference patterns were taken from the live calculator on October 3, 2026. API and GPU rental prices refresh daily, so dollar figures drift; the calculator re-checks every pattern’s result each day and flags any that change. Server prices are placeholders until we have quotes, which is why every pattern shows <em>Confidence: Low</em>.</p>
+</section>
+
+<section class="stack">
+  <h2>What the customer leaves with</h2>
+  <ol>
+    <li><b>A written model of their workload</b>: users, usage, speed, peak and constraints, agreed by the people who own them.</li>
+    <li><b>The economic answer for that workload</b>, with the cost of every option side by side and a confidence rating.</li>
+    <li><b>What would change the answer</b>: the two or three assumptions or constraints that decide it.</li>
+    <li><b>Next steps with owners</b>: usually vendor quotes, a benchmark in the Pellera lab, or a pilot.</li>
+  </ol>
+</section>
+
+<section class="stack">
+  <h2>Who should be in the room</h2>
+  <div class="two">
+    <div><span class="label">Customer</span>
+      <ul><li>Application or product owner (who uses it and how)</li><li>Infrastructure or platform lead (where it would run)</li><li>Security or compliance (which providers and data rules apply)</li><li>Finance or procurement, for the last 20 minutes if possible</li></ul></div>
+    <div><span class="label">Pellera</span>
+      <ul><li><b>Facilitator</b>: runs the conversation and keeps time</li><li><b>Architect</b>: drives the calculator and explains the math</li><li><b>Note-taker</b>: fills in the worksheet below</li></ul></div>
+  </div>
+</section>
+
+<section class="stack">
+  <h2>Before the workshop</h2>
+  <ol>
+    <li><b>Send the discovery questions a week ahead.</b> In the calculator, open the <b>Input guide</b> and use <b>Copy questions</b>. Ask for real numbers where they exist: pilot usage, logs, licence counts, the approved-provider list, data rules.</li>
+    <li><b>Pick one reference pattern</b> close to their situation (see below) and open it once to know today’s figures.</li>
+    <li><b>Start clean.</b> Click <b>New analysis</b> and tick “clear my Data editor changes”, so a previous customer’s prices or exclusions don’t carry over.</li>
+    <li><b>Check the header.</b> “Prices checked today” should be green. If it mentions an example to review, a pattern’s result has changed; check it first.</li>
+    <li><b>Bring quotes if you have them.</b> A real server quote or the customer’s contracted cloud rate can be entered in the Data editor during the session.</li>
+  </ol>
+</section>
+
+<section class="stack">
+  <h2>Agenda (90 minutes)</h2>
+  <div class="tablewrap"><table class="index agenda">
+    <thead><tr><th>Time</th><th>Block</th><th>Goal</th></tr></thead>
+    <tbody><tr><td>0–10 min</td><td><a href="#blk1">Frame the decision</a></td><td>Agree what is being decided and how it will be judged.</td></tr><tr><td>10–20</td><td><a href="#blk2">Calibrate with a reference pattern</a></td><td>Load the one pattern closest to them and show how the answer moves.</td></tr><tr><td>20–50</td><td><a href="#blk3">Build their workload</a></td><td>Fill in their numbers live with the Input guide questions.</td></tr><tr><td>50–70</td><td><a href="#blk4">Stress-test the answer</a></td><td>Change the constraints and what-ifs that matter to them.</td></tr><tr><td>70–85</td><td><a href="#blk5">Read the result together</a></td><td>Recommendation, range, confidence and what is still an estimate.</td></tr><tr><td>85–90</td><td><a href="#blk6">Agree next steps</a></td><td>Owners, dates and what Pellera sends afterwards.</td></tr></tbody>
+  </table></div>
+  <p class="small muted">For a 60-minute session, shorten blocks 2 and 4 to five minutes each. For a deeper session, run blocks 3 to 5 once per workload.</p>
+</section>
+
+<section class="stack block" id="blk1">
+  <h2><span class="bn">1</span> Frame the decision <span class="t">10 min</span></h2>
+  <p><b>Ask:</b> “Which AI workloads are you deciding about, and what would a good decision look like a year from now?”</p>
+  <p>Lay out the four ways to run a model: <b>buy servers</b>, <b>rent GPUs</b> in a cloud, <b>pay per token</b> to an API provider, or a <b>hybrid</b> of owned servers plus an API for the overflow. The honest answer depends on how many people use it, how much text goes in and out, how fast it must be, how busy the peak is, and who they are allowed to buy from.</p>
+  <p class="capture"><b>Capture:</b> the workloads in scope, and the decision criteria (cost, control, data residency, speed to start).</p>
+</section>
+
+<section class="stack block" id="blk2">
+  <h2><span class="bn">2</span> Calibrate with a reference pattern <span class="t">10 min</span></h2>
+  <p>Open the pattern closest to them (the <b>Open in the calculator</b> links below, or <b>Examples ▾</b> in the calculator). Show the Analysis summary, then pull its what-if so the room sees the answer move.</p>
+  <p><b>Ask:</b> “Which parts of this look like you, and which don’t?” Their answer is the bridge into block 3.</p>
+</section>
+
+<section class="stack block" id="blk3">
+  <h2><span class="bn">3</span> Build their workload <span class="t">30 min</span></h2>
+  <p>Click <b>New analysis</b> and name the scenario after their workload. Work through the inputs in order, using each input’s <b>?</b> help and the <b>Input guide</b> for the question to ask and typical values. Let the customer give the numbers; where they don’t know, agree a range and start in the middle.</p>
+  <ul>
+    <li><b>Users</b>: active users, not licences.</li>
+    <li><b>Requests per user per day</b>: count model calls, not clicks (agents and search often make several calls per action).</li>
+    <li><b>Input and output size</b>: how much text goes in (including documents and history) and comes out.</li>
+    <li><b>When it runs</b>: active days per month and the busy-hour share.</li>
+    <li><b>Model</b>: the model they would actually use, and whether a smaller one is good enough (a question to test, not assume).</li>
+  </ul>
+  <p class="capture"><b>Capture:</b> every input on the worksheet, with who supplied it and how sure they are.</p>
+</section>
+
+<section class="stack block" id="blk4">
+  <h2><span class="bn">4</span> Stress-test the answer <span class="t">20 min</span></h2>
+  <p>Now change what matters to them. Each question below maps to a setting; change it live and read the summary again. Two or three of these usually decide the answer.</p>
+  <div class="tablewrap"><table class="index levers">
+    <thead><tr><th>Ask</th><th>Where in the calculator</th><th>What it usually does</th></tr></thead>
+    <tbody><tr><td>Which AI providers are you allowed to buy from?</td><td>Advanced settings → API providers to compare</td><td>Narrowing to enterprise providers often raises the per-token price several-fold and makes owning or a hybrid pay.</td></tr><tr><td>How long can someone wait for a response at the busiest moment?</td><td>Advanced settings → Sizing → Acceptable wait</td><td>Allowing a few seconds can let one smaller server cover the busiest hour; “no waiting” buys servers for the busiest minutes.</td></tr><tr><td>Does it run in business hours or around the clock?</td><td>Active days per month · Busy-hour share</td><td>Round-the-clock use keeps owned GPUs busy; office-hours use leaves them idle most of the week.</td></tr><tr><td>Can any of the work be queued?</td><td>API batch share · Busy-hour share</td><td>Queued work flattens the peak and earns batch discounts on APIs; both change the answer.</td></tr><tr><td>How much context does each request carry?</td><td>Avg input tokens</td><td>Long prompts drive GPU memory and server count.</td></tr><tr><td>How fast must answers stream?</td><td>Target output tok/s per request</td><td>Faster streaming means fewer requests per GPU.</td></tr><tr><td>How will usage grow?</td><td>Breakeven tab (table by usage level)</td><td>Shows the volume at which the lowest-cost option changes.</td></tr><tr><td>Where would servers live, and who runs them?</td><td>Data editor → Assumptions (colocation, operations staff)</td><td>Colocation and staffing can tip the result toward renting GPUs.</td></tr><tr><td>Must data stay on infrastructure you control?</td><td>Untick every API provider</td><td>Leaves owning or renting dedicated GPUs as the only options.</td></tr></tbody>
+  </table></div>
+  <p class="capture"><b>Capture:</b> which constraints are firm, and which what-ifs changed the answer.</p>
+</section>
+
+<section class="stack block" id="blk5">
+  <h2><span class="bn">5</span> Read the result together <span class="t">15 min</span></h2>
+  <ul>
+    <li><b>The Recommended box</b>: the lowest-cost option; its big number matches that option’s row in the tables.</li>
+    <li><b>Click a box</b> to open the row behind it and highlight the cost lines that add up to it; <b>↑ Back to summary</b> returns.</li>
+    <li><b>Click the range</b> (the small circled i) to show what is still an estimate (placeholder server price, power, the speed estimate) and how far it could move the cost.</li>
+    <li><b>Confidence</b>: High means nothing marked ⚠, Medium one, Low two or more. Name what would raise it: a quote, a lab benchmark, reviewed operating assumptions.</li>
+    <li><b>The Breakeven tab</b>: the table shows the lowest-cost option at ¼× to 50× today’s usage, which turns “buy or not” into a planning conversation.</li>
+  </ul>
+  <p><b>Ask:</b> “Does this match your intuition? If not, which assumption feels wrong?”</p>
+</section>
+
+<section class="stack block" id="blk6">
+  <h2><span class="bn">6</span> Agree next steps <span class="t">5 min</span></h2>
+  <ul>
+    <li>Which numbers still need confirming, and who owns each one.</li>
+    <li>What would raise confidence: vendor quotes for the leading server option, a benchmark in the Pellera lab, the contracted cloud or API rate.</li>
+    <li>Whether a pilot makes sense, and on which option.</li>
+  </ul>
+  <p class="capture"><b>Capture:</b> owners and dates on the worksheet.</p>
+</section>
+
+<section class="stack">
+  <h2>Reference patterns</h2>
+  <p>Seven realistic situations, each landing on a different result. Use one in block 2 to calibrate, or later to compare (“you look more like C than A, because…”). They are also built into the calculator under <b>Examples ▾</b>, where the setting names in each <b>Try</b> line are links to the field to change.</p>
+  <div class="tablewrap">
+  <table class="index">
+    <thead><tr><th></th><th>Situation</th><th>Economic result</th><th>What decides it</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td><a href="#a">Pilot: employee copilot, 500 users</a></td><td><span class="chip cool">API candidate</span></td><td>Owned GPUs would be about 3% busy</td></tr>
+      <tr><td>B</td><td><a href="#b">Company-wide copilot, approved API providers only</a></td><td><span class="chip mid">Hybrid candidate</span></td><td>Which providers they can buy from</td></tr>
+      <tr><td>C</td><td><a href="#c">24/7 contact center, 2,000 agents</a></td><td><span class="chip good">Strong on-prem candidate</span></td><td>Round-the-clock traffic keeps one right-sized server busy</td></tr>
+      <tr><td>D</td><td><a href="#d">Software development assistant, 5,000 developers</a></td><td><span class="chip mid">Hybrid candidate</span></td><td>Long prompts and fast responses</td></tr>
+      <tr><td>E</td><td><a href="#e">Continuous document processing (schedulable batch)</a></td><td><span class="chip good">Strong on-prem candidate</span></td><td>Queued work spread over 24 hours</td></tr>
+      <tr><td>F</td><td><a href="#f">Small batch workload that will grow</a></td><td><span class="chip mid">Near breakeven</span></td><td>Owning pays off at about 2.5× today’s volume</td></tr>
+      <tr><td>G</td><td><a href="#g">Dedicated GPUs, no data center</a></td><td><span class="chip cool">GPU cloud candidate</span></td><td>Colocation and operations staffing</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<article class="scn" id="a">
+  <div class="scn-head">
+    <div><span class="letter">PATTERN A</span><h3>Pilot: employee copilot, 500 users</h3><span class="chip cool">API candidate</span></div>
+    <a class="open" href="https://mgmlab.github.io/token-calculator/#z=XVFNbxshEP0rqzmTaG03ccK9PedeVaMxTA0yCxQGy9uq_71id90mvaDhzdd7835BNRyp-ISRJgYNn2805cB6ePMhiR54yiHNzINJuSNqeBrHoVUuFRTkwpUFNNzLcCsDBWuNfhpHBYV_NK5SMXPBnlgCSzPo_aiArmf0MTdBSReOFfRuaet4avI-8WnBjfgr9_514pSiOND73eNRQWa6oEnRtFI4mhmnZLsyy8Vf2YKCU6szutQKVkeFMRvpG3uiVOkTDUfxgUG_vv4_UPAupmtTIFTOLH9p5pXRVrPKm-jW-4VvAvqwPz6_KOikAnoLGkKgiR4Oj4eH43haj2p89SmChi9vL6DgcsWP4O55Rav_6eMZT1R9BQ0yZ28ogALhMuHM1B04KHBMtqQ0rVI7p4g5tIopMujvFCorEFdSO7suo6ZWTD_aiaNxE5ULiuPYn1RYtiUmpGZxM6Pf84Mbx0N3Kns0ZByj87Juv8MnEuPeO7DhfDOhWbagv35T4OPyQxNSZbt4GSpoKY0XAh0UzwU0UOik_rXHFoICS0Jr_PsP" target="_blank" rel="noopener">Open in the calculator ↗</a>
+  </div>
+  <p class="fits"><b>Use it when the customer looks like:</b> an early pilot or proof of concept, a few hundred users, office hours.</p>
+  <p class="setup">Preset <b>Employee copilot</b>, 500 users, all API providers, Llama 3.3 70B, 3-year term. About 412 million tokens a month.</p>
+  <div class="nums"><div class="num"><span class="k">Buy servers</span><span class="v">$22K/yr</span><span class="s">Smallest server (2× RTX PRO 6000), about 3% utilized</span></div><div class="num"><span class="k">Rent GPUs</span><span class="v">$109K/yr</span><span class="s">Nebius, on-demand</span></div><div class="num win"><span class="k">Pay per token</span><span class="v">$1K/yr</span><span class="s">OpenRouter, same model</span></div></div>
+  <div class="cols">
+    <div><span class="label">What decides it</span>
+      <ul><li>Even the smallest server would sit idle about 97% of the time; owned hardware is paid for around the clock.</li><li>Open the math on the on-prem row: the utilization line is the whole story.</li><li>The Breakeven tab’s table shows paying per token staying cheaper at every usage level.</li></ul>
+      <p class="take"><b>Takeaway for the room:</b> for a pilot, don’t buy anything; prove the use case on an API, and use the Breakeven table to see when that stops making sense.</p>
+    </div>
+    <div><span class="label">Ask the customer</span>
+      <p class="ask">How many people will use this in a year if the pilot works, and when would you need to decide on infrastructure?</p>
+      <span class="label">What-if to try together</span>
+      <div class="lever"><p>Change <b>Users</b> to <b>20,000</b>.</p><p>Still <b>API candidate</b> (about $29K/yr vs $125K to own). Office-hours traffic keeps servers only about 11% busy.</p></div>
+    </div>
+  </div>
+</article>
+<article class="scn" id="b">
+  <div class="scn-head">
+    <div><span class="letter">PATTERN B</span><h3>Company-wide copilot, approved API providers only</h3><span class="chip mid">Hybrid candidate</span></div>
+    <a class="open" href="https://mgmlab.github.io/token-calculator/#z=XVHBbhMxEP2V1ZydapvQpvUNIZA4UXFFaDSxh9iK1zb2OGRB_DtydgstF2v0nmfmvXm_oBqOVHzCSBODhvcXmnJgPbxLU6Y4b354y4NJ2YckaqCcSzqzHd4-fRx66S2XOqQYZlCQC1cW0MBTDmlmxrURFLTKpYLejuM4Kij8vXGVipkLdupaWJr7DwV0PqKPuQlKOnGsoG_vxhVPTV4Sb664EX_m3r9MnFIUB3p7e7NXkJlOaFI0rRSOZsYp2W7VcvFntqDg0OqMLrWC1VFhzEb6xk6UKn2i4Sg-MOjHx_8HCj6bAX03KhAqR5a_MvOiaP2z2Jvo0vuFLwJ6t93fPyjoogJ6CxpCoIk2u5vdZj8elrMaX32KoOHD0wMoOJ3xNXh7v6DV__TxiAeqvoIGmbM3FECBcJlwZuoZ7BQ4JltSmharXVPEHFrFFBn0NwqVFYgrqR1dt1FTK6Yf7cDRuInKCcVx7E8qLOsSE1KzuIbR7_kqjf2uJ5U9GjKO0XlZtj_DBxLjXiaw4nwxoVm2oL_Ap8zxc2rCBb4q8PHKoAmpsr3mGipoKY2vYjoongtooNAF_hsVWwgKLAkt9e8_" target="_blank" rel="noopener">Open in the calculator ↗</a>
+  </div>
+  <p class="fits"><b>Use it when the customer looks like:</b> a company-wide rollout where security, legal or procurement limit which API providers can be used.</p>
+  <p class="setup">The same copilot at 20,000 users, with <b>OpenRouter unticked</b> under Advanced settings → API providers (only approved enterprise providers). About 16.5 billion tokens a month.</p>
+  <div class="nums"><div class="num"><span class="k">Buy servers</span><span class="v">$125K/yr</span><span class="s">8× MI300X, 11% utilized</span></div><div class="num"><span class="k">Rent GPUs</span><span class="v">$185K/yr</span><span class="s">Azure, 3-year reserved</span></div><div class="num"><span class="k">Pay per token</span><span class="v">$141K/yr</span><span class="s">Azure AI Foundry</span></div><div class="num win"><span class="k">Hybrid</span><span class="v">$115K/yr</span><span class="s">One 8× RTX PRO 6000 server (about half the peak, 77% of tokens) + Azure overflow, including the routing gateway</span></div></div>
+  <div class="cols">
+    <div><span class="label">What decides it</span>
+      <ul><li>Limiting the choice to approved providers raises the per-token price about five-fold, so owning part of the capacity starts to pay.</li><li>The Hybrid section shows one server for the steady daytime load and busy-hour overflow to Azure: about $26K a year less than all-API and $10K less than owning for the full peak, after about $17K a year to run the routing gateway.</li></ul>
+      <p class="take"><b>Takeaway for the room:</b> the cheapest answer on paper may not be one they are allowed to buy; their constraints change the recommendation, and the calculator models them.</p>
+    </div>
+    <div><span class="label">Ask the customer</span>
+      <p class="ask">Which AI providers are you allowed to buy from today, and is that list likely to grow?</p>
+      <span class="label">What-if to try together</span>
+      <div class="lever"><p>Tick <b>OpenRouter</b> back on.</p><p>The result flips to <b>API candidate</b> at about $29K/yr. Same workload, different buying rules, different answer.</p></div><div class="lever"><p>Set <b>Closed-model tier</b> to <b>Frontier</b> and open the Breakeven tab.</p><p>The closed-model line jumps from a budget model (about $83K/yr) to GPT-6 Sol at about <b>$645K/yr</b>: the answer to “why not just use GPT or Claude?”</p></div>
+    </div>
+  </div>
+</article>
+<article class="scn" id="c">
+  <div class="scn-head">
+    <div><span class="letter">PATTERN C</span><h3>24/7 contact center, 2,000 agents</h3><span class="chip good">Strong on-prem candidate</span></div>
+    <a class="open" href="https://mgmlab.github.io/token-calculator/#z=XVLLblshEP0Va9YkJXZiJ-zbbatuq2o0hukFmQsUBstu1X-v8L19JBs0OvM6Zw4_oVlOVEPGRDODgfcXmktks9k-vjtsbE5CVjaWk3BVm63SWm9o4iQNFJTKjQUMrHW41IGC3rg2MFuttYLK3zs3aVi44sjcAkdXMHutgM4ThlS6oOQTp9H2pFc8d3mTUEBWwplH_zJxzkk8mJ2-f1RQmE5oc7K9Vk72inN2Q5fjGs7sQMGxtyv63Cs2T5WxWAHzoEeiNhkTh4oQGczLy9uBgn_EgBlchOrE8pdmWRitNYOTgpkuo1_4MoDtYf-sYJCKGBwYiJFmutvd7-4O-rjc1IYWcgIDHz49g4LTGV-DD_sFbeFHSBMeqYUGBuRagqUICoTrjFemYcFOgWdyNed5kbrVChKW2BvmxGC-UWysQHzNffJDRsu92nG0IyfrZ6onFM9pPLmyrEtszN3hasa45ys3DkM6lYCWrGf0QZbtTyt8JLH-fwdWnC82dscOzBf4WDh9zn38qK8KQrpl0Mbc2N18jQ2M1M43MgOUwBUMUBwE_41KPUYFjoSW-Ndv" target="_blank" rel="noopener">Open in the calculator ↗</a>
+  </div>
+  <p class="fits"><b>Use it when the customer looks like:</b> a customer-facing service that runs every day and most hours (contact center, support, operations).</p>
+  <p class="setup">Preset <b>Contact center AI</b>, 2,000 agents, 60 requests each a day, every day of the month, approved providers only. About 10 billion tokens a month.</p>
+  <div class="nums"><div class="num win"><span class="k">Buy servers</span><span class="v">$59K/yr</span><span class="s">One 8× L40S server, right-sized, 23% utilized</span></div><div class="num"><span class="k">Rent GPUs</span><span class="v">$126K/yr</span><span class="s">Nebius, on-demand</span></div><div class="num"><span class="k">Pay per token</span><span class="v">$85K/yr</span><span class="s">Azure AI Foundry</span></div><div class="num"><span class="k">Hybrid</span><span class="v">not needed</span><span class="s">One server already covers the busiest hour</span></div></div>
+  <div class="cols">
+    <div><span class="label">What decides it</span>
+      <ul><li>Steady, round-the-clock demand keeps owned GPUs busy, which is what makes owning pay.</li><li>One right-sized 8× L40S server costs about $26K a year less than paying per token. Buying for the full calculated peak would cost about $66K; the extra $7K buys capacity for a few busy minutes a day.</li><li>In the busiest hour about 6% of requests wait, and 95% start within a second. A cloud fallback would cost about $45 a year in tokens, so adding one is a resilience choice, not a cost one.</li></ul>
+      <p class="take"><b>Takeaway for the room:</b> the shape of demand, not just its size, decides where a workload belongs.</p>
+    </div>
+    <div><span class="label">Ask the customer</span>
+      <p class="ask">Does traffic really run all day, every day, or mostly in business hours? How long could a customer wait for a response at the busiest moment?</p>
+      <span class="label">What-if to try together</span>
+      <div class="lever"><p>Change <b>Active days per month</b> to <b>21.7</b> and <b>Busy-hour share</b> to <b>15%</b> (business hours only).</p><p>The result flips to <b>API candidate</b>: utilization drops to about 12%, and paying per token (about $61K/yr) is cheaper again.</p></div>
+    </div>
+  </div>
+</article>
+<article class="scn" id="d">
+  <div class="scn-head">
+    <div><span class="letter">PATTERN D</span><h3>Software development assistant, 5,000 developers</h3><span class="chip mid">Hybrid candidate</span></div>
+    <a class="open" href="https://mgmlab.github.io/token-calculator/#z=XVFNb1shEPwr1pxJ9GzXdsI9vbZqj1WF1rDxQ-YBhcW1W_W_V_g5aZMLQjP7MbPzG9VypOKTiTQxNJ7ONOXAevE1PctPKrxwfOKQ8sRRFlSrr0JR1GKjhmF4IblUKOTClQUaNjkfD-a1Ggqt9hq9GYZBofCPxlWqyVxMZ64fRxfoh0GBTgfjY25iJB05Vujtta3jqck7QoGs-BP3_nnilKKM0Kvl_U4hMx2NTdG2Ujjai5mS60YdF39iB4V9qxczplZMHamwyVagl5tOlCp9ouUoPjD04-P7gWJezHRzCkLlwPIqM8-KbjXQHwaFic69X_jc96yXw26l0FUF4x00QqCJ7tb367vdsJ_Pan31KULj4-cHKBxP5i243M5o9b_64fdUfYWGXLK3FKAgXCZzYeoZrBVGJldSmmavq0EhmhxaNSky9DOFygoyltQOY_dRUyu2X23P0Y4TlaORkWN_UmG5LbEhNWduafSDvoljt-5RZW8s2ZHN6GXevr3BexI7_h_BDeezDc2xg_6GT5njl9SEC74r-HhljA2psrsGGyq0lMZXMR0UzwUaFLrAf6NiC0HBkdD8__MX" target="_blank" rel="noopener">Open in the calculator ↗</a>
+  </div>
+  <p class="fits"><b>Use it when the customer looks like:</b> a developer assistant or any workload with long prompts and fast responses.</p>
+  <p class="setup">Preset <b>Software development assistant</b> (80 requests a day, 6,000-token prompts, 40 tokens/sec), 5,000 developers, approved providers only. About 57 billion tokens a month.</p>
+  <div class="nums"><div class="num"><span class="k">Buy servers (full peak)</span><span class="v">$375K/yr</span><span class="s">24× MI300X</span></div><div class="num"><span class="k">Rent GPUs</span><span class="v">$554K/yr</span><span class="s">Azure, 3-year reserved</span></div><div class="num"><span class="k">Pay per token</span><span class="v">$488K/yr</span><span class="s">Azure AI Foundry</span></div><div class="num win"><span class="k">Hybrid</span><span class="v">$295K/yr</span><span class="s">Two 8× MI300X servers (about 72% of peak, 94% of tokens) + Azure overflow, including routing</span></div></div>
+  <div class="cols">
+    <div><span class="label">What decides it</span>
+      <ul><li>Big prompts and fast streaming both push hardware requirements up; GPU memory for all that context often sets the server count.</li><li>The hybrid saves about $193K a year versus all-API and $79K versus owning for the full peak, including about $17K a year to run the routing gateway.</li></ul>
+      <p class="take"><b>Takeaway for the room:</b> design choices (how much context each request carries, how long people may wait) move the economics as much as user counts do.</p>
+    </div>
+    <div><span class="label">Ask the customer</span>
+      <p class="ask">How much context does each request really carry (whole files, or just the current function)? How long can a developer wait at the busiest moment?</p>
+      <span class="label">What-if to try together</span>
+      <div class="lever"><p>Change <b>Avg input tokens</b> from 6,000 to <b>2,000</b>.</p><p>The answer becomes <b>Strong on-prem candidate</b>: one 8× MI300X server (about $125K/yr) covers the busiest hour if requests may wait a couple of seconds, versus about $192K/yr to pay per token.</p></div><div class="lever"><p>Then set <b>Acceptable wait</b> to <b>No waiting</b>.</p><p>Buying so that nobody ever waits takes more servers (about $197K/yr) and the result becomes <b>Near breakeven</b>: a zero-wait requirement costs about $72K a year. The Hybrid table’s last column shows the full menu of cost against waiting.</p></div>
+    </div>
+  </div>
+</article>
+<article class="scn" id="e">
+  <div class="scn-head">
+    <div><span class="letter">PATTERN E</span><h3>Continuous document processing (schedulable batch)</h3><span class="chip good">Strong on-prem candidate</span></div>
+    <a class="open" href="https://mgmlab.github.io/token-calculator/#z=XVLBbhMxEP2VaE4gudUm2zatrwiuIK4IjRx7Glvx2sYzjhIQ_468u0DbizV6z37zZp5_AVtKpoaMyUwEGj5ezFQi6c2HnCSklhtvXLZtoiSbUrMl5pCOm3dsPbkWzSHS5mDE-vegoFRiEtAwIxjSM1VKlkBBY6oM-n4YBgWVfjRiYSxUsTNz4cwV9K7z5nzEkEoTlHyixDO84rnJS-J-xq2EM3WBRXLKSTzocbi9U1DInNDmZFvtZq44ZddHdVTDmRwoODS-os-tIntTCYsV0He3u85Uli5pKUmIBPrp6a2i4N9xuhsFYuqR5J_Pslha74DeDgomc-nvhS4CetztHx4VdFcRgwMNMZrJ3Iy3481-OCxrtYFDTqDh05dHUHA642tw-7CgHH6GdMSD4cCgQa4lWBNBgVCd8EqmhzAq8GRczXlaZt0NChKW2BhzItDPJjIpEF9zO_o-BudWbd_agZL1k6knFE-pH7mSrE1szM3hmkZf6Ks49mOPqgS0xnpCH2TpvqLLn3mRwHZYGbrY2Bw50N_gc6H0NTehCt8VhDQzaGNmcnOykUFLbTS76aAEqqDBxO7wv1RqMSpwRsxS__4D" target="_blank" rel="noopener">Open in the calculator ↗</a>
+  </div>
+  <p class="fits"><b>Use it when the customer looks like:</b> document processing, data enrichment or other work that can be queued and run around the clock.</p>
+  <p class="setup">Preset <b>Batch inference</b>: queued work spread evenly over 24 hours, 100% eligible for batch pricing. 5,000 sources, 200 jobs each a day, approved providers only. About 76 billion tokens a month.</p>
+  <div class="nums"><div class="num win"><span class="k">Buy servers</span><span class="v">$125K/yr</span><span class="s">One 8× MI300X server, 49% utilized</span></div><div class="num"><span class="k">Rent GPUs</span><span class="v">$185K/yr</span><span class="s">Azure, 3-year reserved</span></div><div class="num"><span class="k">Pay per token</span><span class="v">$328K/yr</span><span class="s">Google Vertex AI, with its 50% batch discount</span></div></div>
+  <div class="cols">
+    <div><span class="label">What decides it</span>
+      <ul><li>Work that can be queued keeps the GPUs busy around the clock.</li><li>Even with the API’s 50% batch discount, owning costs less than half as much as paying per token.</li></ul>
+      <p class="take"><b>Takeaway for the room:</b> if work can be queued and spread across the day, that can change the economics more than any price negotiation.</p>
+    </div>
+    <div><span class="label">Ask the customer</span>
+      <p class="ask">Does this work need an answer in seconds, or can it be queued and finished within hours?</p>
+      <span class="label">What-if to try together</span>
+      <div class="lever"><p>Change <b>Busy-hour share</b> from 4.2% (flat) to <b>15%</b> (an interactive, office-hours peak).</p><p>Same monthly tokens, but owning for the peak now takes three servers (about $375K/yr), and a <b>Hybrid</b> mix wins at about $249K/yr, including the routing gateway.</p></div>
+    </div>
+  </div>
+</article>
+<article class="scn" id="f">
+  <div class="scn-head">
+    <div><span class="letter">PATTERN F</span><h3>Small batch workload that will grow</h3><span class="chip mid">Near breakeven</span></div>
+    <a class="open" href="https://mgmlab.github.io/token-calculator/#z=XVJdbxwhDPwrKz-T095tkkt4T19btY9VhXzgHOhY2BpzH6363yt2t23SF4RmzHjs4ScUSwk5ZJNwJNDwcsVxiqS7LyPG2B1QrO8umU8xo-vEo3SXEGN35HwBBRNTIQENc6EJ6ZWYkiVQUAtxAb196BUwfa9UpJiJ2DRivji8gd71vQI8H01IUxUj-USpzPCK5ypviYcZtxLO1AQWyTEn8aCHfnOvYCI8GZuTrdy83MyYXRvNEYczOVBwqOVmfK5sikcmM1kBfb_ZNYaLNElLSUIk0M_P_yuK-TNOc6NAkI8kf31Oi6W1BvS2VzDitb0XugroYbd_fFLQXEUTHGiIEUe8GzbD3b4_LFu1oYScQMOHT0-g4HQ278Ht44KW8COkozlgCQU0yG0KFiMoEOLR3AhbBoMCT-g453GZddcrSGaKtZicCPQrxkIKxHOuR9_GKLmybVs7ULJ-RD4Z8ZTakZlkbWJjrs6sabSFvotjP7SopmAsWk_GB1m6r-jyZd4ksO1Xhq42VkcO9Ff4OFH6nKsQwzcFIc2MsTEXcnOysYAWrjS7aaAEYtCAsTn8J5VqjAocCi73X78B" target="_blank" rel="noopener">Open in the calculator ↗</a>
+  </div>
+  <p class="fits"><b>Use it when the customer looks like:</b> a small workload today with clear plans to grow.</p>
+  <p class="setup">The same queued batch work at a much smaller volume: 150 sources, approved providers only. About 2.3 billion tokens a month.</p>
+  <div class="nums"><div class="num"><span class="k">Buy servers</span><span class="v">$22K/yr</span><span class="s">Smallest server (2× RTX PRO 6000), 15% utilized</span></div><div class="num"><span class="k">Rent GPUs</span><span class="v">$109K/yr</span><span class="s">Nebius, on-demand</span></div><div class="num win"><span class="k">Pay per token</span><span class="v">$10K/yr</span><span class="s">Google Vertex AI, batch pricing</span></div></div>
+  <div class="cols">
+    <div><span class="label">What decides it</span>
+      <ul><li>Today paying per token is cheaper, but the gap is small; owning catches up at about <b>2.5× today’s volume</b>.</li><li>The Breakeven tab’s table shows exactly where the lowest-cost option changes as usage grows.</li></ul>
+      <p class="take"><b>Takeaway for the room:</b> start on the API, and agree now on the volume at which bringing it in-house is worth revisiting.</p>
+    </div>
+    <div><span class="label">Ask the customer</span>
+      <p class="ask">What does volume look like in 12 and 24 months? What would trigger a move in-house?</p>
+      <span class="label">What-if to try together</span>
+      <div class="lever"><p>Change <b>Users</b> from 150 to <b>400</b> (about 2.5× growth).</p><p>The result becomes <b>Likely on-prem candidate</b>: about $22K/yr to own versus $26K/yr to pay per token. Go to 5,000 to land on Pattern E.</p></div>
+    </div>
+  </div>
+</article>
+<article class="scn" id="g">
+  <div class="scn-head">
+    <div><span class="letter">PATTERN G</span><h3>Dedicated GPUs, no data center</h3><span class="chip cool">GPU cloud candidate</span></div>
+    <a class="open" href="https://mgmlab.github.io/token-calculator/#z=lVRNbxM9EP4r1pzdapvQlvpWBEWcQO8LXBCyHHuateL1mPE4JK3478jZNHyoF_Zg7T7jmXme-dhHqB6z40g2uwnBwJudm0pCo15jiN4JBvX2w6eqVSYVnDjlMQsyaCiMFQUM4FQS7RGtpxITCWhoFbmCWQzDMGhg_NawSrUF2XbT4SW4fb-hwW3XNubSxAptMFcwF5fDEacmvxteHHAvcYvdf444UZYRzOLi_FpDQbexnrJvzJj93k4Uuq6AHLcYQMOq1b0dqbGto2O0xUvP2A1cpUfsEmNCMDc3fwcU-yQGzOWgQRyvUU40y8zoeGeWN7ld9xfcCZjl4vrqpYZOKtkYwEBKbnJny_Pl2fWwmsvqY42UwcDdh5egYbO1f4IXVzNa40PMa7tyNVYwIPsSvUugQZAnu0fXe7DUMKILTDTNUjunbEtq1VJGMPcuVdQgI1Nbj11Gpca-F22F2Y-T442VEXM_iFGOSXyiFuyxGb2ef3Tjetk7VaL1zo9oxyhz9id45cSPv3fgiOPOpxYwgPkC7wvm_6jN43YXGb8Tb6q6fQcaPtIaZUSev24n90BZvcLA5DcdeGiM6vaduqOWA-9Bw1uidUL1GVlwN7u9Riz_I3aHnmsOlXslSvQnF_iqIeYDLesTVQyHoUoVjHDDQyU6KBEZDLjUq_NLR24paei7A-YRXK1tKhKpj_MjHA7KhXE6p1LtvWBHti41BDOcX2o4deO0mqNL98plhXkdMyIrIcUtK_qeMaiKvO3bp8FVS_dgYDEsrs6Gm7PlABqqOGl9XGiLzDEg_NBPDDwlspjdKnXiJ3EtPMtt8Sw5p741x4Ks6FmSMqI6lE9RVn2jjn-Yf-Dbn58" target="_blank" rel="noopener">Open in the calculator ↗</a>
+  </div>
+  <p class="fits"><b>Use it when the customer looks like:</b> a customer that needs dedicated GPUs but has no data center or platform team.</p>
+  <p class="setup">The Pattern B copilot (20,000 users) with <b>every API provider unticked</b> (the model must run on dedicated GPUs). The link also turns on <b>colocation</b>, adds <b>half an engineer</b> to run owned servers and <b>a quarter of an engineer</b> to run the model on rented GPUs. Opening any other pattern link clears these again.</p>
+  <div class="nums"><div class="num"><span class="k">Buy servers (colo + staff)</span><span class="v">$249K/yr</span><span class="s">8× MI300X plus colocation and 0.5 FTE</span></div><div class="num win"><span class="k">Rent GPUs (+ staff)</span><span class="v">$235K/yr</span><span class="s">Azure, 3-year reserved, plus 0.25 FTE</span></div><div class="num"><span class="k">Pay per token</span><span class="v">—</span><span class="s">Ruled out by the customer</span></div></div>
+  <div class="cols">
+    <div><span class="label">What decides it</span>
+      <ul><li>Owning means more than hardware: rack space, power and people. A customer without a data center pays for colocation.</li><li>GPU cloud removes the facility and hardware lifecycle while still giving dedicated capacity; they still need someone to run the model.</li><li>It is a close call (about $14K a year), and the staffing assumptions decide it.</li></ul>
+      <p class="take"><b>Takeaway for the room:</b> operational reality on both sides (facilities, staff) matters as much as list prices.</p>
+    </div>
+    <div><span class="label">Ask the customer</span>
+      <p class="ask">Where would the servers live, and who would run them day to day?</p>
+      <span class="label">What-if to try together</span>
+      <div class="lever"><p>In Data editor → <b>Assumptions</b>, set onprem <code>ops_fte</code> to <b>0</b> and untick <code>colo_enabled</code> (they have a data center and a team).</p><p>The result flips to <b>Likely on-prem candidate</b>: owning drops to about $125K/yr.</p></div>
+    </div>
+  </div>
+</article>
+
+<section class="stack" id="worksheet">
+  <h2>Workshop worksheet</h2>
+  <p>For the note-taker. One copy per workload; the agreed values go straight into the calculator.</p>
+  <div class="tablewrap"><table class="index sheet">
+    <thead><tr><th>Item</th><th>Agreed value</th><th>Source and how sure</th></tr></thead>
+    <tbody><tr><td>Workload name</td><td></td><td></td></tr><tr><td>Users (active, not licensed)</td><td></td><td></td></tr><tr><td>Requests per user per day</td><td></td><td></td></tr><tr><td>Average input / output tokens</td><td></td><td></td></tr><tr><td>Active days per month · busy-hour share</td><td></td><td></td></tr><tr><td>Response speed (tokens per second)</td><td></td><td></td></tr><tr><td>Acceptable wait at the busiest moment</td><td></td><td></td></tr><tr><td>Model (and quality bar)</td><td></td><td></td></tr><tr><td>Approved API providers</td><td></td><td></td></tr><tr><td>Data constraints (residency, retention)</td><td></td><td></td></tr><tr><td>Existing data center · platform team</td><td></td><td></td></tr><tr><td>Expected growth (12 and 24 months)</td><td></td><td></td></tr><tr><td>Result and recommended option</td><td></td><td></td></tr><tr><td>Confidence, and what is still an estimate</td><td></td><td></td></tr><tr><td>Next steps: owner and date</td><td></td><td></td></tr></tbody>
+  </table></div>
+</section>
+
+<section class="stack">
+  <h2>Questions you’ll get</h2>
+  <div class="qa">
+    <div><b>“Confidence says Low. Should we trust this?”</b><p>The rating counts the inputs still marked ⚠: none is High, one is Medium, two or more is Low. Today the three that can move it are throughput (no measured benchmark yet), server pricing (no quote yet) and the default operating assumptions. Low means the direction is preliminary, not wrong. Click the range under the Buy servers box to show which inputs are still estimates and how far they move the cost; a real quote and a Pellera lab benchmark turn it into something fit for an architecture decision.</p></div>
+    <div><b>“We get discounts from our cloud provider.”</b><p>We start from public pricing so every option has the same baseline. Enter the contracted rate or a real infrastructure quote in the Data editor during the session and see whether the answer changes.</p></div>
+    <div><b>“Why not just use GPT or Claude?”</b><p>Those are different models, shown for cost context only. Set Closed-model tier to Frontier and the Breakeven tab shows what a flagship model would cost (Pattern B: about $645K/yr against $115K for the hybrid). Whether a smaller open model is good enough is a question to test together, not assume.</p></div>
+    <div><b>“How current are these prices?”</b><p>API and GPU rental prices refresh every day from public sources; hover “Prices checked” in the header. Server prices are updated by hand from quotes.</p></div>
+    <div><b>“Can we keep working on this ourselves?”</b><p>Yes. The share link opens the same inputs, removed options and any prices or specs edited in the session, so it works as a saved copy of the analysis.</p></div>
+  </div>
+</section>
+
+<section class="note">
+  <p><strong>After the workshop (within two working days).</strong> Send the share link for each workload, the PowerPoint export (summary, confidence, every option, the breakeven table and the assumptions), the Excel workbook for the leading option (Expand its row → <b>Export this option</b>) for their engineers, and the completed worksheet with owners and dates. Follow up on quotes and lab benchmarks so the next conversation starts at Medium or High confidence.</p>
+</section>
+
+</div>
+
+</body>
+</html>

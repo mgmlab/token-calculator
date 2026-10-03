@@ -1,5 +1,5 @@
 {
-  "_readme": "Worked examples shown under 'Load an example' in the Workload profile and used by the demo playbook. Each example sets workload inputs (on top of the workload defaults in assumptions.json), optional data changes (same format as share links: assumptions → s: {path: value}), and the verdict it is expected to produce. scripts/check_examples.js re-checks every verdict after the daily price update and flags any that change, so the app, the playbook and the expected results stay in step. Keep descriptions technical and free of dollar figures, which drift as prices update.",
+  "_readme": "Worked examples shown under 'Load an example' in the Workload profile and used as reference patterns in the workshop playbook. Each example sets workload inputs (on top of the workload defaults in assumptions.json), optional data changes (same format as share links: assumptions → s: {path: value}), and the verdict it is expected to produce. scripts/check_examples.js re-checks every verdict after the daily price update and flags any that change, so the app, the playbook and the expected results stay in step. Keep descriptions technical and free of dollar figures, which drift as prices update.",
   "examples": [
     {
       "id": "pilot",
