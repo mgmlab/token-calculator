@@ -572,3 +572,8 @@ tr.row.jump-hl > td { animation: jumpRow 4s ease-out; }
 .inputs .adv-settings legend { display: block; width: 100%; box-sizing: border-box; padding: 5px 10px; margin-bottom: 8px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); font-size: 11.5px; font-weight: 700; letter-spacing: .06em; }
 
 .wait-cell { min-width: 150px; }
+
+/* summary box headings: easy to tell the four apart */
+.exec-tile .label { font-size: 14px; font-weight: 700; color: var(--text); letter-spacing: .01em; }
+.exec-tile.tile-win .label { color: var(--accent); }
+.exec-tile .label .win-tag { vertical-align: 2px; }

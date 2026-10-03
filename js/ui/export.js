@@ -331,14 +331,14 @@
       se.addShape(pptx.ShapeType.roundRect, { x: x0, y: 2.25, w: 2.95, h: 2.4, rectRadius: 0.15, fill: { color: win ? P.white : 'F4ECFF' }, line: { color: win ? P.purple : 'F4ECFF', width: win ? 2 : 0.75 } });
       if (alt) {
         se.addText([
-          { text: lbl, options: { fontSize: 13, color: P.ink2, breakLine: true } },
+          { text: lbl, options: { fontSize: 13, color: P.ink, bold: true, breakLine: true } },
           { text: alt[0], options: { fontSize: 17, bold: true, color: P.muted, breakLine: true } },
           { text: alt[1], options: { fontSize: 11, color: P.ink2 } },
         ], { x: x0 + 0.15, y: 2.35, w: 2.7, h: 2.2, fontFace: FONT, valign: 'top', fit: 'shrink' });
         return;
       }
       se.addText([
-        { text: lbl + (win ? ' · Recommended' : ''), options: { fontSize: win ? 12 : 13, color: win ? P.purple : P.ink2, bold: win, breakLine: true } },
+        { text: lbl + (win ? ' · Recommended' : ''), options: { fontSize: win ? 12 : 13, color: win ? P.purple : P.ink, bold: true, breakLine: true } },
         { text: r ? f.usdCompact(r.monthly * 12) : '—', options: { fontSize: 19, bold: true, color: P.purple, breakLine: true } },
         { text: r ? 'per year' + (TC.rangeNote(rng) ? ' · ' + TC.rangeNote(rng).replace(' with optimistic or pessimistic inputs', '') : '') : '', options: { fontSize: 11, color: P.muted, breakLine: true } },
         { text: r ? `${r.name} · ${r.sub}` : 'No option fits', options: { fontSize: 11, color: P.ink2, breakLine: true } },
