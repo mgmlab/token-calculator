@@ -103,8 +103,8 @@
     const altName = cheapAlt === cl ? 'renting GPUs' : 'paying per token';
     let why = '';
     if ((verdict.key === 'onprem' || verdict.key === 'onprem-likely') && on.rightSized) {
-      const r = on.rightSized;
-      why = `One right-sized setup (${r.setup}) carries ${TC.fmtShare(r.share)} of tokens on its own: it covers ${TC.capText(r)} with headroom, so there is no need to buy extra servers for the full peak (${f.usdCompact((hy.onPremOnly - r.ownedMonthly) * 12)}/yr more). In the rare busiest minutes the remaining ${TC.fmtShare(1 - r.share)} can wait a few seconds, or spill to ${hy.api.name} for about ${f.usdCompact(r.apiMonthly * 12)}/yr if an API fallback is already in place. Owning it costs ${f.usdCompact((cheapAlt.monthly - r.ownedMonthly) * 12)}/yr less than ${altName}.`;
+      const r = on.rightSized, wt = r.wait;
+      why = `One right-sized setup (${r.setup}) handles the workload if requests may wait up to ${TC.tolText(hy.tol)} in the busiest hour: about ${Math.max(1, Math.round(wt.pWait * 100))}% of busiest-hour requests wait, and 95% start within ${TC.fmtWait(wt.p95)}. Sizing so that nobody waits would cost ${f.usdCompact((hy.onPremOnly - r.ownedMonthly) * 12)}/yr more. Owning it costs ${f.usdCompact((cheapAlt.monthly - r.ownedMonthly) * 12)}/yr less than ${altName}. (Acceptable wait: Advanced settings → Sizing.)`;
       if (verdict.key === 'onprem-likely') why += ` The pessimistic end of the on-prem range is above the ${cheapAlt === cl ? 'GPU cloud' : 'API'} cost, so current server pricing and a measured benchmark would make this call firmer.`;
     } else if (verdict.key === 'onprem' || verdict.key === 'onprem-likely') {
       why = `The workload keeps dedicated GPUs busy enough (about ${f.num(util, 0)}% average utilization) that owning them costs less than ${altName} at today's volume.`;

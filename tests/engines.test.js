@@ -219,6 +219,21 @@
     if (Math.abs(TC.servedFraction(29.9, 30) - TC.servedFraction(30, 30)) > 0.02) throw new Error('approximation discontinuity');
   });
 
+  test('peak wait: Erlang C queue, backlog and unbounded cases', () => {
+    const flat = v => new Array(24).fill(v);
+    // M/M/2 with load 1: P(wait) = 1/3 (textbook Erlang C); mean wait = P × s / (c − A) = 1/3 × 10 / 1
+    const q = TC.peakWait(flat(1), 10, 2);
+    eq(q.pWait, 1 / 3, 'Erlang C c=2, A=1', 1e-9);
+    eq(q.typical, 10 / 3, 'mean wait', 1e-9);
+    if (q.unstable) throw new Error('should be stable');
+    if (!(TC.peakWait(flat(1), 10, 50).pWait < 1e-6)) throw new Error('plenty of capacity: almost nobody waits');
+    if (!TC.peakWait(flat(3), 10, 2).unstable) throw new Error('load above capacity all day never clears');
+    // Over capacity only in the busiest hour: a finite backlog that clears afterwards
+    const day = flat(1); day[12] = 3;
+    const b = TC.peakWait(day, 10, 2);
+    if (b.unstable || !(b.p95 > 60 && isFinite(b.p95))) throw new Error('busy-hour overload should give a finite, long wait');
+  });
+
   // ---------- render
   const ok = results.filter(r => r.ok).length;
   document.getElementById('summary').textContent = `${ok} / ${results.length} passed`;

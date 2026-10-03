@@ -157,6 +157,7 @@
     "term_years": 3,
     "headroom_pct": 20,
     "n_plus_one": false,
+    "peak_wait_s": 5,
     "throughput_source": "benchmark_then_theoretical",
     "cloud_active_hours_per_month": 730,
     "api_cache_hit_pct": 30,

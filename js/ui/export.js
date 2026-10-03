@@ -321,7 +321,7 @@
     let hyText = null;
     if (HY) {
       const b = HY.best, allOwned = b.row && (b.pct >= 100 || b.apiMonthly * 12 < 1);
-      if (HY.rightSized && !HY.wins) hyText = ['Not needed', `${HY.rightSized.setup} alone carries ${TC.fmtShare(HY.rightSized.share)} of tokens (right-sized on-prem)`];
+      if (HY.rightSized && !HY.wins) hyText = ['Not needed', `${HY.rightSized.setup} alone covers it with busiest-hour waits up to ${TC.tolText(HY.tol)} (right-sized on-prem)`];
       else if (!b.row || allOwned) hyText = ['Not needed', !b.row ? 'Best mix is all API: same as paying per token' : 'Best mix is all owned: same as buying servers'];
       else if (!HY.material) hyText = ['Not worth it', `API would take only ${TC.fmtShare(1 - b.share)} of tokens (${f.usdCompact(b.apiMonthly * 12)}/yr): too little to justify a hybrid`];
     }

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Workload Input Guide</title>
   <link rel="icon" href="../assets/favicon.png">
-  <link rel="stylesheet" href="../css/styles.css?v=202610022300">
+  <link rel="stylesheet" href="../css/styles.css?v=202610022334">
   <style>
     /* Layout: sticky topic nav on the left, reference content on the right; one card per input. */
     .g-wrap { max-width: 1180px; margin: 0 auto; padding: 20px 24px 48px; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 28px; align-items: start; }
@@ -75,7 +75,7 @@
       <div><h4>Start here</h4><a href="#quick">Quick reference</a></div>
       <div><h4>Usage</h4><a href="#users">Users</a><a href="#requests_per_user_per_day">Requests per day</a><a href="#avg_input_tokens">Input tokens</a><a href="#avg_output_tokens">Output tokens</a><a href="#active_days_per_month">Active days</a></div>
       <div><h4>Performance</h4><a href="#peak_concurrent_requests">Peak demand</a><a href="#target_output_tps_per_request">Response speed</a><a href="#max_context">Max context</a></div>
-      <div><h4>Model &amp; sizing</h4><a href="#model_id">Model &amp; precision</a><a href="#headroom_pct">Headroom, N+1, term</a></div>
+      <div><h4>Model &amp; sizing</h4><a href="#model_id">Model &amp; precision</a><a href="#headroom_pct">Headroom, N+1, term</a><a href="#peak_wait_s">Acceptable peak wait</a></div>
       <div><h4>Cost options</h4><a href="#cloud_active_hours_per_month">Cloud hours</a><a href="#api_cache_hit_pct">Caching &amp; batch</a><a href="#api_excluded">API providers</a></div>
       <div><h4>Templates</h4><a href="#example">Worked example</a><a href="#questions">Discovery questions</a></div>
     </nav>
@@ -106,6 +106,7 @@
             <tr><td><a href="#max_context">Max context</a> <span class="g-where">Advanced</span></td><td>What is the largest document or conversation?</td><td>8K · 32K · 128K</td></tr>
             <tr><td><a href="#model_id">Model &amp; precision</a></td><td>Which models are approved? Any quality bar?</td><td>FP8 for production</td></tr>
             <tr><td><a href="#headroom_pct">Headroom, N+1, term</a> <span class="g-where">Advanced</span></td><td>Growth expected? Business-critical? Depreciation period?</td><td>20–30% · N+1 if critical · 3 years</td></tr>
+            <tr><td><a href="#peak_wait_s">Acceptable peak wait</a> <span class="g-where">Advanced</span></td><td>In the busiest hour, how long may a request wait to start?</td><td>Chat: none or 5 s · internal tools: 30 s · background: minutes</td></tr>
             <tr><td><a href="#api_cache_hit_pct">Caching &amp; batch</a> <span class="g-where">Advanced</span></td><td>Does a big part of each prompt repeat? Can any work wait hours?</td><td>Cache 30–60% · Batch 0% chat, up to 100% overnight</td></tr>
             <tr><td><a href="#api_excluded">API providers</a> <span class="g-where">Advanced</span></td><td>Which providers are approved to buy from?</td><td>Untick any that aren’t</td></tr>
           </tbody>
@@ -197,6 +198,13 @@ peak concurrent ≈ peak requests/sec × seconds per request, plus a 99th-percen
           <div class="g-chips"><span class="g-chip">Headroom <b>20–30%</b></span><span class="g-chip">N+1 = one spare server if critical</span><span class="g-chip">Term <b>3</b> or <b>5</b> years</span></div>
           <span data-anchor="n_plus_one"></span><span data-anchor="term_years"></span>
         </article>
+
+        <article class="g-card" id="peak_wait_s">
+          <h3>Acceptable wait in the busiest hour <span class="g-where">Advanced</span></h3>
+          <div class="g-ask">In the busiest hour, how long can a request wait before it starts? Would a few seconds’ delay at peak be fine if it saves buying servers?</div>
+          <div class="g-chips"><span class="g-chip">Customer-facing chat: <b>no waiting</b> or <b>5 s</b></span><span class="g-chip">Internal tools: <b>30 s</b></span><span class="g-chip">Agents, background jobs: <b>2–10 min</b></span></div>
+          <p>Buying enough servers that nobody ever waits means paying for capacity used only in the busiest minutes. Allowing a short wait lets a smaller setup cover the workload: requests beyond capacity queue briefly instead. The calculator estimates the busiest-hour wait for each server setup (95% of requests start within the time shown) and picks the cheapest one within this limit. The Hybrid section’s table shows the whole menu: cost per year against how long people would wait.</p>
+        </article>
       </div>
 
       <h2 class="g-h2" id="costs">Cost options</h2>
@@ -268,7 +276,7 @@ peak concurrent ≈ peak requests/sec × seconds per request, plus a 99th-percen
   </div>
 
   <footer class="site-footer" id="footer"></footer>
-  <script src="../js/config.js?v=202610022300"></script>
+  <script src="../js/config.js?v=202610022334"></script>
   <script>
     (function () {
       var c = window.TC && window.TC.config;

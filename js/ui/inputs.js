@@ -22,7 +22,7 @@
 
   // Shown under "Advanced settings" (collapsed by default) — the essentials stay visible.
   const ADVANCED = new Set(['peak_concurrency_mode', 'busy_hour_share_pct', 'burst_percentile', 'peak_concurrent_requests', 'target_output_tps_per_request',
-    'max_context', 'precision', 'kv_precision', 'kv_sizing_basis', 'throughput_source', 'headroom_pct', 'n_plus_one',
+    'max_context', 'precision', 'kv_precision', 'kv_sizing_basis', 'throughput_source', 'headroom_pct', 'n_plus_one', 'peak_wait_s',
     'cloud_active_hours_per_month', 'api_cache_hit_pct', 'api_batch_share_pct', 'api_excluded', 'include_closed_models', 'closed_tier']);
   const ADV_KEY = 'tc.advancedOpen';
 
@@ -82,6 +82,8 @@
         tip: 'Extra capacity on top of the calculated need, for user growth, traffic bursts and maintenance windows. 20–30% is typical.' },
       { k: 'n_plus_one', label: 'Add one spare server (N+1)', type: 'checkbox',
         tip: 'Adds one whole spare server to every on-prem and hybrid configuration, so a server failure or maintenance window never drops capacity below the need. Typical for business-critical services. The spare is costed but not counted as serving capacity.' },
+      { k: 'peak_wait_s', label: 'Acceptable wait in the busiest hour', type: 'select', options: [[0, 'No waiting: size for the full peak'], [5, 'Up to 5 seconds'], [30, 'Up to 30 seconds'], [120, 'Up to 2 minutes'], [600, 'Up to 10 minutes (background work)']],
+        tip: 'How long a request may wait to start during the busiest hour. Allowing a short wait lets fewer servers cover the workload: requests beyond capacity queue for a moment instead of buying servers for the busiest minutes. Measured as 95% of busiest-hour requests starting within this time. Interactive chat: no waiting or 5 s. Internal tools: up to 30 s. Agents and background jobs: minutes.' },
     ]},
     { title: 'Cloud & API', fields: [
       { k: 'cloud_active_hours_per_month', label: 'On-demand active hours / month', type: 'number', min: 1, max: 744,

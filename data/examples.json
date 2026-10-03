@@ -76,7 +76,7 @@
       "name": "Software development assistant, 5,000 developers",
       "summary": "Long prompts (6,000 tokens) and fast responses (40 tokens/sec) raise the hardware needed.",
       "note": "GPU memory for long contexts, not raw speed, sets how many servers are needed. Owning most of the capacity and sending the overflow to an API is cheapest.",
-      "try": "Lower [[Avg input tokens|avg_input_tokens]] to 2,000 (smaller context per request). Far fewer servers are needed for the same users, and every option gets much cheaper.",
+      "try": "Lower [[Avg input tokens|avg_input_tokens]] to 2,000 (smaller context per request). One server now covers the busiest hour with waits of a couple of seconds, so owning wins. Then set [[Acceptable wait|peak_wait_s]] to “No waiting” and watch the answer change.",
       "workload": {
         "preset": "coding_assistant",
         "users": 5000,

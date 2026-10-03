@@ -79,7 +79,10 @@
     const seen = new Map();
     hy.points.forEach(p => {
       const key = p.row ? p.setup + '|' + Math.round(p.ownedMonthly) : 'none';
-      if (!seen.has(key)) seen.set(key, p);
+      // The same hardware shows up at several requested sizes; keep the one sized for the most load, which is what
+      // those servers can really carry (smaller requests are sized, and so measured, for less concurrency).
+      const prev = seen.get(key);
+      if (!prev || (p.capacity || 0) > (prev.capacity || 0)) seen.set(key, p);
     });
     const opts = [...seen.values()].sort((a, b) => a.ownedMonthly - b.ownedMonthly || a.pct - b.pct);
     const rsKey = hy.rightSized ? hy.rightSized.setup + '|' + Math.round(hy.rightSized.ownedMonthly) : null;
@@ -94,6 +97,47 @@
   TC.shortSetup = p => (p.row ? p.setup.replace(/\s*\([^)]*\)\s*$/, '') : 'None: all API');
 
   const cheapest = rows => rows.filter(r => r.feasible && isFinite(r.monthly)).sort((a, b) => a.monthly - b.monthly)[0] || null;
+
+  /** Erlang C: probability an arrival has to wait with c servers and offered load A (A < c). Stable for large c. */
+  function erlangC(c, A) {
+    let B = 1;
+    for (let k = 1; k <= c; k++) B = A * B / (k + A * B);
+    return B / (1 - (A / c) * (1 - B));
+  }
+  /**
+   * Waiting in the busiest hour if requests beyond capacity queue instead of going elsewhere.
+   * hourly = mean concurrent requests per hour (offered load in Erlangs), s = seconds per request, capacity = concurrent slots.
+   * Within an hour that fits (load < slots): M/M/c queue (random arrivals). An hour that does not fit builds a backlog
+   * that carries into the next hours until load falls (fluid approximation). If the backlog never clears, waits are unbounded.
+   */
+  TC.peakWait = function (hourly, s, capacity) {
+    const c = Math.max(1, Math.floor(capacity));
+    let B = 0, endDay1 = 0, maxW = 0, startOfPeak = 0;
+    const m = hourly.indexOf(Math.max(...hourly));
+    for (let i = 0; i < 48; i++) {
+      const A = hourly[i % 24];
+      if (i >= 24 && i % 24 === m) startOfPeak = B;
+      B = Math.max(0, B + (A - c) * 3600); // slot-seconds of queued work
+      if (i >= 24) maxW = Math.max(maxW, B / c);
+      if (i === 23) endDay1 = B;
+    }
+    if (B > endDay1 + 1) return { unstable: true, pWait: 1, typical: Infinity, p95: Infinity };
+    const A = hourly[m], carry = startOfPeak / c;
+    if (A < c) {
+      const P = erlangC(c, A);
+      const typical = carry + P * s / (c - A);
+      const p95 = carry + (P > 0.05 ? Math.log(P / 0.05) * s / (c - A) : 0);
+      return { unstable: false, pWait: carry > 0 ? 1 : P, typical, p95 };
+    }
+    // Over capacity for the whole busiest hour: everyone waits; the backlog grows through the hour.
+    return { unstable: false, pWait: 1, typical: carry + (A - c) * 1800 / c, p95: Math.max(maxW, carry + (A - c) * 3600 / c) };
+  };
+  /** The acceptable-wait setting in words ("5 seconds"). */
+  TC.tolText = t => ({ 5: '5 seconds', 30: '30 seconds', 120: '2 minutes', 600: '10 minutes' }[t] || `${t} seconds`);
+  /** One line describing busiest-hour waiting for an owned setup, if overflow queues. */
+  TC.waitText = wt => (!wt ? '' : wt.unstable ? 'backlog never clears' : wt.pWait < 0.005 ? 'no waiting' : `${Math.round(wt.pWait * 100)}% wait · 95% start within ${TC.fmtWait(wt.p95)}`);
+  /** "under a second", "12 s", "3 min" */
+  TC.fmtWait = t => (!isFinite(t) ? 'never clears' : t < 1 ? 'under a second' : t < 90 ? `${Math.round(t)} s` : t < 5400 ? `${Math.round(t / 60)} min` : `${f.num(t / 3600, 1)} h`);
 
   TC.hybrid = function (data, w, res) {
     const wl = res.wl;
@@ -143,7 +187,8 @@
       const apiMonthly = api.monthly * (1 - share);
       const routes = share < 1 && apiMonthly * 12 >= 1; // a mix that sends anything to the API needs the routing layer
       const rM = routes ? routingMonthly : 0;
-      points.push({ pct: step * 5, K, capacity: cap, capPct: Math.round(cap / Math.max(peak, 1e-9) * 100), share, ownedMonthly: row.monthly, apiMonthly, routingMonthly: rM, total: row.monthly + apiMonthly + rM, row, setup: TC.describeOnPrem(onRows, row).label });
+      const wait = TC.peakWait(hourly, secPerReq, cap);
+      points.push({ pct: step * 5, K, capacity: cap, capPct: Math.round(cap / Math.max(peak, 1e-9) * 100), share, wait, ownedMonthly: row.monthly, apiMonthly, routingMonthly: rM, total: row.monthly + apiMonthly + rM, row, setup: TC.describeOnPrem(onRows, row).label });
     }
     const best = points.reduce((a, p) => (p.total < a.total ? p : a), points[0]);
     // A mix only "wins" if it beats every single-architecture option, GPU cloud included.
@@ -155,10 +200,11 @@
     const material = (1 - best.share) >= 0.02 && best.apiMonthly * 12 >= 1000;
     const wins = mixed && material && best.total < 0.95 * pureBest;
 
-    // Right-sized on-prem: the cheapest owned setup that carries at least 99.5% of tokens on its own. The rest is the
-    // busiest minutes; requests there wait a few seconds (no extra cost) or, if the customer already has an API
-    // fallback, spill to it. When that setup is cheaper than sizing for the full calculated peak, it is the on-prem answer.
-    const rs = points.filter(p => p.row && p.share >= 0.995).sort((a, b) => a.ownedMonthly - b.ownedMonthly)[0] || null;
+    // Right-sized on-prem: the cheapest owned setup whose busiest-hour wait stays within what the customer accepts
+    // (95% of requests start within peak_wait_s seconds), when overflow queues on the same servers instead of going elsewhere.
+    // 0 = no waiting: always size for the full calculated peak. Cheaper than full-peak sizing → it is the on-prem answer.
+    const tol = w.peak_wait_s == null ? 5 : Number(w.peak_wait_s);
+    const rs = tol > 0 ? points.filter(p => p.row && p.wait && !p.wait.unstable && p.wait.p95 <= tol).sort((a, b) => a.ownedMonthly - b.ownedMonthly)[0] || null : null;
     const rightSized = rs && rs.ownedMonthly < onOnly.monthly * 0.995 ? rs : null;
 
     const steps = [
@@ -173,7 +219,7 @@
     ];
 
     return {
-      points, best, api, onOnly, cloud, wins, mixed, material, peak, rightSized, routingMonthly,
+      points, best, api, onOnly, cloud, wins, mixed, material, peak, rightSized, routingMonthly, tol, secPerReq,
       apiOnly: api.monthly, onPremOnly: onOnly.monthly,
       savingsVsApi: api.monthly - best.total, savingsVsOnPrem: onOnly.monthly - best.total,
       savingsVsCloud: cloud ? cloud.monthly - best.total : null,
