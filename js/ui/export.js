@@ -351,7 +351,7 @@
     se.addText([
       { text: 'Breakeven: ', options: { bold: true, color: P.ink } }, { text: beText, options: { color: P.ink, breakLine: true, paraSpaceAfter: 10 } },
       { text: 'Why: ', options: { bold: true, color: P.ink } }, { text: X.why, options: { color: P.ink2, breakLine: true, paraSpaceAfter: 10 } },
-      { text: `Confidence: ${X.level}. `, options: { bold: true, color: P.ink } }, { text: 'Ranges reflect uncertain throughput and placeholder prices — see the next slide.', options: { color: P.ink2 } },
+      { text: `Confidence: ${X.level}. `, options: { bold: true, color: P.ink } }, { text: 'Ranges reflect uncertain throughput and power load; placeholder server prices are used as entered — see the next slide.', options: { color: P.ink2 } },
     ], { x: 0.5, y: 4.85, w: 12.3, h: 1.95, fontFace: FONT, fontSize: 14, valign: 'top' });
 
     if (HY) {
@@ -392,7 +392,7 @@
       { text: c.ok ? '✓' : '⚠', options: { align: 'center', bold: true, color: c.ok ? '16603A' : '7A4B00', fill: { color: c.ok ? 'E3F4EA' : P.warn } } },
       { text: c.label, options: { bold: true } }, c.detail,
     ])), Object.assign(tableOpts([0.6, 3.6, 8.133]), { rowH: 0.5, fontSize: 13 }));
-    note(sc, 'How the rating works: High = no ⚠ items; Medium = one; Low = two or more. API prices and model architecture are always ✓; throughput (add a measured benchmark), server pricing (add a quote) and operating assumptions (review them in the Data editor) are the three that move it. Firming them up also narrows the ranges on the summary.', 5.75);
+    note(sc, 'How the rating works: High = no ⚠ items; Medium = one; Low = two or more. API prices and model architecture are always ✓; throughput (add a measured benchmark), server pricing (add a quote) and operating assumptions (review them in the Data editor) are the three that move it. Server prices are never varied in the ranges: a placeholder price is used as entered and stays ⚠ until replaced with a quote.', 5.75);
 
     // 3. Summary: cheapest per category
     const cats = ['onprem', 'cloud_reserved', 'cloud_ondemand', 'api_same', 'api_closed'];

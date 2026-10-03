@@ -85,6 +85,21 @@ code { font: 500 13.5px var(--mono); background: var(--accent-soft); padding: 1p
 @media (max-width: 640px) { .cols { grid-template-columns: 1fr; } .scn { padding: 18px; } body { font-size: 16px; } }
 
 /* workshop additions */
+.page { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 28px; padding-inline: 20px; }
+.page > .wrap { max-width: 880px; margin: 0; padding-inline: 0; }
+.side { position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; padding: 40px 6px 40px 0; display: flex; flex-direction: column; gap: 14px; font-size: 14.5px; }
+.side-title { font: 700 15px var(--display); color: var(--accent-ink); }
+.side .grp { display: flex; flex-direction: column; gap: 2px; }
+.side h4 { margin: 0 0 4px; font: 600 11.5px/1 var(--body); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.side a { color: var(--ink-2); text-decoration: none; padding: 4px 10px; border-left: 2px solid var(--line); line-height: 1.35; }
+.side a:hover { color: var(--accent-ink); border-left-color: var(--accent); }
+.side a.active { color: var(--accent-ink); font-weight: 600; border-left-color: var(--accent); background: var(--accent-soft); }
+.pick td:nth-child(2) { font: 700 15px var(--mono); width: 3em; }
+.pick td:first-child { font: 600 15px/1.45 var(--body); color: var(--ink); width: 42%; }
+.pick td { font-size: 15px; }
+section, .scn, .block { scroll-margin-top: 16px; }
+@media (max-width: 900px) { .page { grid-template-columns: 1fr; } .side { position: static; max-height: none; padding: 24px 0 0; flex-direction: row; flex-wrap: wrap; gap: 6px 18px; } .side .grp { flex-direction: row; flex-wrap: wrap; gap: 4px 6px; } .side h4 { width: 100%; } .side a { border-left: 0; padding: 2px 6px; } }
+@media print { .side { display: none; } .page { display: block; } }
 .two { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 .two > div { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .block { border-left: 3px solid var(--accent); padding-left: 18px; scroll-margin-top: 16px; }
@@ -108,6 +123,14 @@ code { font: 500 13.5px var(--mono); background: var(--accent-soft); padding: 1p
 
 </head>
 <body>
+<div class="page">
+<nav class="side" aria-label="Playbook sections">
+  <div class="side-title">Workshop playbook</div>
+  <div class="grp"><h4>Plan</h4><a href="#outcomes">What they leave with</a><a href="#room">Who’s in the room</a><a href="#before">Before the workshop</a><a href="#agenda">Agenda</a></div>
+  <div class="grp"><h4>Run the session</h4><a href="#blk1">1 · Frame the decision</a><a href="#blk2">2 · Calibrate</a><a href="#blk3">3 · Build their workload</a><a href="#blk4">4 · Stress-test</a><a href="#blk5">5 · Read the result</a><a href="#blk6">6 · Next steps</a></div>
+  <div class="grp"><h4>Reference patterns</h4><a href="#using-patterns">When and how to use them</a><a href="#a">A · Pilot</a><a href="#b">B · Approved providers</a><a href="#c">C · 24/7 contact center</a><a href="#d">D · Developer assistant</a><a href="#e">E · Queued documents</a><a href="#f">F · Small, growing</a><a href="#g">G · No data center</a></div>
+  <div class="grp"><h4>Tools</h4><a href="#worksheet">Worksheet</a><a href="#questions">Questions you’ll get</a><a href="#after">After the workshop</a></div>
+</nav>
 <div class="wrap">
 
 <header class="stack">
@@ -121,7 +144,7 @@ code { font: 500 13.5px var(--mono); background: var(--accent-soft); padding: 1p
   <p class="small">Figures in the reference patterns were taken from the live calculator on October 3, 2026. API and GPU rental prices refresh daily, so dollar figures drift; the calculator re-checks every pattern’s result each day and flags any that change. Server prices are placeholders until we have quotes, which is why every pattern shows <em>Confidence: Low</em>.</p>
 </section>
 
-<section class="stack">
+<section class="stack" id="outcomes">
   <h2>What the customer leaves with</h2>
   <ol>
     <li><b>A written model of their workload</b>: users, usage, speed, peak and constraints, agreed by the people who own them.</li>
@@ -131,7 +154,7 @@ code { font: 500 13.5px var(--mono); background: var(--accent-soft); padding: 1p
   </ol>
 </section>
 
-<section class="stack">
+<section class="stack" id="room">
   <h2>Who should be in the room</h2>
   <div class="two">
     <div><span class="label">Customer</span>
@@ -141,7 +164,7 @@ code { font: 500 13.5px var(--mono); background: var(--accent-soft); padding: 1p
   </div>
 </section>
 
-<section class="stack">
+<section class="stack" id="before">
   <h2>Before the workshop</h2>
   <ol>
     <li><b>Send the discovery questions a week ahead.</b> In the calculator, open the <b>Input guide</b> and use <b>Copy questions</b>. Ask for real numbers where they exist: pilot usage, logs, licence counts, the approved-provider list, data rules.</li>
@@ -152,7 +175,7 @@ code { font: 500 13.5px var(--mono); background: var(--accent-soft); padding: 1p
   </ol>
 </section>
 
-<section class="stack">
+<section class="stack" id="agenda">
   <h2>Agenda (90 minutes)</h2>
   <div class="tablewrap"><table class="index agenda">
     <thead><tr><th>Time</th><th>Block</th><th>Goal</th></tr></thead>
@@ -170,7 +193,7 @@ code { font: 500 13.5px var(--mono); background: var(--accent-soft); padding: 1p
 
 <section class="stack block" id="blk2">
   <h2><span class="bn">2</span> Calibrate with a reference pattern <span class="t">10 min</span></h2>
-  <p>Open the pattern closest to them (the <b>Open in the calculator</b> links below, or <b>Examples ▾</b> in the calculator). Show the Analysis summary, then pull its what-if so the room sees the answer move.</p>
+  <p>Open the one pattern closest to them (see <a href="#using-patterns">Using the reference patterns</a> for which to pick, or <b>Examples ▾</b> in the calculator). Show the Analysis summary, then pull its what-if so the room sees the answer move.</p>
   <p><b>Ask:</b> “Which parts of this look like you, and which don’t?” Their answer is the bridge into block 3.</p>
 </section>
 
@@ -202,7 +225,7 @@ code { font: 500 13.5px var(--mono); background: var(--accent-soft); padding: 1p
   <ul>
     <li><b>The Recommended box</b>: the lowest-cost option; its big number matches that option’s row in the tables.</li>
     <li><b>Click a box</b> to open the row behind it and highlight the cost lines that add up to it; <b>↑ Back to summary</b> returns.</li>
-    <li><b>Click the range</b> (the small circled i) to show what is still an estimate (placeholder server price, power, the speed estimate) and how far it could move the cost.</li>
+    <li><b>Click the range</b> (the small circled i) to show what is still an estimate (the speed estimate and power load) and how far it could move the cost. Placeholder server prices are not varied: they are used as entered and flagged ⚠ until replaced with a quote.</li>
     <li><b>Confidence</b>: High means nothing marked ⚠, Medium one, Low two or more. Name what would raise it: a quote, a lab benchmark, reviewed operating assumptions.</li>
     <li><b>The Breakeven tab</b>: the table shows the lowest-cost option at ¼× to 50× today’s usage, which turns “buy or not” into a planning conversation.</li>
   </ul>
@@ -219,9 +242,49 @@ code { font: 500 13.5px var(--mono); background: var(--accent-soft); padding: 1p
   <p class="capture"><b>Capture:</b> owners and dates on the worksheet.</p>
 </section>
 
-<section class="stack">
+<section class="stack" id="using-patterns">
+  <h2>Using the reference patterns</h2>
+  <p>The seven patterns below are worked examples of realistic situations, each landing on a different result. In a workshop they are a <b>calibration tool, not the content</b>: they show the room how the answer moves, so the customer trusts it when we build their own numbers. Most workshops use one, occasionally two.</p>
+  <div class="two">
+    <div><span class="label">When to use one</span>
+      <ul>
+        <li><b>Block 2, to calibrate</b> (5–10 minutes): after the customer has said what they are deciding, before we enter their numbers.</li>
+        <li><b>Block 4, to make a constraint concrete</b>: when they can’t yet put a number on something, show its effect on a pattern (“here is what limiting providers did for a similar rollout”).</li>
+        <li><b>When the customer has no data yet</b>: start from the nearest pattern and adjust its inputs together instead of a blank form.</li>
+        <li><b>Internal practice</b>: run all seven before your first workshop to learn how each lever behaves.</li>
+      </ul></div>
+    <div><span class="label">When not to</span>
+      <ul>
+        <li>Don’t open with a pattern before the customer has framed their own decision.</li>
+        <li>Don’t walk through more than two; it turns the workshop back into a demo.</li>
+        <li>Never present a pattern’s numbers as the customer’s answer. They are illustrative; their own scenario replaces them.</li>
+      </ul></div>
+  </div>
+  <h3>Which one to pick</h3>
+  <div class="tablewrap"><table class="index pick">
+    <thead><tr><th>If the customer is…</th><th>Use</th><th>Why it helps</th></tr></thead>
+    <tbody>
+      <tr><td>Running a pilot or proof of concept</td><td><a href="#a">A</a></td><td>Shows why buying hardware too early rarely pays, and when to revisit.</td></tr>
+      <tr><td>Rolling out company-wide with procurement or security limits on providers</td><td><a href="#b">B</a></td><td>Shows how their buying rules, not just usage, change the answer.</td></tr>
+      <tr><td>Running a customer-facing service all day, every day</td><td><a href="#c">C</a></td><td>Steady demand is what makes owning pay; introduces right-sizing and acceptable wait.</td></tr>
+      <tr><td>Building developer tools, agents or long-document workloads</td><td><a href="#d">D</a></td><td>Context size and response speed drive hardware; shows the hybrid and the cost of zero waiting.</td></tr>
+      <tr><td>Processing documents or data that can be queued</td><td><a href="#e">E</a></td><td>The clearest case for owning; shows how flattening the peak changes everything.</td></tr>
+      <tr><td>Small today with growth plans</td><td><a href="#f">F</a></td><td>Turns “buy or not” into “at what volume”, using the Breakeven table.</td></tr>
+      <tr><td>Needing dedicated GPUs but without a data center or platform team</td><td><a href="#g">G</a></td><td>Shows facilities and staffing tipping the answer toward renting GPUs.</td></tr>
+    </tbody>
+  </table></div>
+  <h3>How to run one (five minutes)</h3>
+  <ol>
+    <li>Open it with <b>Open in the calculator</b> (or <b>Examples ▾</b>). The note above the summary says what drives the result.</li>
+    <li>Read the Analysis summary aloud: the Recommended box and the one-line why.</li>
+    <li>Pull its one what-if (the setting names in the <b>Try</b> line are links to the field) and let the room watch the answer change.</li>
+    <li>Ask “what’s different about you?”, then click <b>New analysis</b> and build their workload.</li>
+  </ol>
+</section>
+
+<section class="stack" id="patterns">
   <h2>Reference patterns</h2>
-  <p>Seven realistic situations, each landing on a different result. Use one in block 2 to calibrate, or later to compare (“you look more like C than A, because…”). They are also built into the calculator under <b>Examples ▾</b>, where the setting names in each <b>Try</b> line are links to the field to change.</p>
+  <p>Each pattern: when it fits, the figures from the calculator, what decides the result, a question to ask, and a what-if to try together.</p>
   <div class="tablewrap">
   <table class="index">
     <thead><tr><th></th><th>Situation</th><th>Economic result</th><th>What decides it</th></tr></thead>
@@ -388,22 +451,34 @@ code { font: 500 13.5px var(--mono); background: var(--accent-soft); padding: 1p
   </table></div>
 </section>
 
-<section class="stack">
+<section class="stack" id="questions">
   <h2>Questions you’ll get</h2>
   <div class="qa">
     <div><b>“Confidence says Low. Should we trust this?”</b><p>The rating counts the inputs still marked ⚠: none is High, one is Medium, two or more is Low. Today the three that can move it are throughput (no measured benchmark yet), server pricing (no quote yet) and the default operating assumptions. Low means the direction is preliminary, not wrong. Click the range under the Buy servers box to show which inputs are still estimates and how far they move the cost; a real quote and a Pellera lab benchmark turn it into something fit for an architecture decision.</p></div>
     <div><b>“We get discounts from our cloud provider.”</b><p>We start from public pricing so every option has the same baseline. Enter the contracted rate or a real infrastructure quote in the Data editor during the session and see whether the answer changes.</p></div>
     <div><b>“Why not just use GPT or Claude?”</b><p>Those are different models, shown for cost context only. Set Closed-model tier to Frontier and the Breakeven tab shows what a flagship model would cost (Pattern B: about $645K/yr against $115K for the hybrid). Whether a smaller open model is good enough is a question to test together, not assume.</p></div>
     <div><b>“How current are these prices?”</b><p>API and GPU rental prices refresh every day from public sources; hover “Prices checked” in the header. Server prices are updated by hand from quotes.</p></div>
-    <div><b>“Can we keep working on this ourselves?”</b><p>Yes. The share link opens the same inputs, removed options and any prices or specs edited in the session, so it works as a saved copy of the analysis.</p></div>
   </div>
 </section>
 
-<section class="note">
-  <p><strong>After the workshop (within two working days).</strong> Send the share link for each workload, the PowerPoint export (summary, confidence, every option, the breakeven table and the assumptions), the Excel workbook for the leading option (Expand its row → <b>Export this option</b>) for their engineers, and the completed worksheet with owners and dates. Follow up on quotes and lab benchmarks so the next conversation starts at Medium or High confidence.</p>
+<section class="note" id="after">
+  <p><strong>After the workshop (within two working days).</strong> Send the PowerPoint export (summary, confidence, every option, the breakeven table and the assumptions), the Excel workbook for the leading option (expand its row → <b>Export this option</b>) for their engineers, and the completed worksheet with owners and dates. Keep each workload’s <b>share link</b> for the Pellera team so we can reopen the analysis; don’t send it to the customer, since the calculator isn’t shared with customers for now. Follow up on quotes and lab benchmarks so the next conversation starts at Medium or High confidence.</p>
 </section>
 
 </div>
+</div>
 
+<script>
+(function () {
+  var links = Array.prototype.slice.call(document.querySelectorAll('.side a[href^="#"]'));
+  var targets = links.map(function (l) { return document.getElementById(l.getAttribute('href').slice(1)); });
+  function spy() {
+    var best = 0, bestTop = -Infinity, atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+    targets.forEach(function (t, i) { if (!t) return; var top = t.getBoundingClientRect().top; var limit = atBottom ? window.innerHeight : 140; if (top <= limit && top > bestTop) { bestTop = top; best = i; } });
+    links.forEach(function (l, i) { l.classList.toggle('active', i === best); });
+  }
+  window.addEventListener('scroll', spy, { passive: true }); window.addEventListener('resize', spy); spy();
+})();
+</script>
 </body>
 </html>

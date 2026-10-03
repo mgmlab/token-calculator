@@ -266,7 +266,7 @@
         <ul>${x.checks.map(c => `<li>${c.ok ? '✓' : '⚠'} <strong>${esc(c.label)}:</strong> ${esc(c.detail)}</li>`).join('')}</ul>
         ${(notes || []).map(n => `<p class="conf-note">${n}</p>`).join('')}
         <p class="muted small"><strong>How the rating works:</strong> High = no ⚠ items, Medium = one, Low = two or more. Throughput (add a measured benchmark), server pricing (add a quote) and operating assumptions (review them in the Data editor) are the three that can move it.</p>
-        <p class="muted small">Ranges come from rerunning the calculation with optimistic and pessimistic values for throughput efficiency, placeholder server prices and power load. API prices are published list prices, so they carry no range.</p>
+        <p class="muted small">Ranges come from rerunning the calculation with optimistic and pessimistic values for throughput efficiency and power load. Server prices are never varied: placeholder prices are used as entered and flagged ⚠ until replaced with a quote. API prices are published list prices, so they carry no range.</p>
       </details>
     </section>`;
   }
@@ -285,7 +285,7 @@
     const bw = TC.v(a.throughput.roofline_bandwidth_efficiency_pct), mfu = TC.v(a.throughput.roofline_compute_efficiency_pct);
     const what = [
       theory ? ['Server speed (theoretical estimate)', `${RC.low.bw}% / ${RC.low.mfu}%`, `${bw}% / ${mfu}%`, `${RC.high.bw}% / ${RC.high.mfu}%`] : null,
-      phPrice ? ['Server price (placeholder)', `${Math.round((1 - RC.low.price) * 100)}% under`, 'as entered', `${Math.round((RC.high.price - 1) * 100)}% over`] : null,
+      phPrice ? ['Server price (placeholder, not varied)', 'as entered', 'as entered', 'as entered'] : null,
       phLoad ? ['Power load (placeholder)', `${RC.low.load}%`, `${TC.v(a.power.load_factor_pct)}%`, `${RC.high.load}%`] : null,
     ].filter(Boolean);
     const OTHER = ['install', 'financing', 'colo', 'software', 'ops', 'residual'];
@@ -311,7 +311,7 @@
       + `<tr class="rp-total"><th>Per year</th>${cols.map(r => `<td class="num">${r ? usd(r.monthly * 12) : '—'}</td>`).join('')}</tr>`;
     const extra = k === 'cloud'
       ? 'Rental prices are published list prices, so only the speed estimate varies: a slower GPU means renting more of them.'
-      : 'Price and power only vary while they are placeholders; a real quote or measured value removes that part of the range.';
+      : 'Power only varies while it is a placeholder. The server price is not varied: ' + (phPrice ? `it is a placeholder (${f.usd(TC.v(central.server.price_usd))} per server) used as entered in every case, so replace it with a real quote.` : 'it comes from your data as entered.');
     const speedNote = theory ? ' Speed is a theoretical estimate (share of peak memory bandwidth / compute the GPU achieves); a measured benchmark for this GPU and model replaces it.' : '';
     return `<div class="rp-head"><strong>How this range is worked out: ${esc(central.name)} · ${esc(central.sub)}</strong><button type="button" class="rp-close" data-range-close aria-label="Close">×</button></div>
       <p class="muted small">The same option, recalculated with optimistic and pessimistic values for the inputs that are still uncertain, so the range is how far this one option's cost could move, not a cheaper option. ${extra}${speedNote}</p>

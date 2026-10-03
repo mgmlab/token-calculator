@@ -29,21 +29,21 @@
 
   /** The optimistic and pessimistic values behind every range (shown to users in the range breakdown). */
   TC.RANGE_CASES = {
-    low: { bw: 85, mfu: 55, price: 0.85, load: 60 },
-    high: { bw: 55, mfu: 30, price: 1.2, load: 85 },
+    // Server prices are NOT varied: a placeholder price stays as entered and is called out instead (no projected discounts).
+    low: { bw: 85, mfu: 55, load: 60 },
+    high: { bw: 55, mfu: 30, load: 85 },
   };
-  /** Low/high cases: optimistic vs pessimistic values for the uncertain inputs (throughput efficiency, placeholder prices, load). */
+  /** Low/high cases: optimistic vs pessimistic values for the uncertain inputs (throughput efficiency, placeholder power load). */
   function variants(data) {
-    const mk = (bw, mfu, priceMult, load) => {
+    const mk = (bw, mfu, load) => {
       const d = TC.clone(data);
       d.assumptions.throughput.roofline_bandwidth_efficiency_pct.value = bw;
       d.assumptions.throughput.roofline_compute_efficiency_pct.value = mfu;
       if (d.assumptions.power.load_factor_pct.status === 'placeholder') d.assumptions.power.load_factor_pct.value = load;
-      d.servers.servers.forEach(s => { if (s.price_usd && s.price_usd.status === 'placeholder') s.price_usd.value *= priceMult; });
       return d;
     };
     const L = TC.RANGE_CASES.low, H = TC.RANGE_CASES.high;
-    return { low: mk(L.bw, L.mfu, L.price, L.load), high: mk(H.bw, H.mfu, H.price, H.load) };
+    return { low: mk(L.bw, L.mfu, L.load), high: mk(H.bw, H.mfu, H.load) };
   }
 
   TC.execSummary = function (data, w, res) {
