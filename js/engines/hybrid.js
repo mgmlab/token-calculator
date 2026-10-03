@@ -82,8 +82,13 @@
       if (!seen.has(key)) seen.set(key, p);
     });
     const opts = [...seen.values()].sort((a, b) => a.ownedMonthly - b.ownedMonthly || a.pct - b.pct);
-    const lowest = opts.reduce((m, p) => (p.total < m.total ? p : m), opts[0]);
-    return opts.map(p => Object.assign({}, p, { best: p === lowest || (p.row && hy.best.row && p.setup === hy.best.setup && Math.round(p.ownedMonthly) === Math.round(hy.best.ownedMonthly)) }));
+    const rsKey = hy.rightSized ? hy.rightSized.setup + '|' + Math.round(hy.rightSized.ownedMonthly) : null;
+    opts.forEach(p => { p.rightSized = !!(rsKey && p.row && p.setup + '|' + Math.round(p.ownedMonthly) === rsKey); });
+    // The right-sized setup is costed as servers only (peak overflow waits), so it competes on that figure.
+    const eff = p => (p.rightSized ? p.ownedMonthly : p.total);
+    const lowest = opts.reduce((m, p) => (eff(p) < eff(m) ? p : m), opts[0]);
+    const matchBest = p => !rsKey && p.row && hy.best.row && p.setup === hy.best.setup && Math.round(p.ownedMonthly) === Math.round(hy.best.ownedMonthly);
+    return opts.map(p => Object.assign({}, p, { best: p === lowest || matchBest(p) }));
   };
   /** Short server label for charts: "2× RTX PRO 6000 Blackwell Server 96GB" without the vendor list. */
   TC.shortSetup = p => (p.row ? p.setup.replace(/\s*\([^)]*\)\s*$/, '') : 'None: all API');
@@ -105,7 +110,13 @@
     const demand = hourly.reduce((a, b) => a + b, 0);
     const peak = TC.effectiveWorkload(w).peak_concurrent_requests;
 
-    const points = [{ pct: 0, K: 0, share: 0, ownedMonthly: 0, apiMonthly: api.monthly, total: api.monthly, row: null }];
+    // Running two paths (owned servers + an API provider) needs a gateway and someone to look after it. Applied to every
+    // mix that actually routes traffic to the API; owning outright or paying per token for everything carries none.
+    const ha = data.assumptions.hybrid || {};
+    const setupUsd = TC.v(ha.routing_setup_usd) || 0, routingFte = TC.v(ha.routing_ops_fte) || 0;
+    const fteCost = TC.v(data.assumptions.onprem.ops_fte_cost_usd_per_year) || 0;
+    const routingMonthly = setupUsd / (12 * w.term_years) + routingFte * fteCost / 12;
+    const points = [{ pct: 0, K: 0, share: 0, ownedMonthly: 0, apiMonthly: api.monthly, routingMonthly: 0, total: api.monthly, row: null }];
     const seen = new Set();
     for (let step = 1; step <= 20; step++) {
       const K = Math.max(1, Math.round(peak * step / 20));
@@ -130,7 +141,9 @@
       const served = hourly.reduce((a, c) => a + c * TC.servedFraction(c, cap), 0);
       const share = demand > 0 ? served / demand : 1;
       const apiMonthly = api.monthly * (1 - share);
-      points.push({ pct: step * 5, K, capacity: cap, capPct: Math.round(cap / Math.max(peak, 1e-9) * 100), share, ownedMonthly: row.monthly, apiMonthly, total: row.monthly + apiMonthly, row, setup: TC.describeOnPrem(onRows, row).label });
+      const routes = share < 1 && apiMonthly * 12 >= 1; // a mix that sends anything to the API needs the routing layer
+      const rM = routes ? routingMonthly : 0;
+      points.push({ pct: step * 5, K, capacity: cap, capPct: Math.round(cap / Math.max(peak, 1e-9) * 100), share, ownedMonthly: row.monthly, apiMonthly, routingMonthly: rM, total: row.monthly + apiMonthly + rM, row, setup: TC.describeOnPrem(onRows, row).label });
     }
     const best = points.reduce((a, p) => (p.total < a.total ? p : a), points[0]);
     // A mix only "wins" if it beats every single-architecture option, GPU cloud included.
@@ -142,6 +155,12 @@
     const material = (1 - best.share) >= 0.02 && best.apiMonthly * 12 >= 1000;
     const wins = mixed && material && best.total < 0.95 * pureBest;
 
+    // Right-sized on-prem: the cheapest owned setup that carries at least 99.5% of tokens on its own. The rest is the
+    // busiest minutes; requests there wait a few seconds (no extra cost) or, if the customer already has an API
+    // fallback, spill to it. When that setup is cheaper than sizing for the full calculated peak, it is the on-prem answer.
+    const rs = points.filter(p => p.row && p.share >= 0.995).sort((a, b) => a.ownedMonthly - b.ownedMonthly)[0] || null;
+    const rightSized = rs && rs.ownedMonthly < onOnly.monthly * 0.995 ? rs : null;
+
     const steps = [
       S('Traffic curve', `busiest hour carries ${f.num(busy * 100, 1)}% of daily requests; the other hours follow a bell curve around midday${busy <= 1 / 24 + 1e-9 ? ' (flat, 24/7)' : ''}`, Math.max(...hourly), 'requests', 'Peak-hour mean concurrency; bursts within each hour are modelled as random (Poisson) arrivals.'),
       S('Owned capacity tried', '0% to 100% of peak concurrency in 5% steps, cheapest server layout for each (same headroom and N+1 settings as on-prem)', points.length - 1, 'options'),
@@ -149,11 +168,12 @@
       S('Tokens served on owned GPUs', 'Σ hours: mean concurrency × E[min(demand, capacity)] ÷ total demand', best.share * 100, '%'),
       S('Overflow API cost', `${f.usd(api.monthly)} all-API monthly × (1 − ${f.num(best.share * 100, 1)}%) via ${api.name}`, best.apiMonthly, 'USD/mo'),
       S('Owned baseline cost', best.row ? `${best.setup} · ${best.row.cost.nodes} node(s)` : 'none', best.ownedMonthly, 'USD/mo'),
-      S('Hybrid total', 'owned baseline + API overflow', best.total, 'USD/mo'),
+      S('Routing setup & operations', best.routingMonthly ? `${f.usd(setupUsd)} one-time ÷ ${12 * w.term_years} months + ${f.num(routingFte, 2)} FTE × ${f.usd(fteCost)}/yr ÷ 12 (gateway and second provider)` : 'none: this mix sends nothing to the API', best.routingMonthly || 0, 'USD/mo'),
+      S('Hybrid total', 'owned baseline + API overflow + routing', best.total, 'USD/mo'),
     ];
 
     return {
-      points, best, api, onOnly, cloud, wins, mixed, material, peak,
+      points, best, api, onOnly, cloud, wins, mixed, material, peak, rightSized, routingMonthly,
       apiOnly: api.monthly, onPremOnly: onOnly.monthly,
       savingsVsApi: api.monthly - best.total, savingsVsOnPrem: onOnly.monthly - best.total,
       savingsVsCloud: cloud ? cloud.monthly - best.total : null,

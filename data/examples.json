@@ -51,7 +51,7 @@
       "id": "contact-center",
       "name": "24/7 contact center, 2,000 agents",
       "summary": "Steady traffic every day of the month keeps owned GPUs busy.",
-      "note": "With demand spread across every day and most hours, owned servers stay busy enough to beat paying per token. The Hybrid box shows a mix would send only a sliver of tokens to an API, too little to be worth running two platforms.",
+      "note": "With demand spread across every day and most hours, owned servers stay busy enough to beat paying per token. One right-sized server carries almost every token; the busiest minutes wait a few seconds instead of paying for a bigger setup, so no hybrid is needed.",
       "try": "Set [[Active days per month|active_days_per_month]] to 21.7 and [[Busy-hour share|busy_hour_share_pct]] to 15% (office hours only). Utilization drops and paying per token becomes cheaper.",
       "workload": {
         "preset": "contact_center",
@@ -69,7 +69,7 @@
           "OpenRouter"
         ]
       },
-      "expect": "onprem-likely"
+      "expect": "onprem"
     },
     {
       "id": "coding",

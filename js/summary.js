@@ -48,18 +48,36 @@
 
   TC.execSummary = function (data, w, res) {
     const wl = res.wl;
-    const on = cheapest(res.onprem), cl = cheapest(res.cloud);
+    let on = cheapest(res.onprem);
+    const cl = cheapest(res.cloud);
     const api = cheapest(res.api.filter(r => r.sameModel)), closed = cheapest(res.api.filter(r => !r.sameModel));
 
     // Ranges (only the owned/rented options carry throughput and placeholder uncertainty; API prices are list prices).
     const V = variants(data);
     const lo = TC.computeAll(V.low, w), hi = TC.computeAll(V.high, w);
+    let hy = null;
+    try { hy = TC.hybrid(data, w, res); } catch (e) { console.error(e); }
+    // A smaller owned setup that carries ≥99.5% of tokens beats buying for the full calculated peak: that is the on-prem answer.
+    const rs = hy && hy.rightSized;
+    let onLabel = TC.describeOnPrem(res.onprem, on).label;
+    if (rs && on && rs.ownedMonthly < on.monthly) {
+      on = Object.assign({}, rs.row, { rightSized: rs });
+      onLabel = rs.setup;
+    }
     const range = (pick, base) => {
       if (!base) return null;
       // The same option (same server or rental offer) under optimistic and pessimistic inputs, so the range
       // belongs to the option named in the box rather than to whichever option happens to be cheapest then.
-      const same = rs => rs.find(r => r.id === base.id && r.feasible && isFinite(r.monthly)) || null;
-      const a = same(pick(lo)), b = same(pick(hi));
+      const same = rows => rows.find(r => r.id === base.id && r.feasible && isFinite(r.monthly)) || null;
+      let a, b;
+      if (base.rightSized) {
+        // Right-sized: the same server sized for the same share of the peak, under optimistic / pessimistic inputs.
+        const at = (d, x) => {
+          const wk = TC.effectiveWorkload(Object.assign({}, w, { peak_concurrency_mode: 'manual', peak_concurrent_requests: base.rightSized.K }));
+          return same(TC.excl.filterRows(TC.runOnPrem(d, wk, x.wl)));
+        };
+        a = at(V.low, lo); b = at(V.high, hi);
+      } else { a = same(pick(lo)); b = same(pick(hi)); }
       const vals = [base.monthly, a && a.monthly, b && b.monthly].filter(x => x != null && isFinite(x));
       return { min: Math.min(...vals), max: Math.max(...vals), cases: { low: a, central: base, high: b } };
     };
@@ -77,8 +95,6 @@
     if (on && alt && on.monthly <= alt.monthly) multiple = 0;
     else if (cross && cross.index === 0) multiple = 0;
     else if (cross && cross.index > 0) multiple = cross.tokensMonth / wl.tMo;
-    let hy = null;
-    try { hy = TC.hybrid(data, w, res); } catch (e) { console.error(e); }
     let verdict = TC.fitVerdict({ onMonthly: on && on.monthly, apiMonthly: api && api.monthly, cloudMonthly: cl && cl.monthly, multiple, onHigh: onRange && onRange.max, hybridWins: !!(hy && hy.wins) });
 
     // Why
@@ -86,7 +102,11 @@
     const bursty = wl.avgConc24h > 0 ? w.peak_concurrent_requests / wl.avgConc24h : null;
     const altName = cheapAlt === cl ? 'renting GPUs' : 'paying per token';
     let why = '';
-    if (verdict.key === 'onprem' || verdict.key === 'onprem-likely') {
+    if ((verdict.key === 'onprem' || verdict.key === 'onprem-likely') && on.rightSized) {
+      const r = on.rightSized;
+      why = `One right-sized setup (${r.setup}) carries ${TC.fmtShare(r.share)} of tokens on its own: it covers ${TC.capText(r)} with headroom, so there is no need to buy extra servers for the full peak (${f.usdCompact((hy.onPremOnly - r.ownedMonthly) * 12)}/yr more). In the rare busiest minutes the remaining ${TC.fmtShare(1 - r.share)} can wait a few seconds, or spill to ${hy.api.name} for about ${f.usdCompact(r.apiMonthly * 12)}/yr if an API fallback is already in place. Owning it costs ${f.usdCompact((cheapAlt.monthly - r.ownedMonthly) * 12)}/yr less than ${altName}.`;
+      if (verdict.key === 'onprem-likely') why += ` The pessimistic end of the on-prem range is above the ${cheapAlt === cl ? 'GPU cloud' : 'API'} cost, so current server pricing and a measured benchmark would make this call firmer.`;
+    } else if (verdict.key === 'onprem' || verdict.key === 'onprem-likely') {
       why = `The workload keeps dedicated GPUs busy enough (about ${f.num(util, 0)}% average utilization) that owning them costs less than ${altName} at today's volume.`;
       if (verdict.key === 'onprem-likely') why += ` The pessimistic end of the on-prem range is above the ${cheapAlt === cl ? 'GPU cloud' : 'API'} cost, so current server pricing and a measured benchmark would make this call firmer.`;
     } else if (verdict.key === 'hybrid') {
@@ -129,7 +149,7 @@
     const level = uncertain === 0 ? 'High' : uncertain === 1 ? 'Medium' : 'Low';
 
     return {
-      onLabel: TC.describeOnPrem(res.onprem, on).label,
+      onLabel,
       on, cl, api, closed, onRange, clRange, multiple, verdict, why, checks, level, hybrid: hy,
       breakevenTokens: isFinite(multiple) && multiple > 0 ? multiple * wl.tMo : null,
       altLabel: api ? 'paying per token for the same model' : 'renting GPUs',

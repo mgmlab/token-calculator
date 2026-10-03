@@ -236,7 +236,7 @@
     try { x = TC.execSummary(data, w, res); } catch (e) { console.error(e); return ''; }
     TC.lastExec = x;
     TC.lastExecKey = JSON.stringify(w);
-    const jump = (k, r) => `data-jump="${k}|${esc(r.id)}" role="button" tabindex="0" title="Show where this number comes from"`;
+    const jump = (k, r) => r.rightSized ? 'data-jump="hybrid|rs"' + ' role="button" tabindex="0" title="Show where this number comes from"' : `data-jump="${k}|${esc(r.id)}" role="button" tabindex="0" title="Show where this number comes from"`;
     // The box behind the verdict is highlighted, whichever architecture wins.
     const winKey = { onprem: 'onprem', 'onprem-likely': 'onprem', cloud: 'cloud', api: 'api_same', near: 'api_same', hybrid: 'hybrid' }[x.verdict.key];
     const tag = '<span class="win-tag">Recommended</span>';
@@ -254,7 +254,7 @@
       <div class="exec-head"><div><h2>Analysis summary ${name}</h2><p class="muted small">Lowest-cost option in each category over ${w.term_years} years, shown per year (the same figures as the tables). Ranges show how far each could move if the uncertain inputs below land better or worse.</p></div>
         <span class="verdict v-${x.verdict.tone}">${esc(x.verdict.label)}</span></div>
       <div class="exec-tiles">
-        ${tile('Buy servers (on-prem)', x.on, x.onRange, x.on ? f.num(x.on.util * 100, x.on.util < 0.01 ? 1 : 0) + '% utilized' : '', x.onLabel, 'onprem')}
+        ${tile('Buy servers (on-prem)', x.on, x.onRange, x.on ? f.num(x.on.util * 100, x.on.util < 0.01 ? 1 : 0) + '% utilized' + (x.on.rightSized ? ` · right-sized: carries ${TC.fmtShare(x.on.rightSized.share)} of tokens; rare peaks wait a few seconds` : '') : '', x.onLabel, 'onprem')}
         ${tile('Rent GPUs (GPU cloud)', x.cl, x.clRange, x.cl ? x.cl.pricing : '', null, 'cloud')}
         ${tile('Pay per token (same model)', x.api, null, '', null, 'api_same')}
         ${hybridTile(x.hybrid, winKey === 'hybrid' ? tag : '')}
@@ -320,6 +320,11 @@
   function hybridTile(hy, tag) {
     if (!hy) return `<div class="exec-tile"><span class="label">Hybrid (owned baseline + API)</span><span class="value muted">—</span><span class="muted small">Needs a same-model API price</span></div>`;
     const b = hy.best;
+    if (hy.rightSized && !hy.wins) {
+      const r = hy.rightSized;
+      return `<div class="exec-tile jumpable" data-jump="hybrid|rs" role="button" tabindex="0" title="Show where this number comes from"><span class="label">Hybrid (owned baseline + API)${tag || ''}</span><span class="value muted">Not needed</span>
+      <span class="muted small">${esc(r.setup)} alone carries ${TC.fmtShare(r.share)} of tokens</span><span class="muted small">Right-sized on-prem covers it; an API fallback is a resilience choice, not a cost one</span></div>`;
+    }
     const allOwned = b.row && (b.pct >= 100 || b.apiMonthly * 12 < 1);
     const tiny = b.row && !allOwned && !hy.material;
     const note = tiny ? `API would take only ${TC.fmtShare(1 - b.share)} of tokens (${f.usdCompact(b.apiMonthly * 12)}/yr): too little to justify a hybrid` : !b.row ? 'best mix is all API: same as paying per token' : allOwned ? 'best mix is all owned: same as buying servers' : b.share >= 0.95 ? `${TC.fmtShare(b.share)} of tokens on owned GPUs; API takes rare bursts` : `${TC.fmtShare(b.share)} of tokens on owned GPUs`;
@@ -345,7 +350,7 @@
     for (let t = 0; t <= xMax + 1e-9; t += step) svg += `<line class="grid" x1="${X(t)}" x2="${X(t)}" y1="${M.t}" y2="${H - M.b}"/><text class="tick" x="${X(t)}" y="${H - M.b + 16}" text-anchor="middle">${f.usdCompact(t)}</text>`;
     opts.forEach((p, k) => {
       const y = M.t + k * rowH + 6, h = rowH - 12;
-      const own = Y12(p.ownedMonthly), api = Y12(p.apiMonthly);
+      const own = Y12(p.ownedMonthly), api = p.rightSized ? 0 : Y12(p.apiMonthly + (p.routingMonthly || 0));
       const label = TC.shortSetup(p);
       const cover = p.row ? (p.capPct >= 100 ? 'handles the full peak' : `handles ${p.capPct}% of peak`) : 'no servers';
       svg += `<text class="${p.best ? 'hy-best' : 'tick'}" x="${M.l - 10}" y="${y + h / 2 - 2}" text-anchor="end">${esc(label)}</text>`;
@@ -356,14 +361,17 @@
       svg += `<rect x="0" y="${y - 4}" width="${W}" height="${rowH}" fill="transparent"><title>${esc(p.row ? p.setup : 'No servers: every request goes to ' + hy.api.name)}\n${p.row ? cover + '; ' : ''}tokens on your servers: ${TC.fmtShare(p.share)}\nYour servers: ${f.usd(own)}/yr\nAPI (${esc(hy.api.name)}): ${f.usd(api)}/yr\nTotal: ${f.usd(own + api)}/yr</title></rect>`;
     });
     svg += '</svg>';
-    const legend = `<div class="hy-legend"><span><i style="border-color:var(--accent);border-top-width:8px"></i>Your servers</span><span><i style="border-color:var(--muted);border-top-width:8px;opacity:.45"></i>API for the traffic your servers don't handle (${esc(hy.api.name)})</span></div>
+    const legend = `<div class="hy-legend"><span><i style="border-color:var(--accent);border-top-width:8px"></i>Your servers</span><span><i style="border-color:var(--muted);border-top-width:8px;opacity:.45"></i>API for the traffic your servers don't handle (${esc(hy.api.name)}), plus routing</span></div>
       <p class="muted small">Each bar is one way to run this workload: buy no servers and pay per token for everything, or buy one of the server setups below and send only the traffic it can't handle to the API. Servers come in whole units, so even the smallest one often handles most of the peak. Hover a bar for the numbers.</p>`;
-    const tbl = `<div class="table-wrap"><table class="results-table compact"><thead><tr><th>Servers you'd buy</th><th class="num">Handles</th><th class="num">Tokens on your servers</th><th class="num">Your servers / yr</th><th class="num">API / yr</th><th class="num">Total / yr</th><th class="num">vs all-API</th></tr></thead><tbody>` +
-      opts.map(p => `<tr class="${p.best ? 'hy-row-best' : ''}"><td>${p.row ? esc(p.setup) : 'None (all API)'}${p.best ? ' <span class="badge basis-bench">lowest</span>' : ''}</td>
+    const tbl = `<div class="table-wrap"><table class="results-table compact"><thead><tr><th>Servers you'd buy</th><th class="num">Handles</th><th class="num">Tokens on your servers</th><th class="num">Your servers / yr</th><th class="num">API / yr</th><th class="num">Routing / yr</th><th class="num">Total / yr</th><th class="num">vs all-API</th></tr></thead><tbody>` +
+      opts.map(p => `<tr class="${p.best ? 'hy-row-best' : ''} ${p.rightSized ? 'hy-row-rs' : ''}"><td>${p.row ? esc(p.setup) : 'None (all API)'}${p.best ? ' <span class="badge basis-bench">lowest</span>' : ''}${p.rightSized ? ' <span class="badge basis-lab">right-sized on-prem</span>' : ''}</td>
         <td class="num">${p.row ? (p.capPct >= 100 ? 'full peak' : p.capPct + '% of peak') : '—'}</td>
-        <td class="num">${TC.fmtShare(p.share)}</td><td class="num">${f.usd(p.ownedMonthly * 12)}</td><td class="num">${f.usd(p.apiMonthly * 12)}</td><td class="num strong">${f.usd(p.total * 12)}</td>
-        <td class="num">${!p.row ? '—' : p.total <= hy.apiOnly ? '−' + f.usd((hy.apiOnly - p.total) * 12) : '+' + f.usd((p.total - hy.apiOnly) * 12)}</td></tr>`).join('') + '</tbody></table></div>';
-    const verdict = hy.wins
+        <td class="num">${TC.fmtShare(p.share)}</td><td class="num">${f.usd(p.ownedMonthly * 12)}</td>${p.rightSized ? `<td class="num muted" title="Optional: only if peak overflow is sent to an API instead of waiting">${f.usd(p.apiMonthly * 12)} optional</td><td class="num muted" title="Optional: only if a routing gateway is set up">${p.routingMonthly ? f.usd(p.routingMonthly * 12) + ' optional' : '—'}</td><td class="num strong">${f.usd(p.ownedMonthly * 12)}</td>` : `<td class="num">${f.usd(p.apiMonthly * 12)}</td><td class="num">${p.routingMonthly ? f.usd(p.routingMonthly * 12) : '—'}</td><td class="num strong">${f.usd(p.total * 12)}</td>`}
+        <td class="num">${!p.row ? '—' : p.rightSized ? '−' + f.usd((hy.apiOnly - p.ownedMonthly) * 12) : p.total <= hy.apiOnly ? '−' + f.usd((hy.apiOnly - p.total) * 12) : '+' + f.usd((p.total - hy.apiOnly) * 12)}</td></tr>`).join('') + '</tbody></table></div>';
+    const rsv = hy.rightSized && !hy.wins
+      ? `<strong>${esc(hy.rightSized.setup)}</strong> carries <strong>${TC.fmtShare(hy.rightSized.share)} of tokens</strong> on its own for about <strong>${f.usdCompact(hy.rightSized.ownedMonthly * 12)}/yr</strong>: that is the right-sized on-prem option in the summary. The rest is the busiest minutes, which can wait a few seconds. Sending them to ${esc(hy.api.name)} would add about ${f.usdCompact(hy.rightSized.apiMonthly * 12)}/yr of tokens plus about ${f.usdCompact(hy.routingMonthly * 12)}/yr to run the routing, so it is only worth adding if the customer wants a cloud fallback for resilience anyway.`
+      : null;
+    const verdict = rsv ? rsv : hy.wins
       ? `Owning a baseline that covers <strong>${TC.capText(b)}</strong> (${esc(b.setup)}) and sending the overflow to <strong>${esc(hy.api.name)}</strong> is the lowest-cost mix — about <strong>${f.usdCompact(hy.savingsVsApi * 12)}/yr</strong> less than all-API${hy.savingsVsOnPrem > 0 ? ` and ${f.usdCompact(hy.savingsVsOnPrem * 12)}/yr less than owning for the full peak` : ''}.`
       : !b.row ? (() => {
         const o = pts.filter(p => p.row).sort((p, q) => p.ownedMonthly - q.ownedMonthly)[0];
@@ -376,7 +384,7 @@
       : `A mix at ${b.pct}% of peak is cheapest, but saves less than 5% versus the best single option.`;
     return `<p class="hy-verdict">${verdict}</p>${svg}${legend}${tbl}
       <details class="hy-how"><summary>How this is calculated</summary>${TC.renderSteps('Hybrid', hy.steps)}
-        <p class="muted small">Assumes requests can be routed to either owned GPUs or the API (e.g. through a gateway), and that the same model runs on both. Filters don't apply to this section.</p></details>`;
+        <p class="muted small">Assumes requests can be routed to either owned GPUs or the API through a gateway, and that the same model runs on both. Any mix that sends traffic to the API carries a routing cost (gateway setup spread over the term, plus a slice of an engineer); set it under Data editor → Assumptions → hybrid. Filters don't apply to this section.</p></details>`;
   }
 
   const TIER = { budget: 'budget tier', mid: 'mid tier', frontier: 'frontier tier' };
@@ -395,7 +403,7 @@
       let target, marks = [];
       if (k === 'hybrid') {
         target = el.querySelector('#hybrid-body'); target = target && target.closest('section');
-        marks = [el.querySelector('#hybrid-body .hy-row-best')];
+        marks = [el.querySelector(id === 'rs' ? '#hybrid-body .hy-row-rs' : '#hybrid-body .hy-row-best')];
       } else {
         const tr = el.querySelector(`tr.row[data-id="${CSS.escape(id)}"]`);
         if (tr) {

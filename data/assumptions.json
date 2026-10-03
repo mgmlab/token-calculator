@@ -121,6 +121,20 @@
       "status": "placeholder"
     }
   },
+  "hybrid": {
+    "routing_setup_usd": {
+      "value": 20000,
+      "source": "Placeholder: one-time work to stand up an API gateway (e.g. LiteLLM, Kong AI Gateway, Azure API Management), route between owned servers and the API provider, and test failover. Spread over the comparison term.",
+      "as_of": "2026-10-02",
+      "status": "placeholder"
+    },
+    "routing_ops_fte": {
+      "value": 0.05,
+      "source": "Placeholder: share of an engineer to run the gateway and the second provider (monitoring, keys, rate limits, two bills). Cost per FTE from onprem.ops_fte_cost_usd_per_year.",
+      "as_of": "2026-10-02",
+      "status": "placeholder"
+    }
+  },
   "workload_defaults": {
     "scenario_name": "",
     "preset": "employee_copilot",
