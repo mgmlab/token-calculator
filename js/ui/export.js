@@ -254,7 +254,7 @@
       objects: [
         { rect: { x: 0, y: 0, w: 13.333, h: 0.08, fill: { color: P.purple } } },
         { line: { x: 0.5, y: 7.0, w: 12.333, h: 0, line: { color: P.line, width: 0.75 } } },
-        { text: { text: `${C.org} · ${C.appName} · Internal · Estimates, not quotes · ${dateStr}`, options: { x: 0.5, y: 7.05, w: 10, h: 0.3, fontFace: FONT, fontSize: 9, color: P.muted } } },
+        { text: { text: `${C.org} · ${C.appName} · Confidential: client and Pellera use only · Estimates, not quotes · ${dateStr}`, options: { x: 0.5, y: 7.05, w: 10, h: 0.3, fontFace: FONT, fontSize: 9, color: P.muted } } },
       ].concat(logo ? [{ image: { data: logo, x: 12.1, y: 0.3, w: 0.72, h: 0.47 } }] : []),
       slideNumber: { x: 12.4, y: 7.05, w: 0.5, h: 0.3, fontFace: FONT, fontSize: 9, color: P.muted, align: 'right' },
     });
@@ -531,12 +531,19 @@
       '$ per 1M tokens = total cost over term ÷ total tokens over term × 1,000,000',
     ].map(x => ({ text: x, options: { bullet: true, breakLine: true, paraSpaceAfter: 8 } })), { x: 0.5, y: 1.5, w: 12.333, h: 5.0, fontFace: FONT, fontSize: 14, color: P.ink, valign: 'top' });
 
-    // Contact
-    const s10 = pptx.addSlide();
-    s10.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 13.333, h: 7.5, fill: { color: P.purple } });
-    s10.addText('Questions, comments or change requests', { x: 1.0, y: 2.4, w: 11.3, h: 0.8, fontFace: FONT, fontSize: 32, bold: true, color: P.white });
-    s10.addText([{ text: 'Use Request a change in the calculator, or open the form:', options: { breakLine: true } }, { text: C.requestFormUrl, options: { hyperlink: { url: C.requestFormUrl }, color: P.white } }], { x: 1.0, y: 3.3, w: 11.3, h: 1.2, fontFace: FONT, fontSize: 20, color: P.white });
-    s10.addText(C.copyright, { x: 1.0, y: 6.4, w: 11.3, h: 0.4, fontFace: FONT, fontSize: 12, color: 'E9DDFF' });
+    // Closing: confidentiality (this deck is a leave-behind for the client, so no internal change-request link)
+    const sClose = pptx.addSlide();
+    sClose.background = { color: '0F0C17' };
+    if (logo) sClose.addImage({ data: logo, x: 0.9, y: 0.85, w: 1.1, h: 0.715 });
+    sClose.addText('CONFIDENTIAL', { x: 0.9, y: 2.35, w: 8, h: 0.4, fontFace: FONT, fontSize: 13, bold: true, color: 'A66BFF', charSpacing: 6, margin: 0 });
+    sClose.addText('Prepared exclusively for our client', { x: 0.9, y: 2.8, w: 11.5, h: 0.9, fontFace: FONT, fontSize: 36, bold: true, color: P.white, margin: 0 });
+    sClose.addText([
+      { text: `This document and the analysis in it are confidential to ${C.org} and the client it was prepared for. It may not be copied, distributed or shared with any third party without ${C.org}’ written consent.`, options: { breakLine: true, paraSpaceAfter: 10 } },
+      { text: 'Figures are planning estimates based on published prices and stated assumptions at the date shown. They are not a quote or an offer; final pricing depends on configuration, terms and vendor quotations.' },
+    ], { x: 0.9, y: 3.85, w: 10.6, h: 1.9, fontFace: FONT, fontSize: 14, color: 'C9C4D6', valign: 'top', margin: 0, lineSpacingMultiple: 1.15 });
+    sClose.addShape(pptx.ShapeType.rect, { x: 0.9, y: 6.35, w: 11.53, h: 0.01, fill: { color: '2E2840' }, line: { color: '2E2840', width: 0 } });
+    sClose.addText(`${C.org}  ·  ${dateStr}`, { x: 0.9, y: 6.5, w: 7, h: 0.35, fontFace: FONT, fontSize: 11, color: '8E879E', margin: 0 });
+    sClose.addText(`© ${new Date().getFullYear()} ${C.org}. All rights reserved.`, { x: 6.4, y: 6.5, w: 6.03, h: 0.35, fontFace: FONT, fontSize: 11, color: '8E879E', align: 'right', margin: 0 });
 
     status('Saving…');
     const safe = (model ? model.name : 'model').replace(/[^\w.-]+/g, '-');
