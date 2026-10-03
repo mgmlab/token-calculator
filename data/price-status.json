@@ -1,8 +1,10 @@
 {
-  "checked_at": "2026-10-03T18:54Z",
+  "checked_at": "2026-10-03T21:26Z",
   "date": "2026-10-03",
-  "values_changed": 0,
-  "changed": [],
+  "values_changed": 1,
+  "changed": [
+    "Kimi K3 (MoE, MLA + linear attention) / OpenRouter / input $/1M: 0.74 → 0.72"
+  ],
   "needs_review": [],
   "review_items": [],
   "problems": [],
@@ -17,7 +19,7 @@
       "ok": true,
       "url": "https://openrouter.ai/api/v1/models",
       "rows": 31,
-      "changed": 0,
+      "changed": 1,
       "error": ""
     },
     "Fireworks": {
