@@ -384,7 +384,7 @@
       { text: c.ok ? '✓' : '⚠', options: { align: 'center', bold: true, color: c.ok ? '16603A' : '7A4B00', fill: { color: c.ok ? 'E3F4EA' : P.warn } } },
       { text: c.label, options: { bold: true } }, c.detail,
     ])), Object.assign(tableOpts([0.6, 3.6, 8.133]), { rowH: 0.5, fontSize: 13 }));
-    note(sc, 'Ranges on the summary come from optimistic and pessimistic cases for throughput efficiency, placeholder server prices and power load. Firm up the ⚠ items (measured benchmarks, current server pricing) to narrow them.', 5.9);
+    note(sc, 'How the rating works: High = no ⚠ items; Medium = one; Low = two or more. API prices and model architecture are always ✓; throughput (add a measured benchmark), server pricing (add a quote) and operating assumptions (review them in the Data editor) are the three that move it. Firming them up also narrows the ranges on the summary.', 5.75);
 
     // 3. Summary: cheapest per category
     const cats = ['onprem', 'cloud_reserved', 'cloud_ondemand', 'api_same', 'api_closed'];
@@ -451,30 +451,34 @@
       ['Provider', 'Model', 'In / out per 1M', 'Monthly', 'Per year', `Total (${w.term_years} yr)`, '$ / 1M', '⚠'], [2.1, 3.0, 1.8, 1.2, 1.2, 1.4, 1.0, 0.633],
       sortRows(res.api.filter(r => !r.sameModel)), apiRow, apiFoot);
 
-    // Breakeven chart
+    // Breakeven: yearly cost of each option at several usage levels (a table reads far better than a log-scale chart)
     status('Computing breakeven…');
-    const be = TC.breakeven(data, w, { kMax: 100, points: 40 });
-    const complete = TC.SERIES.filter(sr => be.points.every(p => p.series[sr.key]));
-    const s6 = titled('Breakeven: when does buying servers pay off?', `Users scaled 0.02× – 100× this profile (peak concurrency ${w.peak_concurrency_mode === 'derived' ? 'recomputed from the traffic pattern' : 'scaled linearly'}); cheapest option per category at each volume`);
-    if (complete.length) {
-      s6.addChart(pptx.ChartType.line, complete.map(sr => ({
-        name: sr.label,
-        labels: be.points.map(p => f.tokens(p.tokensMonth)),
-        values: be.points.map(p => Math.round(p.series[sr.key].monthly)),
-      })), {
-        x: 0.5, y: 1.4, w: 8.4, h: 5.0, chartColors: complete.map(sr => SERIES[TC.SERIES.indexOf(sr)]), lineSize: 2, lineDataSymbol: 'none',
-        valAxisLogScaleBase: 10, valAxisLabelFormatCode: '$#,##0', valAxisLabelFontSize: 9, catAxisLabelFontSize: 9, catAxisLabelFrequency: 6,
-        catAxisTitle: 'Tokens per month', showCatAxisTitle: true, catAxisTitleFontSize: 10, valAxisTitle: 'Monthly cost (log scale)', showValAxisTitle: true, valAxisTitleFontSize: 10,
-        valGridLine: { color: P.line, size: 0.5 }, catGridLine: { style: 'none' }, showLegend: true, legendPos: 'b', legendFontSize: 10, legendFontFace: FONT,
-      });
-    }
-    s6.addText([{ text: 'Breakeven points', options: { bold: true, fontSize: 13, color: P.ink, breakLine: true } }].concat(
-      be.crossovers.map(c => ({ text: !c.hasData ? `No data for ${c.vs}.` : c.index === 0 ? `Owning servers is cheaper than ${c.vs} at every usage level shown.` : c.index > 0 ? `Owning servers becomes cheaper than ${c.vs} above ${f.tokens(c.tokensMonth)} tokens/month.` : `${c.vs.charAt(0).toUpperCase() + c.vs.slice(1)} stays cheaper up to ${f.tokens(be.points[be.points.length - 1].tokensMonth)} tokens/month.`, options: { bullet: true, fontSize: 11, color: P.ink2, breakLine: true, paraSpaceAfter: 6 } }))),
-      { x: 9.1, y: 1.45, w: 3.73, h: 3.6, fontFace: FONT, valign: 'top' });
-    const ratio = w.peak_concurrent_requests / Math.max(wl.avgConc24h, 1e-9);
-    const bestOn = res.onprem.filter(r => r.feasible).sort((x, y) => x.perM - y.perM)[0];
-    s6.addText(`Peak concurrency is ${f.num(ratio, 1)}× the 24-hour average. Self-hosted capacity is sized for peak and paid for 24/7, while API cost follows volume — utilization decides the breakeven.${bestOn ? ` At this profile the lowest-cost on-prem option is ${f.num(bestOn.util * 100, 1)}% utilized; fully utilized it would cost ${f.perM(bestOn.perMFull)} per 1M tokens.` : ''}`,
-      { x: 9.1, y: 5.1, w: 3.73, h: 1.3, fontFace: FONT, fontSize: 10, color: P.ink2, fill: { color: P.tint }, margin: 0.1 });
+    const BT = TC.breakevenTable(data, w);
+    const s6 = titled('Breakeven: how the answer changes with usage', `Yearly cost of the lowest-cost option in each category as usage grows or shrinks (users scaled; ${w.peak_concurrency_mode === 'derived' ? 'peak recomputed from the traffic pattern' : 'peak scaled with users'})`);
+    const COLS = [['onprem', 'Buy servers'], ['cloud', 'Rent GPUs'], ['api', 'Pay per token'], ['hybrid', 'Hybrid']];
+    const NAMES = { onprem: 'Buy servers', cloud: 'Rent GPUs', api: 'Pay per token', hybrid: 'Hybrid' };
+    const usd0 = v => (v == null || !isFinite(v) ? '—' : f.usdCompact(v));
+    s6.addTable([hdr(['Usage', 'Tokens / month', ...COLS.map(c => c[1] + ' / yr'), 'Lowest cost'])].concat(BT.map(r => {
+      const today = Math.abs(r.k - 1) < 1e-9;
+      const base = today ? { bold: true, fill: { color: P.tint } } : {};
+      return [
+        { text: today ? 'Today' : `${r.k < 1 ? r.k : f.num(r.k, 0)}× today`, options: base },
+        { text: f.tokens(r.tokensMonth), options: base },
+        ...COLS.map(([key]) => ({ text: usd0(r.cells[key]) + (key === 'onprem' && r.rightSized ? ' *' : ''), options: Object.assign({}, base, { align: 'right' }, r.best === key ? { bold: true, color: P.purple } : {}) })),
+        { text: r.best ? NAMES[r.best] : '—', options: Object.assign({}, base, { bold: true, color: P.purple }) },
+      ];
+    })), tableOpts([1.6, 1.8, 1.75, 1.75, 1.75, 1.6, 2.083]));
+    const firstOwn = BT.find(r => r.best === 'onprem' || r.best === 'hybrid');
+    const beLine = X.multiple === 0 ? 'Owning servers is already cheaper than paying per token at today’s volume.'
+      : isFinite(X.multiple) ? `Owning servers becomes cheaper than ${X.altLabel} at about ${f.num(X.multiple, X.multiple < 10 ? 1 : 0)}× today’s usage (${f.tokens(X.breakevenTokens)} tokens/month).`
+      : `${X.altLabel.charAt(0).toUpperCase() + X.altLabel.slice(1)} stays cheaper than owning across the range modeled.`;
+    const yTxt = 1.45 + 0.38 * (BT.length + 1) + 0.25;
+    s6.addText([
+      { text: 'Reading it: ', options: { bold: true, color: P.ink } }, { text: beLine + (firstOwn ? ` In this table, owning (or a hybrid) is the lowest-cost option from ${Math.abs(firstOwn.k - 1) < 1e-9 ? 'today' : (firstOwn.k < 1 ? firstOwn.k : f.num(firstOwn.k, 0)) + '× today'} upward.` : ' Owning is not the lowest-cost option at any level shown.'), options: { color: P.ink2, breakLine: true } },
+      { text: 'Why it moves: ', options: { bold: true, color: P.ink } }, { text: 'servers are sized for the peak and paid for around the clock, while per-token cost follows volume, so owning gets cheaper per token as usage grows and keeps the servers busy.', options: { color: P.ink2 } },
+    ], { x: 0.5, y: yTxt, w: 12.333, h: 1.1, fontFace: FONT, fontSize: 12, valign: 'top' });
+    if (BT.some(r => r.rightSized)) note(s6, `* Right-sized on-prem: the smallest setup that keeps busiest-hour waits within ${TC.tolText(Number(w.peak_wait_s == null ? 5 : w.peak_wait_s))}. Hybrid shows a cost only where it is the lowest-cost mix.`);
+    else note(s6, 'Hybrid shows a cost only where it is the lowest-cost mix.');
 
     // Assumptions
     const a = data.assumptions;

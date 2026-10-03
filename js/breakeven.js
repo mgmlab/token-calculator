@@ -30,6 +30,28 @@
   }
 
   /**
+   * Yearly cost of each architecture at several usage levels (multiples of today), using the same rules as the
+   * Analysis summary: right-sized on-prem when it applies, and the hybrid only when it wins.
+   */
+  TC.breakevenTable = function (data, w, mults) {
+    const cheap = rows => rows.filter(r => r.feasible && isFinite(r.monthly)).sort((a, b) => a.monthly - b.monthly)[0] || null;
+    return (mults || [0.25, 0.5, 1, 2, 5, 10, 25, 50]).map(k => {
+      const wk = Object.assign({}, w, { users: w.users * k });
+      if (w.peak_concurrency_mode !== 'derived') wk.peak_concurrent_requests = Math.max(1, Math.ceil(w.peak_concurrent_requests * k));
+      const r = TC.computeAll(data, wk);
+      let on = cheap(r.onprem), rightSized = false;
+      let hy = null;
+      try { hy = TC.hybrid(data, r.w, r); } catch (e) { hy = null; }
+      if (hy && hy.rightSized && on && hy.rightSized.ownedMonthly < on.monthly) { on = { monthly: hy.rightSized.ownedMonthly }; rightSized = true; }
+      const cl = cheap(r.cloud), api = cheap(r.api.filter(x => x.sameModel));
+      const cells = { onprem: on && on.monthly * 12, cloud: cl && cl.monthly * 12, api: api && api.monthly * 12, hybrid: hy && hy.wins ? hy.best.total * 12 : null };
+      const vals = Object.entries(cells).filter(([, v]) => v != null && isFinite(v));
+      const best = vals.length ? vals.sort((a, b) => a[1] - b[1])[0][0] : null;
+      return { k, tokensMonth: r.wl.tMo, cells, best, rightSized };
+    });
+  };
+
+  /**
    * Scales users and peak concurrency together by k (log-spaced), keeping per-request
    * shape constant, and records the cheapest option per category at each point.
    */

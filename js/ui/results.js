@@ -265,6 +265,7 @@
       <details class="exec-conf"><summary>Confidence: <span class="conf conf-${x.level.toLowerCase()}">${x.level}</span> — ${x.level === 'High' ? 'key inputs are measured or current' : 'treat as directional until the ⚠ items are firmed up'}</summary>
         <ul>${x.checks.map(c => `<li>${c.ok ? '✓' : '⚠'} <strong>${esc(c.label)}:</strong> ${esc(c.detail)}</li>`).join('')}</ul>
         ${(notes || []).map(n => `<p class="conf-note">${n}</p>`).join('')}
+        <p class="muted small"><strong>How the rating works:</strong> High = no ⚠ items, Medium = one, Low = two or more. Throughput (add a measured benchmark), server pricing (add a quote) and operating assumptions (review them in the Data editor) are the three that can move it.</p>
         <p class="muted small">Ranges come from rerunning the calculation with optimistic and pessimistic values for throughput efficiency, placeholder server prices and power load. API prices are published list prices, so they carry no range.</p>
       </details>
     </section>`;
