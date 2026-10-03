@@ -93,7 +93,7 @@
       { k: 'api_batch_share_pct', label: 'API batch share %', type: 'number', min: 0, max: 100, step: 'any',
         tip: 'Share of traffic that can wait (up to ~24 h) for asynchronous batch pricing, usually 50% off. Interactive chat = 0%; overnight document processing could be 100%.' },
       { k: 'api_excluded', label: 'API providers to compare', type: 'providers',
-        tip: 'Untick providers your customer would not realistically buy from — for example the lowest-cost routed hosts when the customer needs an enterprise agreement. Unticked providers are left out of the tables, the Analysis summary, breakeven and hybrid.' },
+        tip: 'OpenRouter is unticked by default: it is a routed marketplace, so the company actually running each request varies and there is no enterprise agreement or SLA, which makes its low price one most enterprise customers cannot buy at. Tick it to include it. Untick other providers your customer would not realistically buy from — for example the lowest-cost routed hosts when the customer needs an enterprise agreement. Unticked providers are left out of the tables, the Analysis summary, breakeven and hybrid.' },
       { k: 'include_closed_models', label: 'Show closed-model API reference', type: 'checkbox',
         tip: 'Also list closed models (GPT, Claude, Gemini, DeepSeek API) for cost context. They are different models, so this is not a like-for-like quality comparison.' },
       { k: 'closed_tier', label: 'Closed-model tier', type: 'select', options: [['all', 'All tiers (cheapest wins)'], ['budget', 'Budget (mini / Flash / Haiku)'], ['mid', 'Mid (Sonnet-class)'], ['frontier', 'Frontier (flagship)']],
