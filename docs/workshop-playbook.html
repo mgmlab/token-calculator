@@ -86,7 +86,7 @@ code { font: 500 13.5px var(--mono); background: var(--accent-soft); padding: 1p
 
 /* workshop additions */
 .page { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 28px; padding-inline: 20px; }
-.page > .wrap { max-width: 880px; margin: 0; padding-inline: 0; }
+.page > .wrap { max-width: 880px; margin: 0; padding-inline: 0; padding-bottom: 70vh; } /* room for the last sections to reach the top */
 .side { position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; padding: 40px 6px 40px 0; display: flex; flex-direction: column; gap: 14px; font-size: 14.5px; }
 .side a.side-title { font: 700 15px var(--display); color: var(--accent-ink); border-left: 0; padding: 0 0 4px; background: none; }
 .side a.side-title:hover { text-decoration: underline; }
@@ -478,7 +478,10 @@ section, .scn, .block { scroll-margin-top: 16px; }
     targets.forEach(function (t, i) { if (!t) return; var top = t.getBoundingClientRect().top; var limit = atBottom ? window.innerHeight : 140; if (top <= limit && top > bestTop) { bestTop = top; best = i; } });
     links.forEach(function (l, i) { l.classList.toggle('active', i === best); });
   }
-  window.addEventListener('scroll', spy, { passive: true }); window.addEventListener('resize', spy); spy();
+  // A clicked link stays highlighted until the reader scrolls on their own.
+  var pinned = null, pinTimer = null;
+  links.forEach(function (l) { l.addEventListener('click', function () { pinned = l; clearTimeout(pinTimer); pinTimer = setTimeout(function () { pinned = null; }, 1200); links.forEach(function (x) { x.classList.toggle('active', x === l); }); }); });
+  window.addEventListener('scroll', function () { if (!pinned) spy(); }, { passive: true }); window.addEventListener('resize', spy); spy();
 })();
 </script>
 </body>
