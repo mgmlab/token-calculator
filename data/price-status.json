@@ -1,21 +1,99 @@
 {
-  "checked_at": "2026-10-03T15:08Z",
+  "checked_at": "2026-10-03T18:47Z",
   "date": "2026-10-03",
-  "values_changed": 1,
-  "changed": [
-    "Kimi K3 (MoE, MLA + linear attention) / OpenRouter / output $/1M: 13.5 → 13.0"
-  ],
+  "values_changed": 0,
+  "changed": [],
   "needs_review": [
     "Kimi K2.6 (MoE, MLA) / OpenRouter / input $/1M: 0.43415 → 0.95 (not applied; over 50% change)",
     "Kimi K2.6 (MoE, MLA) / OpenRouter / output $/1M: 1.828 → 4.0 (not applied; over 50% change)",
     "Kimi K2.6 (MoE, MLA) / OpenRouter / cached input $/1M: 0.07312 → 0.16 (not applied; over 50% change)",
-    "Kimi K3 (MoE, MLA + linear attention) / OpenRouter / input $/1M: 2.7 → 0.99 (not applied; over 50% change)",
-    "Kimi K3 (MoE, MLA + linear attention) / OpenRouter / cached input $/1M: 0.27 → 0.8 (not applied; over 50% change)"
+    "Kimi K3 (MoE, MLA + linear attention) / OpenRouter / input $/1M: 2.7 → 0.74 (not applied; over 50% change)",
+    "Kimi K3 (MoE, MLA + linear attention) / OpenRouter / cached input $/1M: 0.27 → 0.7 (not applied; over 50% change)"
+  ],
+  "review_items": [
+    {
+      "text": "Kimi K2.6 (MoE, MLA) / OpenRouter / input $/1M",
+      "loc": {
+        "dataset": "models",
+        "id": "kimi-k2.6",
+        "list": "api_prices",
+        "match": {
+          "provider": "OpenRouter"
+        }
+      },
+      "key": "input_per_m",
+      "old": 0.43415,
+      "new": 0.95,
+      "source": "openrouter.ai/api/v1/models (moonshotai/kimi-k2.6)",
+      "status": "estimate"
+    },
+    {
+      "text": "Kimi K2.6 (MoE, MLA) / OpenRouter / output $/1M",
+      "loc": {
+        "dataset": "models",
+        "id": "kimi-k2.6",
+        "list": "api_prices",
+        "match": {
+          "provider": "OpenRouter"
+        }
+      },
+      "key": "output_per_m",
+      "old": 1.828,
+      "new": 4,
+      "source": "openrouter.ai/api/v1/models (moonshotai/kimi-k2.6)",
+      "status": "estimate"
+    },
+    {
+      "text": "Kimi K2.6 (MoE, MLA) / OpenRouter / cached input $/1M",
+      "loc": {
+        "dataset": "models",
+        "id": "kimi-k2.6",
+        "list": "api_prices",
+        "match": {
+          "provider": "OpenRouter"
+        }
+      },
+      "key": "cached_input_per_m",
+      "old": 0.07312,
+      "new": 0.16,
+      "source": "openrouter.ai/api/v1/models (moonshotai/kimi-k2.6)",
+      "status": "estimate"
+    },
+    {
+      "text": "Kimi K3 (MoE, MLA + linear attention) / OpenRouter / input $/1M",
+      "loc": {
+        "dataset": "models",
+        "id": "kimi-k3",
+        "list": "api_prices",
+        "match": {
+          "provider": "OpenRouter"
+        }
+      },
+      "key": "input_per_m",
+      "old": 2.7,
+      "new": 0.74,
+      "source": "openrouter.ai/api/v1/models (moonshotai/kimi-k3)",
+      "status": "estimate"
+    },
+    {
+      "text": "Kimi K3 (MoE, MLA + linear attention) / OpenRouter / cached input $/1M",
+      "loc": {
+        "dataset": "models",
+        "id": "kimi-k3",
+        "list": "api_prices",
+        "match": {
+          "provider": "OpenRouter"
+        }
+      },
+      "key": "cached_input_per_m",
+      "old": 0.27,
+      "new": 0.7,
+      "source": "openrouter.ai/api/v1/models (moonshotai/kimi-k3)",
+      "status": "estimate"
+    }
   ],
   "problems": [],
-  "sources_failed": [
-    "DeepSeek: download failed: https://api-docs.deepseek.com/quick_start/pricing: <urlopen error timed out>"
-  ],
+  "sources_failed": [],
   "manual_rows": [
     "API: Llama 3.1 8B Instruct / Together AI",
     "GPU rental: NVIDIA H100 SXM 80GB / Lambda 8x H100 SXM (reserved rate only)",
@@ -26,7 +104,7 @@
       "ok": true,
       "url": "https://openrouter.ai/api/v1/models",
       "rows": 31,
-      "changed": 1,
+      "changed": 0,
       "error": ""
     },
     "Fireworks": {
@@ -51,11 +129,11 @@
       "error": ""
     },
     "DeepSeek": {
-      "ok": false,
+      "ok": true,
       "url": "https://api-docs.deepseek.com/quick_start/pricing",
-      "rows": 0,
+      "rows": 2,
       "changed": 0,
-      "error": "download failed: https://api-docs.deepseek.com/quick_start/pricing: <urlopen error timed out>"
+      "error": ""
     },
     "Azure": {
       "ok": true,
