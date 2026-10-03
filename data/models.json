@@ -1004,9 +1004,9 @@
             "status": "estimate"
           },
           "output_per_m": {
-            "value": 13.5,
+            "value": 13.0,
             "source": "openrouter.ai/api/v1/models (moonshotai/kimi-k3)",
-            "as_of": "2026-10-02",
+            "as_of": "2026-10-03",
             "status": "estimate"
           },
           "cached_input_per_m": {
