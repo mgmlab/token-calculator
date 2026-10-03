@@ -328,6 +328,8 @@
 
     let started = false;
     if (TC.store.ready()) { started = true; await start(); statusPill(); }
+    // Links such as index.html#data (from the admin console) open the Data editor directly.
+    if (location.hash === '#data' && TC.store.ready()) showTab('data');
     TC.store.onChange(() => {
       statusPill();
       banner();

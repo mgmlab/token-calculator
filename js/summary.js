@@ -136,7 +136,7 @@
       else { warn('Throughput', 'theoretical estimate (optimistic)'); uncertain++; }
       const sp = on.server.price_usd || {};
       if (sp.status === 'placeholder') { warn('Server pricing', 'placeholder — replace with current list pricing'); uncertain++; }
-      else ok('Server pricing', sp.status === 'override' ? 'your entered pricing' : 'current pricing');
+      else ok('Server pricing', sp.status === 'quote' ? 'vendor quote' : sp.status === 'override' ? 'your entered pricing' : 'current pricing');
     }
     const ps = TC.priceStatus;
     ok('API & GPU rental prices', ps && ps.date ? `public list prices, checked ${ps.date}` : 'public list prices');

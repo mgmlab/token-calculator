@@ -408,6 +408,13 @@ def main():
 
     loaded, status = {}, {}
     changed, review, problems, manual = [], [], [], []
+    review_items = []  # the same held changes, structured so the admin console can accept or reject each one
+    # Changes an admin rejected in the console: the same jump (row, field, new value) is not held again.
+    try:
+        rejected = json.load(open(os.path.join(DATA, 'price-review-decisions.json'), encoding='utf-8')).get('rejected', [])
+    except (OSError, ValueError):
+        rejected = []
+    rej = {(json.dumps(r.get('loc'), sort_keys=True), r.get('key'), r.get('new')) for r in rejected}
 
     def source(name):
         cls = SOURCES[name]
@@ -420,7 +427,7 @@ def main():
                 status[cls.name] = {'ok': False, 'url': cls.url, 'rows': 0, 'changed': 0, 'error': str(e)[:300]}
         return loaded[cls], cls.name
 
-    def apply(row, values, src_text, label, sname, extra_status=None):
+    def apply(row, values, src_text, label, sname, extra_status=None, loc=None):
         for key, val in values.items():
             if val is None:
                 continue
@@ -434,7 +441,11 @@ def main():
                 continue
             name = f'{label} / {NICE.get(key, key)}'
             if isinstance(old, (int, float)) and old > 0 and abs(val - old) / old > MAX_CHANGE and not force:
+                if (json.dumps(loc, sort_keys=True), key, val) in rej:
+                    continue  # rejected before in the admin console
                 review.append(f'{name}: {old} → {val} (not applied; over {int(MAX_CHANGE * 100)}% change)')
+                review_items.append({'text': name, 'loc': loc, 'key': key, 'old': old, 'new': val,
+                                     'source': src_text, 'status': extra_status or 'estimate'})
                 continue
             parent[path[-1]] = {'value': val, 'source': src_text, 'as_of': today, 'status': extra_status or 'estimate'}
             changed.append(f'{name}: {old if old is not None else "unset"} → {val}')
@@ -472,7 +483,8 @@ def main():
                 else:
                     vals = src.lookup(fd)
                     txt = 'api-docs.deepseek.com/quick_start/pricing (peak rate; off-peak is 50% lower)'
-                apply(row, vals, txt, label, sname, fd.get('status'))
+                apply(row, vals, txt, label, sname, fd.get('status'),
+                      {'dataset': 'models', 'id': m['id'], 'list': 'api_prices', 'match': {'provider': row['provider']}})
             except SourceError as e:
                 problems.append(f'{label}: {e}')
 
@@ -494,7 +506,8 @@ def main():
                 if has_rsv and 'reserved_per_gpu_hr' not in vals:
                     manual.append(f'GPU rental: {label} (reserved rate only)')
                 where = {k: v for k, v in fd.items() if k != 'source'}
-                apply(offer, vals, f"{src.url} ({', '.join(f'{k}: {v}' for k, v in where.items())}) ÷ GPUs where priced per instance", label, sname)
+                apply(offer, vals, f"{src.url} ({', '.join(f'{k}: {v}' for k, v in where.items())}) ÷ GPUs where priced per instance", label, sname, None,
+                      {'dataset': 'gpus', 'id': g['id'], 'list': 'cloud', 'match': {'provider': offer['provider'], 'instance': offer['instance']}})
             except SourceError as e:
                 problems.append(f'{label}: {e}')
 
@@ -502,7 +515,7 @@ def main():
     report = {
         'checked_at': now, 'date': today,
         'values_changed': len(changed), 'changed': changed,
-        'needs_review': review, 'problems': problems, 'sources_failed': failed,
+        'needs_review': review, 'review_items': review_items, 'problems': problems, 'sources_failed': failed,
         'manual_rows': manual,
         'sources': status,
     }

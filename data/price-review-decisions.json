@@ -1,0 +1,4 @@
+{
+  "_readme": "Held price changes rejected in the admin console. The daily price check does not hold the same change (row, field, new value) again.",
+  "rejected": []
+}

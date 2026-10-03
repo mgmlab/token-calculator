@@ -586,3 +586,5 @@ tr.row.jump-hl > td { animation: jumpRow 4s ease-out; }
 .be-chart .win-label { font: 600 12px var(--font, inherit); fill: var(--accent); }
 .swatch.dash { background: none !important; border-top: 3px dashed var(--accent); height: 0; width: 18px; display: inline-block; vertical-align: middle; }
 .be-status { margin: 2px 0 6px; }
+
+.st-quote { background: var(--est-bg); color: var(--est-text); }

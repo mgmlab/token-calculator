@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Admin console · AI Inference Economics Calculator</title>
+  <link rel="icon" href="assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">
+  <link rel="stylesheet" href="css/admin.css?v=202610031312">
+</head>
+<body>
+  <div class="shell">
+    <aside class="nav" aria-label="Admin sections">
+      <a class="brand" href="#overview" data-go="overview">
+        <img src="assets/pellera-logo-small.png" alt="" class="brand-logo">
+        <span><b>Admin console</b><small>Inference Economics Calculator</small></span>
+      </a>
+      <nav class="nav-items">
+        <a href="#overview" data-go="overview"><i class="ic ic-grid"></i>Overview</a>
+        <a href="#prices" data-go="prices"><i class="ic ic-tag"></i>Prices<span class="pill-n" data-count="held"></span></a>
+        <a href="#quotes" data-go="quotes"><i class="ic ic-server"></i>Server quotes</a>
+        <a href="#pending" data-go="pending"><i class="ic ic-stack"></i>Pending changes<span class="pill-n" data-count="pending"></span></a>
+        <a href="#examples" data-go="examples"><i class="ic ic-check"></i>Worked examples</a>
+        <a href="#activity" data-go="activity"><i class="ic ic-clock"></i>Activity</a>
+        <a href="#settings" data-go="settings"><i class="ic ic-key"></i>Settings</a>
+      </nav>
+      <div class="nav-foot">
+        <div class="who" id="who"></div>
+        <a class="nav-link" href="index.html" target="_blank" rel="noopener">Open the calculator ↗</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="top">
+        <div><h1 id="page-title">Overview</h1><p id="page-sub" class="sub"></p></div>
+        <div class="top-actions">
+          <button class="btn ghost" id="refresh" title="Reload the latest data">↻ Refresh</button>
+          <button class="btn primary" id="publish-top" data-go="pending">Publish<span class="pill-n light" data-count="pending"></span></button>
+        </div>
+      </header>
+      <div id="view" class="view" aria-live="polite"></div>
+    </main>
+  </div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <dialog id="confirm" class="confirm"><form method="dialog"><h3></h3><div class="confirm-body"></div><div class="row end"><button class="btn ghost" value="cancel">Cancel</button><button class="btn primary" value="ok">Confirm</button></div></form></dialog>
+
+  <script src="js/config.js?v=202610031312"></script>
+  <script src="js/util.js?v=202610031312"></script>
+  <script src="js/data-store.js?v=202610031312"></script>
+  <script src="js/exclusions.js?v=202610031312"></script>
+  <script src="js/workload.js?v=202610031312"></script>
+  <script src="js/engines/onprem.js?v=202610031312"></script>
+  <script src="js/engines/cloud.js?v=202610031312"></script>
+  <script src="js/engines/api.js?v=202610031312"></script>
+  <script src="js/engines/hybrid.js?v=202610031312"></script>
+  <script src="js/summary.js?v=202610031312"></script>
+  <script src="js/breakeven.js?v=202610031312"></script>
+  <script src="js/examples.js?v=202610031312"></script>
+  <script src="js/admin/repo.js?v=202610031312"></script>
+  <script src="js/admin/admin.js?v=202610031312"></script>
+</body>
+</html>
