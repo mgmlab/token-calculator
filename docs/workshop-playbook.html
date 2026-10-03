@@ -88,7 +88,8 @@ code { font: 500 13.5px var(--mono); background: var(--accent-soft); padding: 1p
 .page { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 28px; padding-inline: 20px; }
 .page > .wrap { max-width: 880px; margin: 0; padding-inline: 0; }
 .side { position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; padding: 40px 6px 40px 0; display: flex; flex-direction: column; gap: 14px; font-size: 14.5px; }
-.side-title { font: 700 15px var(--display); color: var(--accent-ink); }
+.side a.side-title { font: 700 15px var(--display); color: var(--accent-ink); border-left: 0; padding: 0 0 4px; background: none; }
+.side a.side-title:hover { text-decoration: underline; }
 .side .grp { display: flex; flex-direction: column; gap: 2px; }
 .side h4 { margin: 0 0 4px; font: 600 11.5px/1 var(--body); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
 .side a { color: var(--ink-2); text-decoration: none; padding: 4px 10px; border-left: 2px solid var(--line); line-height: 1.35; }
@@ -123,9 +124,9 @@ section, .scn, .block { scroll-margin-top: 16px; }
 
 </head>
 <body>
-<div class="page">
+<div class="page" id="top">
 <nav class="side" aria-label="Playbook sections">
-  <div class="side-title">Workshop playbook</div>
+  <a class="side-title" href="#top" title="Back to the top">Workshop playbook</a>
   <div class="grp"><h4>Plan</h4><a href="#outcomes">What they leave with</a><a href="#room">Who’s in the room</a><a href="#before">Before the workshop</a><a href="#agenda">Agenda</a></div>
   <div class="grp"><h4>Run the session</h4><a href="#blk1">1 · Frame the decision</a><a href="#blk2">2 · Calibrate</a><a href="#blk3">3 · Build their workload</a><a href="#blk4">4 · Stress-test</a><a href="#blk5">5 · Read the result</a><a href="#blk6">6 · Next steps</a></div>
   <div class="grp"><h4>Reference patterns</h4><a href="#using-patterns">When and how to use them</a><a href="#a">A · Pilot</a><a href="#b">B · Approved providers</a><a href="#c">C · 24/7 contact center</a><a href="#d">D · Developer assistant</a><a href="#e">E · Queued documents</a><a href="#f">F · Small, growing</a><a href="#g">G · No data center</a></div>
