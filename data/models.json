@@ -725,13 +725,13 @@
       "self_hostable": true,
       "architecture": "dense",
       "params_total_b": {
-        "value": 24.0,
+        "value": 24,
         "source": "Mistral model card",
         "as_of": "2026-09-28",
         "status": "estimate"
       },
       "params_active_b": {
-        "value": 24.0,
+        "value": 24,
         "source": "Mistral model card",
         "as_of": "2026-09-28",
         "status": "estimate"
@@ -883,9 +883,9 @@
         {
           "provider": "OpenRouter",
           "input_per_m": {
-            "value": 0.43415,
+            "value": 0.95,
             "source": "openrouter.ai/api/v1/models (moonshotai/kimi-k2.6)",
-            "as_of": "2026-10-01",
+            "as_of": "2026-10-03",
             "status": "estimate"
           },
           "output_per_m": {
@@ -916,7 +916,7 @@
             "status": "estimate"
           },
           "output_per_m": {
-            "value": 4.0,
+            "value": 4,
             "source": "Moonshot AI price listed on OpenRouter (moonshotai/kimi-k2.6 endpoints)",
             "as_of": "2026-10-01",
             "status": "estimate"
@@ -1004,7 +1004,7 @@
             "status": "estimate"
           },
           "output_per_m": {
-            "value": 13.0,
+            "value": 13,
             "source": "openrouter.ai/api/v1/models (moonshotai/kimi-k3)",
             "as_of": "2026-10-03",
             "status": "estimate"
@@ -1025,13 +1025,13 @@
         {
           "provider": "Moonshot AI",
           "input_per_m": {
-            "value": 3.0,
+            "value": 3,
             "source": "Moonshot AI price listed on OpenRouter (moonshotai/kimi-k3 endpoints)",
             "as_of": "2026-10-01",
             "status": "estimate"
           },
           "output_per_m": {
-            "value": 15.0,
+            "value": 15,
             "source": "Moonshot AI price listed on OpenRouter (moonshotai/kimi-k3 endpoints)",
             "as_of": "2026-10-01",
             "status": "estimate"
@@ -1079,13 +1079,13 @@
         {
           "provider": "Fireworks AI",
           "input_per_m": {
-            "value": 3.0,
+            "value": 3,
             "source": "Fireworks price listed on OpenRouter (moonshotai/kimi-k3 endpoints)",
             "as_of": "2026-10-01",
             "status": "estimate"
           },
           "output_per_m": {
-            "value": 15.0,
+            "value": 15,
             "source": "Fireworks price listed on OpenRouter (moonshotai/kimi-k3 endpoints)",
             "as_of": "2026-10-01",
             "status": "estimate"
@@ -1106,13 +1106,13 @@
         {
           "provider": "Azure AI Foundry",
           "input_per_m": {
-            "value": 3.0,
+            "value": 3,
             "source": "Azure Retail Prices API, Foundry Models (FW Kimi-K3 Gl Inp Tokens / FW Kimi-K3 Gl Opt Tokens, eastus2); global deployment, hosted by Fireworks on Azure",
             "as_of": "2026-10-01",
             "status": "estimate"
           },
           "output_per_m": {
-            "value": 15.0,
+            "value": 15,
             "source": "Azure Retail Prices API, Foundry Models (FW Kimi-K3 Gl Inp Tokens / FW Kimi-K3 Gl Opt Tokens, eastus2); global deployment, hosted by Fireworks on Azure",
             "as_of": "2026-10-01",
             "status": "estimate"
@@ -1713,13 +1713,13 @@
         {
           "provider": "Anthropic",
           "input_per_m": {
-            "value": 1.0,
+            "value": 1,
             "source": "platform.claude.com/docs/en/about-claude/pricing",
             "as_of": "2026-09-28",
             "status": "estimate"
           },
           "output_per_m": {
-            "value": 5.0,
+            "value": 5,
             "source": "platform.claude.com/docs/en/about-claude/pricing",
             "as_of": "2026-09-28",
             "status": "estimate"
@@ -1756,13 +1756,13 @@
         {
           "provider": "Anthropic",
           "input_per_m": {
-            "value": 2.0,
+            "value": 2,
             "source": "platform.claude.com/docs/en/about-claude/pricing",
             "as_of": "2026-09-28",
             "status": "estimate"
           },
           "output_per_m": {
-            "value": 10.0,
+            "value": 10,
             "source": "platform.claude.com/docs/en/about-claude/pricing",
             "as_of": "2026-09-28",
             "status": "estimate"
@@ -1799,13 +1799,13 @@
         {
           "provider": "Anthropic",
           "input_per_m": {
-            "value": 4.0,
+            "value": 4,
             "source": "platform.claude.com/docs/en/about-claude/pricing",
             "as_of": "2026-09-28",
             "status": "estimate"
           },
           "output_per_m": {
-            "value": 20.0,
+            "value": 20,
             "source": "platform.claude.com/docs/en/about-claude/pricing",
             "as_of": "2026-09-28",
             "status": "estimate"
@@ -1959,13 +1959,13 @@
         {
           "provider": "Google",
           "input_per_m": {
-            "value": 2.0,
+            "value": 2,
             "source": "ai.google.dev/gemini-api/docs/pricing (paid tier, prompts <=200k)",
             "as_of": "2026-09-28",
             "status": "estimate"
           },
           "output_per_m": {
-            "value": 12.0,
+            "value": 12,
             "source": "ai.google.dev/gemini-api/docs/pricing (paid tier, prompts <=200k)",
             "as_of": "2026-09-28",
             "status": "estimate"
@@ -2045,13 +2045,13 @@
         {
           "provider": "OpenAI",
           "input_per_m": {
-            "value": 2.0,
+            "value": 2,
             "source": "developers.openai.com/api/docs/pricing (standard tier)",
             "as_of": "2026-09-28",
             "status": "estimate"
           },
           "output_per_m": {
-            "value": 12.0,
+            "value": 12,
             "source": "developers.openai.com/api/docs/pricing (standard tier)",
             "as_of": "2026-09-28",
             "status": "estimate"
@@ -2088,13 +2088,13 @@
         {
           "provider": "OpenAI",
           "input_per_m": {
-            "value": 2.0,
+            "value": 2,
             "source": "developers.openai.com/api/docs/pricing (standard tier)",
             "as_of": "2026-09-28",
             "status": "estimate"
           },
           "output_per_m": {
-            "value": 10.0,
+            "value": 10,
             "source": "developers.openai.com/api/docs/pricing (standard tier)",
             "as_of": "2026-09-28",
             "status": "estimate"
