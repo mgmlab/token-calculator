@@ -581,3 +581,8 @@ tr.row.jump-hl > td { animation: jumpRow 4s ease-out; }
 /* Breakeven tab: yearly cost by usage level */
 .be-table td.be-best { color: var(--accent); font-weight: 700; }
 .be-table tr.be-today td { background: var(--accent-soft); }
+
+/* breakeven chart: lowest-cost shading and hybrid line */
+.be-chart .win-label { font: 600 12px var(--font, inherit); fill: var(--accent); }
+.swatch.dash { background: none !important; border-top: 3px dashed var(--accent); height: 0; width: 18px; display: inline-block; vertical-align: middle; }
+.be-status { margin: 2px 0 6px; }

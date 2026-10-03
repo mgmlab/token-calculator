@@ -38,8 +38,14 @@
   }
 
   let beToken = 0;
+  // The first draw uses the quick sweep (servers sized for the full peak); a second pass recomputes ~28 usage levels with
+  // the Analysis summary's rules (right-sized on-prem, hybrid where it wins) and redraws. Both results are cached.
+  let enhCache = null, tableCache = null;
+  const WIN = { onprem: 'Buy servers', cloud_reserved: 'Rent GPUs (reserved)', cloud_ondemand: 'Rent GPUs (on-demand)', api_same: 'Pay per token', hybrid: 'Hybrid' };
   TC.renderBreakeven = function (el, data, w) {
-    const be = TC.breakeven(data, w, { kMax });
+    const ckey = JSON.stringify(w) + '|' + kMax;
+    const enh = enhCache && enhCache.key === ckey && enhCache.data === data ? enhCache.be : null;
+    const be = enh || TC.breakeven(data, w, { kMax });
     const pts = be.points;
     const series = TC.SERIES.map((s, i) => Object.assign({}, s, { color: `var(--series-${i + 1})` }));
     const active = series.filter(s => !hidden.has(s.key) && pts.some(p => p.series[s.key]));
@@ -47,6 +53,7 @@
     const xs = pts.map(p => p.tokensMonth);
     const ys = [];
     pts.forEach(p => active.forEach(s => { const v = valOf(p, s.key); if (v != null) ys.push(v); }));
+    pts.forEach(p => { if (p.hybrid) ys.push(p.hybrid.monthly); });
     const xMin = Math.min(...xs), xMax = Math.max(...xs);
     // Plain dollar axis, so the growing dollar gap between options is visible
     // (a log dollar axis shrinks a 2× gap to a sliver).
@@ -70,6 +77,19 @@
     svg += `<text class="axis-label" x="${(M.l + W - M.r) / 2}" y="${H - 8}" text-anchor="middle">Tokens per month (input + output, log scale)</text>`;
     svg += `<text class="axis-label" transform="translate(16 ${(M.t + H - M.b) / 2}) rotate(-90)" text-anchor="middle">Monthly cost</text>`;
 
+    // Shaded background: the lowest-cost option at each usage level (summary rules); hybrid ranges are labelled.
+    const winColor = k => (k === 'hybrid' ? 'var(--accent)' : series.find(sr => sr.key === k).color);
+    if (be.enhanced) {
+      const xsP = pts.map(p => X(p.tokensMonth));
+      const edge = i => (i <= 0 ? M.l : i >= pts.length ? W - M.r : (xsP[i - 1] + xsP[i]) / 2);
+      let runs = [];
+      pts.forEach((p, i) => { if (!p.winner) return; const last = runs[runs.length - 1]; if (last && last.k === p.winner && last.to === i - 1) last.to = i; else runs.push({ k: p.winner, from: i, to: i }); });
+      runs.forEach(r => {
+        const x0 = edge(r.from), x1 = edge(r.to + 1), hy = r.k === 'hybrid';
+        svg += `<rect class="win-band" x="${x0.toFixed(1)}" y="${M.t}" width="${Math.max(0, x1 - x0).toFixed(1)}" height="${H - M.t - M.b}" fill="${winColor(r.k)}" opacity="${hy ? 0.16 : 0.07}"/>`;
+        if (hy && x1 - x0 > 70) svg += `<text class="win-label" x="${((x0 + x1) / 2).toFixed(1)}" y="${M.t + 30}" text-anchor="middle">Hybrid cheapest here</text>`;
+      });
+    }
     const cx = X(be.currentTokens);
     if (be.currentTokens >= xMin && be.currentTokens <= xMax) {
       svg += `<line class="current" x1="${cx}" x2="${cx}" y1="${M.t}" y2="${H - M.b}"/><text class="current-label" x="${cx + 5}" y="${M.t + 12}">You are here (${f.tokens(be.currentTokens)} tokens/mo)</text>`;
@@ -85,6 +105,12 @@
       });
       svg += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round"/>`;
     });
+
+    if (be.enhanced && pts.some(p => p.hybrid)) {
+      let d = '', pen = false;
+      pts.forEach(p => { if (!p.hybrid) { pen = false; return; } d += (pen ? 'L' : 'M') + X(p.tokensMonth).toFixed(1) + ' ' + Y(p.hybrid.monthly).toFixed(1) + ' '; pen = true; });
+      svg += `<path d="${d}" fill="none" stroke="var(--accent)" stroke-width="3" stroke-dasharray="6 4" stroke-linejoin="round"/>`;
+    }
 
     // Breakeven markers: numbered dots on the chart; the explanation for each number is in
     // the "Breakeven points" list below, so labels never collide on the chart.
@@ -158,6 +184,8 @@
     else if (apiCross && apiCross.index === 0) headline += 'Owning servers is already cheaper than paying per token for the same model.';
     else if (apiCross && apiCross.hasData) headline += `Paying per token stays cheaper than owning servers up to ${f.tokens(pts[pts.length - 1].tokensMonth)} tokens/month — try a larger range or a flatter (24/7) traffic pattern.`;
 
+    // Until the table (summary rules) is ready, don't show the quick sweep's headline: it ignores right-sizing and can disagree.
+    if (!(tableCache && tableCache.key === JSON.stringify(w) && tableCache.data === data)) headline = '<span class="muted">Working out today’s lowest-cost option…</span>';
     const help = `<details class="be-help" ${showHelp ? 'open' : ''}>
       <summary>How to read this chart</summary>
       <div class="be-help-grid">
@@ -175,6 +203,7 @@
             <li><strong>Smooth curves</strong> (pay per token): the bill grows with every token. (The usage axis is compressed so small and large volumes both fit, which is why a straight price line looks curved.)</li>
             <li><strong>Dashed line</strong> = your usage today. <strong>Numbered circles</strong> = breakeven points, explained under the chart: to the right of each, owning servers is cheaper.</li>
             <li>The bracket at the right shows how much owning servers saves (or costs) per month at the top of the range.</li>
+            <li><strong>Shaded background</strong> = the lowest-cost option at that usage level, using the same rules as the summary (right-sized servers where they are cheaper). Purple bands mark where a <strong>hybrid</strong> is cheapest; the dashed purple line is its cost there.</li>
           </ul></div>
       </div>
     </details>`;
@@ -198,7 +227,8 @@
       <h3>Yearly cost at different usage levels</h3>
       <div id="be-table"><p class="muted small">Working out each usage level…</p></div>
       <h3>Monthly cost as usage grows</h3>
-      <div class="legend">${legend}</div>
+      <div class="legend">${legend}${be.enhanced && pts.some(p => p.hybrid) ? '<span class="legend-item"><span class="swatch dash"></span>Hybrid (where it is the lowest-cost mix)</span>' : ''}</div>
+      <p class="muted small be-status">${be.enhanced ? `Shaded background: the lowest-cost option at each usage level (${[...new Set(pts.map(p => p.winner).filter(Boolean))].map(k => WIN[k]).join(', ')}), using the same rules as the summary and table: right-sized servers where they are cheaper, and the hybrid only where it wins.` : 'Updating the chart with right-sized servers and the hybrid option…'}</p>
       <div class="chart-wrap">${svg}<div class="tooltip" hidden></div></div>
       <h3>Breakeven points</h3>
       <ul class="crossovers">${cross}</ul>
@@ -217,7 +247,9 @@
       const host = el.querySelector('#be-table');
       if (!host) return;
       let rows;
-      try { rows = TC.breakevenTable(data, w); } catch (e) { console.error(e); host.innerHTML = ''; return; }
+      const tkey = JSON.stringify(w);
+      try { rows = tableCache && tableCache.key === tkey && tableCache.data === data ? tableCache.rows : TC.breakevenTable(data, w); } catch (e) { console.error(e); host.innerHTML = ''; return; }
+      tableCache = { key: tkey, data, rows };
       const NAMES = { onprem: 'Buy servers', cloud: 'Rent GPUs', api: 'Pay per token', hybrid: 'Hybrid' };
       const cell = (r, key) => {
         const v = r.cells[key];
@@ -227,7 +259,7 @@
       const tolS = Number(w.peak_wait_s == null ? 5 : w.peak_wait_s);
       host.innerHTML = `<div class="table-wrap"><table class="results-table compact be-table"><thead><tr><th>Usage</th><th class="num">Tokens / month</th>${Object.values(NAMES).map(n => `<th class="num">${n} / yr</th>`).join('')}<th>Lowest cost</th></tr></thead><tbody>` +
         rows.map(r => { const today = Math.abs(r.k - 1) < 1e-9; return `<tr class="${today ? 'be-today' : ''}"><td>${today ? '<strong>Today</strong>' : (r.k < 1 ? r.k : f.num(r.k, 0)) + '× today'}</td><td class="num">${f.tokens(r.tokensMonth)}</td>${Object.keys(NAMES).map(k => cell(r, k)).join('')}<td class="be-best">${r.best ? NAMES[r.best] : '—'}</td></tr>`; }).join('') +
-        `</tbody></table></div><p class="muted small">Uses the same rules as the Analysis summary.${rows.some(r => r.rightSized) ? ` * Right-sized on-prem: the smallest setup that keeps busiest-hour waits within ${TC.tolText(tolS)}.` : ''} Hybrid shows a cost only where it is the lowest-cost mix. The chart below sizes servers for the full peak at every level, so its on-prem line can sit above these figures.</p>`;
+        `</tbody></table></div><p class="muted small">Uses the same rules as the Analysis summary.${rows.some(r => r.rightSized) ? ` * Right-sized on-prem: the smallest setup that keeps busiest-hour waits within ${TC.tolText(tolS)}.` : ''} Hybrid shows a cost only where it is the lowest-cost mix.</p>`;
       // Headline from the same rules, so it never contradicts the table or the Analysis summary.
       const hl = el.querySelector('.be-headline'), t = rows.find(r => Math.abs(r.k - 1) < 1e-9);
       if (hl && t && t.best) {
@@ -240,6 +272,13 @@
         else txt += `Owning servers becomes cheaper than paying per token for the same model by about <strong>${f.num(rows[from].k, 0)}×</strong> today’s usage.`;
         hl.innerHTML = txt;
       }
+      if (!enh) setTimeout(() => {
+        if (myTok !== beToken || !el.isConnected) return;
+        let e2;
+        try { e2 = TC.breakeven(data, w, { kMax, points: 28, enhance: true }); } catch (err) { console.error(err); return; }
+        enhCache = { key: ckey, data, be: e2 };
+        if (myTok === beToken && el.querySelector('#be-table')) TC.renderBreakeven(el, data, w);
+      }, 20);
     }, 30);
 
     const det = el.querySelector('.be-help');
@@ -275,7 +314,7 @@
         else c.setAttribute('visibility', 'hidden');
       });
       tip.hidden = false;
-      tip.innerHTML = `<div class="tip-head">${f.tokens(p.tokensMonth)} tokens / month</div>` + active.map(s => {
+      tip.innerHTML = `<div class="tip-head">${f.tokens(p.tokensMonth)} tokens / month${p.winner ? ` · lowest: ${WIN[p.winner]}` : ''}</div>` + (p.hybrid ? `<div class="tip-row"><span class="swatch dash"></span><span class="tip-label">Hybrid</span><span class="tip-val">${f.usd(p.hybrid.monthly)}/mo</span></div><div class="tip-sub">${esc(p.hybrid.name)} · ${esc(p.hybrid.sub)}</div>` : '') + active.map(s => {
         const v = p.series[s.key];
         return `<div class="tip-row"><span class="swatch" style="background:${s.color}"></span><span class="tip-label">${esc(s.label)}</span><span class="tip-val">${v ? f.usd(v.monthly) + '/mo' : '—'}</span></div>${v ? `<div class="tip-sub">${esc(v.name)} · ${esc(v.sub)}</div>` : ''}`;
       }).join('');

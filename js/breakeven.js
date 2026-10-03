@@ -69,6 +69,19 @@
         const b = cheapest(s.pick(r));
         p.series[s.key] = b ? { monthly: b.monthly, name: b.name, sub: b.sub, util: b.util } : null;
       });
+      if (o.enhance) {
+        // Same rules as the Analysis summary: right-sized on-prem where it is cheaper, and the hybrid where it wins.
+        let hy = null;
+        try { hy = TC.hybrid(data, r.w, r); } catch (e) { hy = null; }
+        const rs = hy && hy.rightSized;
+        if (rs && p.series.onprem && rs.ownedMonthly < p.series.onprem.monthly) {
+          p.series.onprem = { monthly: rs.ownedMonthly, name: rs.setup, sub: `right-sized: busiest-hour waits up to ${TC.tolText(hy.tol)}`, util: rs.row.util, rightSized: true };
+        }
+        p.hybrid = hy && hy.wins ? { monthly: hy.best.total, name: hy.best.setup + ' + ' + hy.api.name, sub: `${TC.fmtShare(hy.best.share)} of tokens on owned GPUs` } : null;
+        const cands = TC.SERIES.filter(x => x.key !== 'api_closed').map(x => [x.key, p.series[x.key] && p.series[x.key].monthly]).concat([['hybrid', p.hybrid && p.hybrid.monthly]])
+          .filter(([, v]) => v != null && isFinite(v)).sort((a, b) => a[1] - b[1]);
+        p.winner = cands.length ? cands[0][0] : null;
+      }
       pts.push(p);
     }
 
@@ -89,6 +102,6 @@
       return { key: s.key, label: s.label, vs: s.vs, index: idx, hasData, tokensMonth: idx > 0 ? pts[idx].tokensMonth : null, text };
     });
 
-    return { points: pts, crossovers, currentTokens: TC.workload(TC.effectiveWorkload(w)).tMo };
+    return { points: pts, crossovers, enhanced: !!o.enhance, currentTokens: TC.workload(TC.effectiveWorkload(w)).tMo };
   };
 })();
