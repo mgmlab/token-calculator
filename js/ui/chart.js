@@ -228,6 +228,18 @@
       host.innerHTML = `<div class="table-wrap"><table class="results-table compact be-table"><thead><tr><th>Usage</th><th class="num">Tokens / month</th>${Object.values(NAMES).map(n => `<th class="num">${n} / yr</th>`).join('')}<th>Lowest cost</th></tr></thead><tbody>` +
         rows.map(r => { const today = Math.abs(r.k - 1) < 1e-9; return `<tr class="${today ? 'be-today' : ''}"><td>${today ? '<strong>Today</strong>' : (r.k < 1 ? r.k : f.num(r.k, 0)) + '× today'}</td><td class="num">${f.tokens(r.tokensMonth)}</td>${Object.keys(NAMES).map(k => cell(r, k)).join('')}<td class="be-best">${r.best ? NAMES[r.best] : '—'}</td></tr>`; }).join('') +
         `</tbody></table></div><p class="muted small">Uses the same rules as the Analysis summary.${rows.some(r => r.rightSized) ? ` * Right-sized on-prem: the smallest setup that keeps busiest-hour waits within ${TC.tolText(tolS)}.` : ''} Hybrid shows a cost only where it is the lowest-cost mix. The chart below sizes servers for the full peak at every level, so its on-prem line can sit above these figures.</p>`;
+      // Headline from the same rules, so it never contradicts the table or the Analysis summary.
+      const hl = el.querySelector('.be-headline'), t = rows.find(r => Math.abs(r.k - 1) < 1e-9);
+      if (hl && t && t.best) {
+        let txt = `At your usage today (<strong>${f.tokens(t.tokensMonth)} tokens/month</strong>), the lowest-cost option is <strong>${NAMES[t.best].toLowerCase()}</strong>${t.best === 'onprem' && t.rightSized ? ' (right-sized)' : ''} at about <strong>${f.usdCompact(t.cells[t.best])}/yr</strong>. `;
+        const ownWins = r => r.cells.onprem != null && r.cells.api != null && r.cells.onprem <= r.cells.api;
+        const from = rows.findIndex((r, i) => rows.slice(i).every(ownWins));
+        if (t.cells.api == null) txt += '';
+        else if (from === -1) txt += 'Paying per token stays cheaper than owning servers at every usage level in the table.';
+        else if (rows[from].k <= 1) txt += 'Owning servers is already cheaper than paying per token for the same model' + (rows[from].k < 1 ? ', and stays cheaper as usage grows.' : '.');
+        else txt += `Owning servers becomes cheaper than paying per token for the same model by about <strong>${f.num(rows[from].k, 0)}×</strong> today’s usage.`;
+        hl.innerHTML = txt;
+      }
     }, 30);
 
     const det = el.querySelector('.be-help');
